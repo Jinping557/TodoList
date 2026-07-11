@@ -5,62 +5,6 @@ from pathlib import Path
 from backend.config_manager import get_config_manager
 from backend.platforms.interface.service import PlatformService
 
-def enable_linux_auto_start(app_name) -> bool:
-    """Linux平台启用自启动"""
-    from backend.utils import utils
-    try:
-        # 使用传统的 autostart 方式
-        # 获取autostart目录
-        autostart_dir = Path.home() / '.config' / 'autostart'
-        autostart_dir.mkdir(parents=True, exist_ok=True)
-
-        # 创建.desktop文件
-        desktop_file = autostart_dir / f"{app_name}.desktop"
-
-        # 启动命令
-        launch_cmd = utils.get_launch_command()
-
-        # 桌面文件内容
-        desktop_content = f"""[Desktop Entry]
-Type=Application
-Name={app_name}
-Exec={launch_cmd}
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
-Comment=TodoList应用
-"""
-
-        with open(desktop_file, 'w', encoding='utf-8') as f:
-            f.write(desktop_content)
-
-        # 设置可执行权限
-        desktop_file.chmod(0o755)
-
-        print(f"Linux开机自启动已启用: {desktop_file}")
-        return True
-
-    except Exception as e:
-        print(f"Linux启用自启动失败: {e}")
-        return False
-
-def disable_linux_auto_start(app_name) -> bool:
-    """Linux平台禁用自启动"""
-    try:
-        # 删除.desktop文件
-        autostart_dir = Path.home() / '.config' / 'autostart'
-        desktop_file = autostart_dir / f"{app_name}.desktop"
-
-        if desktop_file.exists():
-            desktop_file.unlink()
-
-        print("Linux开机自启动已禁用")
-        return True
-
-    except Exception as e:
-        print(f"Linux禁用自启动失败: {e}")
-        return False
-
 class LinuxService(PlatformService):
     def shortcut_handler(self, shortcut, handler):
         try:
@@ -68,10 +12,10 @@ class LinuxService(PlatformService):
             from pynput import keyboard
             listener = keyboard.GlobalHotKeys({shortcut: handler})
             listener.start()
-            print(f"【系统日志】快捷键监听成功挂载！当前在 Mac 下的标准热键为: {shortcut}")
+            self.backend_logger().info(f"【系统日志】快捷键监听成功挂载！当前在 Mac 下的标准热键为: {shortcut}")
             return None
         except Exception as e:
-            print(f"【系统日志】快捷键挂载失败: {e}")
+            self.backend_logger().error(f"【系统日志】快捷键挂载失败: {e}")
 
     def force_kill_process_tree(self, pid):
         """强制结束当前进程及其所有子进程的统一接口"""
@@ -188,8 +132,64 @@ class LinuxService(PlatformService):
             'supported': True
         }
 
+    def enable_linux_auto_start(self, app_name) -> bool:
+        """Linux平台启用自启动"""
+        from backend.utils import utils
+        try:
+            # 使用传统的 autostart 方式
+            # 获取autostart目录
+            autostart_dir = Path.home() / '.config' / 'autostart'
+            autostart_dir.mkdir(parents=True, exist_ok=True)
+
+            # 创建.desktop文件
+            desktop_file = autostart_dir / f"{app_name}.desktop"
+
+            # 启动命令
+            launch_cmd = utils.get_launch_command()
+
+            # 桌面文件内容
+            desktop_content = f"""[Desktop Entry]
+    Type=Application
+    Name={app_name}
+    Exec={launch_cmd}
+    Hidden=false
+    NoDisplay=false
+    X-GNOME-Autostart-enabled=true
+    Comment=TodoList应用
+    """
+
+            with open(desktop_file, 'w', encoding='utf-8') as f:
+                f.write(desktop_content)
+
+            # 设置可执行权限
+            desktop_file.chmod(0o755)
+
+            self.backend_logger().info(f"Linux开机自启动已启用: {desktop_file}")
+            return True
+
+        except Exception as e:
+            self.backend_logger().error(f"Linux启用自启动失败: {e}")
+            return False
+
+    def disable_linux_auto_start(self, app_name) -> bool:
+        """Linux平台禁用自启动"""
+        try:
+            # 删除.desktop文件
+            autostart_dir = Path.home() / '.config' / 'autostart'
+            desktop_file = autostart_dir / f"{app_name}.desktop"
+
+            if desktop_file.exists():
+                desktop_file.unlink()
+
+            self.backend_logger().info("Linux开机自启动已禁用")
+            return True
+
+        except Exception as e:
+            self.backend_logger().error(f"Linux禁用自启动失败: {e}")
+            return False
+
     def set_auto_start_enabled(self, enabled):
-        print(f"设置开机自启动状态: {enabled}")
+        self.backend_logger().info(f"设置开机自启动状态: {enabled}")
         try:
             # 保存配置
             from backend.database.operations import TodoDatabase
@@ -199,12 +199,12 @@ class LinuxService(PlatformService):
 
             # 根据状态设置或取消自启动
             if enabled:
-                return enable_linux_auto_start(app_name)
+                return self.enable_linux_auto_start(app_name)
             else:
-                return disable_linux_auto_start(app_name)
+                return self.disable_linux_auto_start(app_name)
 
         except Exception as e:
-            print(f"设置开机自启动失败: {e}")
+            self.backend_logger().error(f"设置开机自启动失败: {e}")
             return False
 
     def start_app(self):
