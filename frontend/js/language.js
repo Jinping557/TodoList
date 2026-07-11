@@ -24,9 +24,9 @@ class LanguageManager {
             await this.applyLanguage(this.currentLanguage);
             
             this.isInitialized = true;
-            console.log('LanguageManager initialized successfully');
+            logger.info('LanguageManager initialized successfully');
         } catch (error) {
-            console.error('Failed to initialize LanguageManager:', error);
+            logger.error('Failed to initialize LanguageManager:', error);
             // 使用默认语言
             this.currentLanguage = 'zh';
         }
@@ -55,7 +55,7 @@ class LanguageManager {
                 this.currentLanguage = savedLanguage;
             }
         } catch (error) {
-            console.error('Failed to restore language setting:', error);
+            logger.error('Failed to restore language setting:', error);
             this.currentLanguage = 'zh';
         }
     }
@@ -71,9 +71,9 @@ class LanguageManager {
             if (result.success) {
                 localStorage.setItem('todolist_language', language);
             }
-            console.log('Language setting saved:', language);
+            logger.info('Language setting saved:', language);
         } catch (error) {
-            console.error('Failed to save language setting:', error);
+            logger.error('Failed to save language setting:', error);
             this.currentLanguage = 'zh';
         }
     }
@@ -81,7 +81,7 @@ class LanguageManager {
     // 切换语言
     async switchLanguage(language) {
         if (!window.Languages || !window.Languages[language]) {
-            console.error('Language not supported:', language);
+            logger.error('Language not supported:', language);
             return false;
         }
         
@@ -102,10 +102,10 @@ class LanguageManager {
             // 通知观察者
             this.notifyObservers();
             
-            console.log('Language switched to:', language);
+            logger.info('Language switched to:', language);
             return true;
         } catch (error) {
-            console.error('Failed to switch language:', error);
+            logger.error('Failed to switch language:', error);
             return false;
         }
     }
@@ -115,10 +115,10 @@ class LanguageManager {
         return new Promise((resolve) => {
             const checkConfig = () => {
                 if (window.Languages && window.Languages.zh && window.Languages.en) {
-                    console.log('Languages config loaded successfully');
+                    logger.info('Languages config loaded successfully');
                     resolve();
                 } else {
-                    console.log('Waiting for languages config to load...');
+                    logger.info('Waiting for languages config to load...');
                     setTimeout(checkConfig, 100);
                 }
             };
@@ -130,7 +130,7 @@ class LanguageManager {
     async applyLanguage(language) {
         // 检查语言配置是否可用
         if (!window.Languages || !window.Languages.zh || !window.Languages.en) {
-            console.warn('Languages config not fully loaded yet, waiting...');
+            logger.warning('Languages config not fully loaded yet, waiting...');
             // 等待配置加载完成
             await this.waitForLanguagesConfig();
         }
@@ -139,13 +139,13 @@ class LanguageManager {
         this.retryCount = 0;
         
         if (!window.Languages[language]) {
-            console.warn('Language not available:', language, 'falling back to zh');
+            logger.warning('Language not available:', language, 'falling back to zh');
             // 如果请求的语言不可用，回退到中文
             language = 'zh';
             
             // 再次检查中文是否可用
             if (!window.Languages[language]) {
-                console.error('Fallback language zh also not available');
+                logger.error('Fallback language zh also not available');
                 return;
             }
         }
@@ -789,7 +789,7 @@ class LanguageManager {
             try {
                 observer(this.currentLanguage);
             } catch (error) {
-                console.error('Observer error:', error);
+                logger.error('Observer error:', error);
             }
         });
     }

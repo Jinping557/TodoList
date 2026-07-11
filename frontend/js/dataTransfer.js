@@ -4,7 +4,7 @@
 
 class DataTransfer {
     constructor() {
-        console.log('DataTransfer构造函数被调用');
+        logger.info('DataTransfer构造函数被调用');
         this.isSharing = false;
         this.currentMode = 'share';
         this.sharedData = null;
@@ -22,23 +22,23 @@ class DataTransfer {
             setTimeout(() => {
                 this.bindEvents();
                 this.isInitialized = true;
-                console.log('DataTransfer初始化完成');
+                logger.info('DataTransfer初始化完成');
             }, 100);
         } catch (error) {
-            console.error('DataTransfer初始化失败:', error);
+            logger.error('DataTransfer初始化失败:', error);
             this.isInitialized = false;
         }
     }
 
     initDOM() {
-        console.log('初始化DOM元素...');
+        logger.info('初始化DOM元素...');
         
         // 核心模态框元素
         this.modal = document.getElementById('data-transfer-modal');
         this.closeBtn = document.getElementById('data-transfer-close');
         
         if (!this.modal) {
-            console.error('未找到数据传输模态框元素');
+            logger.error('未找到数据传输模态框元素');
             return false;
         }
         
@@ -62,16 +62,16 @@ class DataTransfer {
         this.confirmImportBtn = document.getElementById('confirm-import-btn');
         this.cancelImportBtn = document.getElementById('cancel-import-btn');
 
-        console.log('DOM元素初始化完成');
+        logger.info('DOM元素初始化完成');
         return true;
     }
 
     bindEvents() {
-        console.log('开始绑定事件...');
+        logger.info('开始绑定事件...');
 
         // 注意：数据传输通过设置中心的数据共享/接收按钮来调用
 
-        console.log('数据传输按钮事件绑定已跳过（功能已迁移到设置中心）');
+        logger.info('数据传输按钮事件绑定已跳过（功能已迁移到设置中心）');
 
         // 关闭模态框
         if (this.closeBtn) {
@@ -117,22 +117,22 @@ class DataTransfer {
             this.cancelImportBtn.addEventListener('click', () => this.cancelImport());
         }
 
-        console.log('所有事件绑定完成');
+        logger.info('所有事件绑定完成');
     }
 
     openModal() {
-        console.log('打开模态框');
+        logger.info('打开模态框');
         if (this.modal) {
             this.modal.style.display = 'flex';
             this.loadDataSummary();
         } else {
-            console.log('模态框未找到！');
+            logger.info('模态框未找到！');
             Utils.showToast(window.languageManager.getText('initializationFailed', '应用初始化失败'), 'error');
         }
     }
 
     closeModal() {
-        console.log('关闭模态框');
+        logger.info('关闭模态框');
         if (this.modal) {
             this.modal.style.display = 'none';
             if (this.isSharing) {
@@ -173,13 +173,13 @@ class DataTransfer {
                 }
             }
         } catch (error) {
-            console.error('加载数据摘要失败:', error);
+            logger.error('加载数据摘要失败:', error);
             this.shareDataSummary.innerHTML = '<p>加载数据失败</p>';
         }
     }
 
     async startSharing() {
-        console.log('启动共享...');
+        logger.info('启动共享...');
         try {
             const exportResult = await window.pywebview.api.p2p_export_data();
             if (exportResult.success) {
@@ -207,15 +207,15 @@ class DataTransfer {
                     Utils.showToast(message, 'success');
                 } else {
                     Utils.setLoading(false);
-                    console.error('启动P2P失败:', result.error);
+                    logger.error('启动P2P失败:', result.error);
                     Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${result.error}`, 'error');
                 }
             } else {
-                console.error('导出数据失败:', exportResult.error);
+                logger.error('导出数据失败:', exportResult.error);
                 Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${exportResult.error}`, 'error');
             }
         } catch (error) {
-            console.error('启动共享失败:', error);
+            logger.error('启动共享失败:', error);
             Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${error.message}`, 'error');
         }
     }
@@ -239,7 +239,7 @@ class DataTransfer {
             }
         } catch (error) {
             Utils.setLoading(false);
-            console.error('停止共享失败:', error);
+            logger.error('停止共享失败:', error);
             Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${error.message}`, 'error');
         }
     }
@@ -261,7 +261,7 @@ class DataTransfer {
                 Utils.showToast(`${window.languageManager.getText('unknownErrorOccurred', '发生了未知错误')}: ${result.error}`, 'error');
             }
         } catch (error) {
-            console.error('扫描设备失败:', error);
+            logger.error('扫描设备失败:', error);
             Utils.showToast(`${window.languageManager.getText('unknownErrorOccurred', '发生了未知错误')}: ${error.message}`, 'error');
         } finally {
             this.scanDevicesBtn.disabled = false;
@@ -302,7 +302,7 @@ class DataTransfer {
                 Utils.showToast(window.languageManager.getText('receiveDataFailed', '接收数据失败'), 'error');
             }
         } catch (error) {
-            console.error('接收数据失败:', error);
+            logger.error('接收数据失败:', error);
             this.deviceList.innerHTML = `<p style="text-align: center;">${window.languageManager.getText('receiveDataFailed', '接收数据失败')}</p>`;
             Utils.showToast(`${window.languageManager.getText('receiveDataFailed', '接收数据失败')}: ${error.message}`, 'error');
         }
@@ -350,7 +350,7 @@ class DataTransfer {
                 }
             );
         } catch (error) {
-            console.error('导入数据失败:', error);
+            logger.error('导入数据失败:', error);
             Utils.showToast(`${window.languageManager.getText('dataImportedFailed', '数据导入失败')}: ${error.message}`, 'error');
         } finally {
             this.confirmImportBtn.disabled = false;
@@ -369,13 +369,13 @@ let dataTransfer = null;
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded - 创建DataTransfer实例');
+    logger.info('DOMContentLoaded - 创建DataTransfer实例');
 
     // 延迟初始化，确保所有脚本都加载完成
     setTimeout(() => {
         if (!dataTransfer) {
             dataTransfer = new DataTransfer();
-            console.log('DataTransfer实例创建成功');
+            logger.info('DataTransfer实例创建成功');
             // 导出到全局
             window.dataTransfer = dataTransfer;
         }
@@ -384,11 +384,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // window加载后再次尝试
 window.addEventListener('load', () => {
-    console.log('window.load - 检查DataTransfer实例');
+    logger.info('window.load - 检查DataTransfer实例');
 
     if (!dataTransfer) {
         dataTransfer = new DataTransfer();
-        console.log('DataTransfer实例（window.load）创建成功');
+        logger.info('DataTransfer实例（window.load）创建成功');
         // 导出到全局
         window.dataTransfer = dataTransfer;
     }
@@ -396,7 +396,7 @@ window.addEventListener('load', () => {
 
 // 全局函数，作为备用方案
 window.openDataTransferModal = function() {
-    console.log('openDataTransferModal被调用');
+    logger.info('openDataTransferModal被调用');
     if (dataTransfer) {
         dataTransfer.openModal();
     } else {

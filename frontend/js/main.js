@@ -9,7 +9,7 @@ class App {
     // 初始化应用
     async init() {
         try {
-            logger.info('Initializing TodoList App...', 'App');
+            logger.info('Initializing TodoList App...');
             
             // 检查环境
             if (!this.checkEnvironment()) {
@@ -32,11 +32,10 @@ class App {
             }
             
             this.isInitialized = true;
-            logger.info('TodoList App initialized successfully', 'App');
+            logger.info('TodoList App initialized successfully');
             
         } catch (error) {
-            logger.error(`Failed to initialize app: ${error}`, 'App');
-            console.error('Failed to initialize app:', error);
+            logger.error(`Failed to initialize app: ${error}`);
             Utils.showToast(window.languageManager.getText('initializationFailed', '应用初始化失败'), 'error');
         } finally {
             // 隐藏加载状态
@@ -62,7 +61,7 @@ class App {
         const missingElements = requiredElements.filter(id => !document.getElementById(id));
         
         if (missingElements.length > 0) {
-            console.error('Missing required elements:', missingElements);
+            logger.error('Missing required elements:', missingElements);
             Utils.showToast(window.languageManager.getText('initializationFailed', '应用初始化失败'), 'error');
             return false;
         }
@@ -180,12 +179,12 @@ class App {
 
         // 错误处理
         window.addEventListener('error', (e) => {
-            console.error('Global error:', e.error);
+            logger.error('Global error:', e.error);
             Utils.showToast(window.languageManager.getText('unknownErrorOccurred', '发生了未知错误'), 'error');
         });
         
         window.addEventListener('unhandledrejection', (e) => {
-            console.error('Unhandled promise rejection:', e.reason);
+            logger.error('Unhandled promise rejection:', e.reason);
             Utils.showToast(window.languageManager.getText('unknownErrorOccurred', '发生了未知错误'), 'error');
         });
     }
@@ -205,10 +204,10 @@ class App {
     handleVisibilityChange() {
         if (document.hidden) {
             // 页面隐藏时暂停一些操作
-            console.log('Page hidden');
+            logger.info('Page hidden');
         } else {
             // 页面显示时刷新数据
-            console.log('Page visible');
+            logger.info('Page visible');
             if (this.isInitialized) {
                 this.refreshData();
             }
@@ -235,13 +234,13 @@ class App {
         for (const module of modules) {
             try {
                 if (module.instance) {
-                    console.log(`Initializing ${module.name}...`);
+                    logger.info(`Initializing ${module.name}...`);
                     await module.instance.init();
                     this.modules.push(module);
-                    console.log(`${module.name} initialized`);
+                    logger.info(`${module.name} initialized`);
                 }
             } catch (error) {
-                console.error(`Failed to initialize ${module.name}:`, error);
+                logger.error(`Failed to initialize ${module.name}:`, error);
                 Utils.showToast(window.languageManager.getText('initializationFailed', '应用初始化失败'), 'error');
             }
         }
@@ -262,10 +261,10 @@ class App {
             
             await Promise.all(refreshPromises);
             
-            console.log('All data refreshed');
+            logger.info('All data refreshed');
             
         } catch (error) {
-            console.error('Failed to refresh data:', error);
+            logger.error('Failed to refresh data:', error);
             Utils.showToast(window.languageManager.getText('refreshDataFailed', '刷新数据失败'), 'error');
         } finally {
             Utils.setLoading(false);
@@ -316,7 +315,7 @@ class App {
             Utils.showToast(window.languageManager.getText('resetStateSuccess', '应用状态已重置'), 'success');
             
         } catch (error) {
-            console.error('Failed to reset app:', error);
+            logger.error('Failed to reset app:', error);
             Utils.showToast(window.languageManager.getText('resetStateFailed', '重置失败'), 'error');
         }
     }
@@ -356,7 +355,7 @@ class App {
             modal.classList.add('show');
             // 防止背景滚动
             document.body.style.overflow = 'hidden';
-            logger.info('Contact author modal shown', 'App');
+            logger.info('Contact author modal shown');
         }
     }
     
@@ -367,7 +366,7 @@ class App {
             modal.classList.remove('show');
             // 恢复背景滚动
             document.body.style.overflow = '';
-            logger.info('Contact author modal hidden', 'App');
+            logger.info('Contact author modal hidden');
         }
     }
     
@@ -378,7 +377,7 @@ class App {
             modal.classList.add('show');
             // 防止背景滚动
             document.body.style.overflow = 'hidden';
-            logger.info('More menu shown', 'App');
+            logger.info('More menu shown');
         }
     }
     
@@ -389,13 +388,13 @@ class App {
             modal.classList.remove('show');
             // 恢复背景滚动
             document.body.style.overflow = '';
-            logger.info('More menu hidden', 'App');
+            logger.info('More menu hidden');
         }
     }
     
     // 处理更多菜单动作
     async handleMoreMenuAction(event, action) {
-        logger.info(`Handling more menu action: ${action}`, 'App');
+        logger.info(`Handling more menu action: ${action}`);
 
         switch (action) {
             case 'calendar-view':
@@ -423,7 +422,7 @@ class App {
                 if (window.calendarManager) window.calendarManager.nextMonth();
                 break;
             default:
-                logger.warn(`Unknown action: ${action}`, 'App');
+                logger.warn(`Unknown action: ${action}`);
         }
     }
     
@@ -478,4 +477,4 @@ document.addEventListener('DOMContentLoaded', () => {
 window.App = app;
 
 // 添加调试信息到控制台
-console.log('TodoList App loaded. Debug mode:', window.location.hostname === 'localhost');
+logger.info('TodoList App loaded. Debug mode:', window.location.hostname === 'localhost');

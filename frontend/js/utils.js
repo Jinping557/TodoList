@@ -219,7 +219,7 @@ function confirmDialog(message, callback, onCancel = null, title = null, classNa
             const radios = messageEl.querySelectorAll('input[type="radio"]');
             radios.forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    console.log('单选框选择改变:', e.target.value);
+                    logger.info('单选框选择改变:', e.target.value);
                 });
             });
             
@@ -230,7 +230,7 @@ function confirmDialog(message, callback, onCancel = null, title = null, classNa
                     const radio = option.querySelector('input[type="radio"]');
                     if (radio) {
                         radio.checked = true;
-                        console.log('通过点击选中:', radio.value);
+                        logger.info('通过点击选中:', radio.value);
                     }
                 });
             });
@@ -317,11 +317,11 @@ async function loadPywebviewApi(maxRetries = 20, interval = 300) {
         }
 
         if (i < maxRetries - 1) {
-            console.log(`等待 pywebview 加载... (${i + 1}/${maxRetries})`);
+            logger.info(`等待 pywebview 加载... (${i + 1}/${maxRetries})`);
             await new Promise(resolve => setTimeout(resolve, interval));
         }
     }
-    console.error('pywebview 加载超时');
+    logger.error('pywebview 加载超时');
     return false; // 超时未加载
 }
 

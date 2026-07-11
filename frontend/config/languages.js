@@ -572,5 +572,5 @@ const Languages = {
 // 导出到全局
 if (typeof window !== 'undefined') {
     window.Languages = Languages;
-    console.log('Languages config loaded successfully');
+    logger.info('Languages config loaded successfully');
 }

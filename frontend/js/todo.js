@@ -116,7 +116,7 @@ class TodoManager {
                 await window.pywebview.api.trigger_upload_on_change();
             }
         } catch (error) {
-            console.error('触发云端上传失败:', error);
+            logger.error('触发云端上传失败:', error);
         }
     }
 
@@ -558,7 +558,7 @@ class TodoManager {
                     this.customDateFilter || null
                 );
             }
-            console.log('查询数据库');
+            logger.info('查询数据库');
             
             if (response.success) {
                 this.tasks = response.tasks;
@@ -567,9 +567,9 @@ class TodoManager {
 
                 // 调试信息：检查周期性任务字段
                 const recurringTasks = this.tasks.filter(t => t.isRecurring || t.parentTaskId);
-                console.log('加载任务完成，周期性任务数量:', recurringTasks.length);
+                logger.info('加载任务完成，周期性任务数量:', recurringTasks.length);
                 recurringTasks.forEach(task => {
-                    console.log('周期性任务详情:', {
+                    logger.info('周期性任务详情:', {
                         id: task.id,
                         title: task.title,
                         isRecurring: task.isRecurring,
@@ -610,11 +610,11 @@ class TodoManager {
                     window.categoryManager.setActiveCategory(this.currentFilter);
                 }
             } else {
-                console.error('加载任务失败:', response.error);
+                logger.error('加载任务失败:', response.error);
                 Utils.showToast(window.languageManager.getText('loadingTaskFailed', '加载任务失败'), 'error');
             }
         } catch (error) {
-            console.error('加载任务失败:', error);
+            logger.error('加载任务失败:', error);
             Utils.showToast(window.languageManager.getText('loadingTaskFailed', '加载任务失败'), 'error');
         } finally {
             Utils.setLoading(false);
@@ -629,12 +629,12 @@ class TodoManager {
 
         if (!tasksList) return;
 
-        console.log('Rendering tasks with filter:', this.currentFilter); // 调试日志
-        console.log('Total tasks:', this.tasks.length); // 调试日志
+        logger.info('Rendering tasks with filter:', this.currentFilter); // 调试日志
+        logger.info('Total tasks:', this.tasks.length); // 调试日志
 
         // 不再需要前端过滤，因为后端已经处理了筛选
         const filteredTasks = this.tasks;
-        console.log('Filtered tasks:', filteredTasks.length); // 调试日志
+        logger.info('Filtered tasks:', filteredTasks.length); // 调试日志
 
         // 更新日历视图数据
         if (window.calendarManager) {
@@ -1062,7 +1062,7 @@ class TodoManager {
             const task = this.tasks.find(t => t.id === taskId);
 
             // 调试信息
-            console.log(`编辑按钮调试 - 任务ID: ${taskId}`, {
+            logger.info(`编辑按钮调试 - 任务ID: ${taskId}`, {
                 task: task,
                 isRecurring: task?.isRecurring,
                 parentTaskId: task?.parentTaskId
@@ -1074,7 +1074,7 @@ class TodoManager {
                 btn.title = `${window.languageManager.getText('recurringTaskEditTip', '周期性任务不支持编辑')}`;
                 btn.style.opacity = '0.5';
                 btn.style.cursor = 'not-allowed';
-                console.log(`禁用编辑按钮: ${taskId}`);
+                logger.info(`禁用编辑按钮: ${taskId}`);
 
                 // 设置点击事件处理，显示提示信息
                 btn.onclick = (e) => {
@@ -1087,7 +1087,7 @@ class TodoManager {
                 btn.title = `${window.languageManager.getText('normalTaskEditTip', '编辑')}`;
                 btn.style.opacity = '';
                 btn.style.cursor = '';
-                console.log(`启用编辑按钮: ${taskId}`);
+                logger.info(`启用编辑按钮: ${taskId}`);
 
                 // 设置编辑功能
                 btn.onclick = (e) => {
@@ -1115,7 +1115,7 @@ class TodoManager {
             // 确保pywebview已加载完成
             const isLoaded = await Utils.loadPywebviewApi();
             if (!isLoaded) {
-                console.error('pywebview未加载，无法获取分类');
+                logger.error('pywebview未加载，无法获取分类');
                 return;
             }
             
@@ -1135,7 +1135,7 @@ class TodoManager {
                 });
             }
         } catch (error) {
-            console.error('加载分类失败:', error);
+            logger.error('加载分类失败:', error);
         }
     }
     
@@ -1160,7 +1160,7 @@ class TodoManager {
                     }
                 }
             } catch (error) {
-                console.error('检查子任务失败:', error);
+                logger.error('检查子任务失败:', error);
             }
         }
         
@@ -1188,7 +1188,7 @@ class TodoManager {
                 Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')}: ${response.error}`, 'error');
             }
         } catch (error) {
-            console.error('切换任务状态失败:', error);
+            logger.error('切换任务状态失败:', error);
             Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
         }
     }
@@ -1222,7 +1222,7 @@ class TodoManager {
 
         // 获取当前选中的分类ID
         const currentCategory = this.currentFilter && this.currentFilter !== 'all' ? this.currentFilter : '';
-        console.log('Setting default category for new task:', currentCategory || 'no category');
+        logger.info('Setting default category for new task:', currentCategory || 'no category');
         
         // 加载分类选项并设置默认选中
         this.loadCategoryOptions(currentCategory);
@@ -1323,14 +1323,14 @@ class TodoManager {
             const page = this.parentTaskState.currentPage;
             const pageSize = this.parentTaskState.pageSize;
             
-            console.log('加载父任务:', { page, pageSize, searchQuery, isNewSearch }); // 调试日志
+            logger.info('加载父任务:', { page, pageSize, searchQuery, isNewSearch }); // 调试日志
             
             // 获取任务列表
             const response = await window.pywebview.api.get_todos(
                 page, pageSize, null, null, null, null, null, null, searchQuery || null
             );
             
-            console.log('API响应:', response); // 调试日志
+            logger.info('API响应:', response); // 调试日志
             
             if (response.success) {
                 let tasks = response.tasks.filter(t => !t.isRecurring && !t.parentTaskId);
@@ -1344,7 +1344,7 @@ class TodoManager {
                     results.innerHTML = '';
                 }
                 
-                console.log('过滤后的任务:', tasks.length); // 调试日志
+                logger.info('过滤后的任务:', tasks.length); // 调试日志
                 
                 // 渲染任务列表
                 if (tasks.length > 0) {
@@ -1358,7 +1358,7 @@ class TodoManager {
                     const loadedCount = page * pageSize;
                     this.parentTaskState.hasMore = loadedCount < total;
                     
-                    console.log('分页信息:', { total, loadedCount, hasMore: this.parentTaskState.hasMore }); // 调试日志
+                    logger.info('分页信息:', { total, loadedCount, hasMore: this.parentTaskState.hasMore }); // 调试日志
                     
                     loadMore.style.display = this.parentTaskState.hasMore ? 'block' : 'none';
                     empty.style.display = 'none';
@@ -1368,7 +1368,7 @@ class TodoManager {
                 }
             }
         } catch (error) {
-            console.error('加载父任务列表失败:', error);
+            logger.error('加载父任务列表失败:', error);
         } finally {
             this.parentTaskState.isLoading = false;
             this.parentTaskState.currentPage++;
@@ -1444,7 +1444,7 @@ class TodoManager {
                 this.parentTaskState.selectedId = response.parent.id;
             }
         } catch (error) {
-            console.error('获取父任务信息失败:', error);
+            logger.error('获取父任务信息失败:', error);
         }
     }
     
@@ -1469,7 +1469,7 @@ class TodoManager {
                     }
                 }
             } catch (error) {
-                console.error(`加载任务 ${taskId} 的子任务数量失败:`, error);
+                logger.error(`加载任务 ${taskId} 的子任务数量失败:`, error);
             }
         }
     }
@@ -1546,7 +1546,7 @@ class TodoManager {
                 `;
             }
         } catch (error) {
-            console.error('获取父任务信息失败:', error);
+            logger.error('获取父任务信息失败:', error);
         }
 
         try {
@@ -1566,7 +1566,7 @@ class TodoManager {
                 `;
             }
         } catch (error) {
-            console.error('获取子任务信息失败:', error);
+            logger.error('获取子任务信息失败:', error);
         }
 
         const detailContent = `
@@ -1676,7 +1676,7 @@ class TodoManager {
                 }
             }
         } catch (error) {
-            console.error('加载分类失败:', error);
+            logger.error('加载分类失败:', error);
         }
     }
 
@@ -1762,7 +1762,7 @@ class TodoManager {
                 parentId = response.parent.id;
             }
         } catch (error) {
-            console.error('获取父任务信息失败:', error);
+            logger.error('获取父任务信息失败:', error);
         }
         await this.loadParentTaskOptions(parentId);
     }
@@ -1853,7 +1853,7 @@ class TodoManager {
                 });
             }
         } catch (error) {
-            console.error('加载分类选项失败:', error);
+            logger.error('加载分类选项失败:', error);
         }
     }
     
@@ -1963,7 +1963,7 @@ class TodoManager {
                             }
                         }
                     } catch (relationError) {
-                        console.error('更新父任务关联失败:', relationError);
+                        logger.error('更新父任务关联失败:', relationError);
                         Utils.showToast(window.languageManager.getText('updateParentRelationFailed', '更新父任务关联失败'), 'warning');
                     }
                 } else if (parentTaskId) {
@@ -1971,7 +1971,7 @@ class TodoManager {
                     try {
                         await window.pywebview.api.add_task_relation(taskId, parentTaskId);
                     } catch (relationError) {
-                        console.error('添加父任务关联失败:', relationError);
+                        logger.error('添加父任务关联失败:', relationError);
                         Utils.showToast(window.languageManager.getText('addParentRelationFailed', '添加父任务关联失败'), 'warning');
                     }
                 }
@@ -1998,7 +1998,7 @@ class TodoManager {
                 Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${response.error}`, 'error');
             }
         } catch (error) {
-            console.error('保存任务失败:', error);
+            logger.error('保存任务失败:', error);
             Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
         } finally {
             Utils.setLoading(false);
@@ -2021,7 +2021,7 @@ class TodoManager {
                 return;
             }
         } catch (error) {
-            console.error('检查子任务失败:', error);
+            logger.error('检查子任务失败:', error);
         }
         
         // 检查是否为周期性任务
@@ -2042,7 +2042,7 @@ class TodoManager {
     
     // 显示周期性任务删除对话框
     showRecurringDeleteDialog(task) {
-        console.log('显示周期性任务删除对话框:', task);
+        logger.info('显示周期性任务删除对话框:', task);
         
         const dialogContent = `
             <div style="margin-bottom: 16px;">
@@ -2066,39 +2066,39 @@ class TodoManager {
             </div>
         `;
         
-        console.log('对话框内容已创建');
+        logger.info('对话框内容已创建');
         
         Utils.confirmDialog(
             dialogContent,
             async () => {
-                console.log('确认删除回调被调用');
+                logger.info('确认删除回调被调用');
                 // 在确认时实时获取选中的值
                 const checkedRadio = document.querySelector('input[name="delete-option"]:checked');
-                console.log('找到的选中单选框:', checkedRadio);
+                logger.info('找到的选中单选框:', checkedRadio);
                 
                 const deleteOption = checkedRadio ? checkedRadio.value : 'single';
                 const deleteAll = deleteOption === 'all';
-                console.log('删除选项:', deleteOption, 'deleteAll:', deleteAll);
+                logger.info('删除选项:', deleteOption, 'deleteAll:', deleteAll);
                 await this.performDelete(task.id, deleteAll);
             },
             () => {
-                console.log('删除操作被取消');
+                logger.info('删除操作被取消');
             },
             '删除周期性任务'
         );
         
-        console.log('confirmDialog已调用');
+        logger.info('confirmDialog已调用');
     }
     
     // 执行删除操作
     async performDelete(taskId, deleteAll) {
-        console.log('开始执行删除操作:', { taskId, deleteAll });
+        logger.info('开始执行删除操作:', { taskId, deleteAll });
         
         try {
             Utils.setLoading(true, '删除中...');
             
             const response = await window.pywebview.api.delete_todo(taskId, deleteAll);
-            console.log('删除API响应:', response);
+            logger.info('删除API响应:', response);
             
             if (response.success) {
                 const message = deleteAll ?
@@ -2120,7 +2120,7 @@ class TodoManager {
                             await this.loadTasks();
                         }
                     } else {
-                        console.warn('任务列表状态异常，重新初始化');
+                        logger.warning('任务列表状态异常，重新初始化');
                         this.tasks = [];
                         await this.loadTasks();
                     }
@@ -2136,7 +2136,7 @@ class TodoManager {
                 Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${response.error}`, 'error');
             }
         } catch (error) {
-            console.error('删除任务失败:', error);
+            logger.error('删除任务失败:', error);
             Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
             
             // 发生错误时重新加载任务以确保数据一致性
@@ -2145,7 +2145,7 @@ class TodoManager {
                 // loadTasks() 已经包含了 updateStats() 和 updateCategoryCounts() 的调用
                 // 这里不需要重复调用
             } catch (reloadError) {
-                console.error('重新加载任务失败:', reloadError);
+                logger.error('重新加载任务失败:', reloadError);
             }
         } finally {
             Utils.setLoading(false);
@@ -2320,7 +2320,7 @@ class TodoManager {
                 noDueDateEl.textContent = noDueDate;
             }
         } catch (error) {
-            console.error('更新统计信息失败:', error);
+            logger.error('更新统计信息失败:', error);
         }
     }
 
@@ -2466,7 +2466,7 @@ class TodoManager {
         };
 
         tasksContainer.addEventListener('scroll', this.scrollListener, { passive: true });
-        console.log('Infinite scroll listener attached');
+        logger.info('Infinite scroll listener attached');
 
         // 检查是否需要自动加载更多（内容不足以滚动时）
         setTimeout(() => this.checkAndLoadMoreIfNeeded(), 100);
@@ -2484,12 +2484,12 @@ class TodoManager {
         const scrollHeight = tasksContainer.scrollHeight;
         const clientHeight = tasksContainer.clientHeight;
 
-        console.log('Checking if need to load more - scrollHeight:', scrollHeight, 'clientHeight:', clientHeight, 'currentPage:', this.currentPage, 'totalPages:', this.totalPages);
+        logger.info('Checking if need to load more - scrollHeight:', scrollHeight, 'clientHeight:', clientHeight, 'currentPage:', this.currentPage, 'totalPages:', this.totalPages);
 
         // 如果内容高度小于等于容器高度，说明所有任务都在可视范围内，需要加载更多
         // 同时确保还有更多页面可加载
         if (scrollHeight <= clientHeight && this.currentPage < this.totalPages) {
-            console.log('Content fits in viewport, auto-loading more tasks');
+            logger.info('Content fits in viewport, auto-loading more tasks');
             this.loadMoreTasks().then(() => {
                 // 加载完成后再次检查,直到内容超过容器高度
                 setTimeout(() => this.checkAndLoadMoreIfNeeded(), 100);
@@ -2559,7 +2559,7 @@ class TodoManager {
                 this.showNoMoreTasks();
             }
         } catch (error) {
-            console.error('加载更多任务失败:', error);
+            logger.error('加载更多任务失败:', error);
             Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
         } finally {
             this.isLoadingMore = false;
@@ -2649,7 +2649,7 @@ class TodoManager {
 
         if (isLargeScreen) {
             // 切换到大屏幕：使用分页模式，每页10条
-            console.log('Switching to large screen mode');
+            logger.info('Switching to large screen mode');
 
             // 设置列表为表格布局
             if (tasksList) {
@@ -2674,7 +2674,7 @@ class TodoManager {
             }
         } else {
             // 切换到小屏幕：使用无限下拉模式
-            console.log('Switching to small screen mode');
+            logger.info('Switching to small screen mode');
 
             // 设置列表为flex布局
             if (tasksList) {
@@ -2718,7 +2718,7 @@ class TodoManager {
                 this.renderTagsSelector();
             }
         } catch (error) {
-            console.error('加载标签失败:', error);
+            logger.error('加载标签失败:', error);
         }
     }
 
@@ -2826,7 +2826,7 @@ class TodoManager {
                         Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${response.error}`, 'error');
                     }
                 } catch (error) {
-                    console.error('删除标签失败:', error);
+                    logger.error('删除标签失败:', error);
                     Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
                 }
             }
@@ -2939,7 +2939,7 @@ class TodoManager {
                 this.renderTagsModule([]);
             }
         } catch (error) {
-            console.error('加载标签失败:', error);
+            logger.error('加载标签失败:', error);
         }
     }
 

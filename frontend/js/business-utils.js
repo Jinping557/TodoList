@@ -71,7 +71,7 @@ const ThemeManager = {
                 this.updateToggleButton(theme);
             }
         } catch (error) {
-            console.error('获取主题信息失败:', error);
+            logger.error('获取主题信息失败:', error);
             this.updateToggleButton('light');
         }
     },

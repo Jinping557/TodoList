@@ -59,9 +59,9 @@ class SettingsUIManager {
             await this.restoreSettings();
             
             this.isInitialized = true;
-            console.log('SettingsUIManager initialized successfully');
+            logger.info('SettingsUIManager initialized successfully');
         } catch (error) {
-            console.error('Failed to initialize SettingsUIManager:', error);
+            logger.error('Failed to initialize SettingsUIManager:', error);
         }
     }
     
@@ -306,7 +306,7 @@ class SettingsUIManager {
                 window.languageManager.getText('darkModeSwitched', '已切换到深色主题') :
                 window.languageManager.getText('LightModeSwitched', '已切换到浅色主题')}`, 'success');
         } catch (error) {
-            console.error('保存主题失败:', error);
+            logger.error('保存主题失败:', error);
         }
     }
     
@@ -344,7 +344,7 @@ class SettingsUIManager {
     // 设置语言
     async setLanguage(language) {
         if (!window.languageManager) {
-            console.error('LanguageManager not initialized');
+            logger.error('LanguageManager not initialized');
             return;
         }
         
@@ -360,7 +360,7 @@ class SettingsUIManager {
                 Utils.showToast(window.languageManager.getText('languageSwitchFailed', '语言切换失败'), 'error');
             }
         } catch (error) {
-            console.error('设置语言失败:', error);
+            logger.error('设置语言失败:', error);
             Utils.showToast(window.languageManager.getText('languageSwitchFailed', '语言切换失败'), 'error');
         }
     }
@@ -395,7 +395,7 @@ class SettingsUIManager {
                 Utils.showToast(result.error || window.languageManager.getText('settingsFailed', '设置失败'), 'error');
             }
         } catch (error) {
-            console.error('设置开机启动失败:', error);
+            logger.error('设置开机启动失败:', error);
             // 恢复开关状态
             this.autoStartToggle.checked = !enabled;
             Utils.showToast(`${window.languageManager.getText('settingsFailed', '设置失败')}: ${error.message}`, 'error');
@@ -527,7 +527,7 @@ class SettingsUIManager {
                 }
             }
         } catch (error) {
-            console.error('更新开机启动状态失败:', error);
+            logger.error('更新开机启动状态失败:', error);
         }
     }
 
@@ -556,7 +556,7 @@ class SettingsUIManager {
                 this.onTop = this.windowTopToggle.checked;
             }
         } catch (error) {
-            console.error('更新窗口置顶状态失败:', error);
+            logger.error('更新窗口置顶状态失败:', error);
             this.windowTopToggle.checked = false;
             this.onTop = this.windowTopToggle.checked;
         }
@@ -586,7 +586,7 @@ class SettingsUIManager {
                 this.smartKeyShow.textContent = result.config;
             }
         } catch (error) {
-            console.error('更新快捷键配置失败:', error);
+            logger.error('更新快捷键配置失败:', error);
             this.smartKeyShow.textContent = '<ctrl>+<space>';
         }
     }
@@ -608,12 +608,12 @@ class SettingsUIManager {
                         window.dataTransfer.switchMode('receive');
                     }
                 } catch (error) {
-                    console.error('打开数据传输模态框失败:', error);
+                    logger.error('打开数据传输模态框失败:', error);
                     Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
                 }
             }, 100);
         } else {
-            console.error('数据传输功能未初始化:', error);
+            logger.error('数据传输功能未初始化:', error);
             Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
         }
     }
@@ -626,12 +626,12 @@ class SettingsUIManager {
         // 延迟打开数据同步模态框，确保设置中心完全关闭
         const modal = document.getElementById('data-sync-modal');
         setTimeout(() => {
-            console.log('打开模态框');
+            logger.info('打开模态框');
             if (modal) {
                 modal.style.display = 'flex';
                 this.updateWebDAVConfig();
             } else {
-                console.log('模态框未找到！');
+                logger.info('模态框未找到！');
                 Utils.showToast(window.languageManager.getText('initializationFailed', '应用初始化失败'), 'error');
             }
         }, 100);
@@ -662,9 +662,9 @@ class SettingsUIManager {
             // 恢复主题设置
             await BusinessUtils.ThemeManager.init();
             
-            console.log('Settings restored successfully');
+            logger.info('Settings restored successfully');
         } catch (error) {
-            console.error('Failed to restore settings:', error);
+            logger.error('Failed to restore settings:', error);
         }
     }
     
@@ -689,7 +689,7 @@ class SettingsUIManager {
                 Utils.showToast('获取配置失败: ' + result.error, 'error');
             }
         } catch (error) {
-            console.error('更新数据文件配置失败:', error);
+            logger.error('更新数据文件配置失败:', error);
             Utils.showToast('获取配置时发生错误', 'error');
         }
     }
@@ -732,7 +732,7 @@ class SettingsUIManager {
             }
             
         } catch (error) {
-            console.error('浏览文件失败:', error);
+            logger.error('浏览文件失败:', error);
             Utils.showToast('浏览文件时发生错误: ' + error.message, 'error');
         } finally {
             this.setDirectoryButtonsDisabled(false);
@@ -780,13 +780,13 @@ class SettingsUIManager {
                             Utils.showToast(`${window.languageManager.getText('settingsFailed', '设置失败')}: ${response.error}`, 'error');
                         }
                     } catch (error) {
-                        console.error('应用数据文件配置失败:', error);
+                        logger.error('应用数据文件配置失败:', error);
                         Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
                     }
                 }
             );
         } catch (error) {
-            console.error('应用数据文件配置失败:', error);
+            logger.error('应用数据文件配置失败:', error);
             Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
         } finally {
             this.setDirectoryButtonsDisabled(false);
@@ -813,9 +813,9 @@ class SettingsUIManager {
             // 保存窗口置顶状态
             localStorage.setItem('todolist_windowOnTop', this.onTop.toString());
             await window.pywebview.api.set_window_on_top_config(this.onTop.toString());
-            console.log('Settings saved successfully', this.onTop.toString());
+            logger.info('Settings saved successfully', this.onTop.toString());
         } catch (error) {
-            console.error('Failed to save settings:', error);
+            logger.error('Failed to save settings:', error);
         }
     }
 
@@ -832,7 +832,7 @@ class SettingsUIManager {
             if (result.success && result.config) {
                 const config = result.config;
 
-                console.log('WebDAV config:', config);
+                logger.info('WebDAV config:', config);
 
                 // 更新开关状态
                 if (this.webdavEnableToggle) {
@@ -858,7 +858,7 @@ class SettingsUIManager {
                 }
             }
         } catch (error) {
-            console.error('更新WebDAV配置失败:', error);
+            logger.error('更新WebDAV配置失败:', error);
         }
     }
 
@@ -910,7 +910,7 @@ class SettingsUIManager {
                 Utils.showToast(`${window.languageManager.getText('settingsConnectionFailed', '连接失败')}: ${result.error}`, 'error');
             }
         } catch (error) {
-            console.error('测试WebDAV连接失败:', error);
+            logger.error('测试WebDAV连接失败:', error);
             this.showWebDAVStatus(`❌ ${window.languageManager.getText('settingsConnectionFailed', '连接失败')}：${error.message}`, 'error');
             Utils.showToast(window.languageManager.getText('settingsConnectionFailed', '连接失败'), 'error');
         }
@@ -977,13 +977,13 @@ class SettingsUIManager {
                             this.showWebDAVStatus(`${window.languageManager.getText('settingsFailed', '设置失败')}：${result.error}`, 'error');
                         }
                     } catch (error) {
-                        console.error('应用配置失败:', error);
+                        logger.error('应用配置失败:', error);
                         Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
                     }
                 }
             );
         } catch (error) {
-            console.error('保存WebDAV配置失败:', error);
+            logger.error('保存WebDAV配置失败:', error);
             Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
             this.showWebDAVStatus(`${window.languageManager.getText('settingsFailed', '设置失败')}：${error.message}`, 'error');
         }
@@ -1096,7 +1096,7 @@ class SettingsUIManager {
             // 绑定导出模态框事件
             this.bindExportModalEvents();
         } catch (error) {
-            console.error('初始化导出选项失败:', error);
+            logger.error('初始化导出选项失败:', error);
             Utils.showToast('初始化导出选项失败', 'error');
         }
     }
@@ -1211,7 +1211,7 @@ class SettingsUIManager {
 
             this.closeExportModal();
         } catch (error) {
-            console.error('导出任务失败:', error);
+            logger.error('导出任务失败:', error);
             Utils.showToast('导出任务失败: ' + error.message, 'error');
         }
     }
@@ -1262,24 +1262,24 @@ let settingsManager = null;
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded - 创建SettingsUIManager实例');
+    logger.info('DOMContentLoaded - 创建SettingsUIManager实例');
     
     // 延迟初始化，确保所有脚本都加载完成
     setTimeout(() => {
         if (!settingsManager) {
             settingsManager = new SettingsUIManager();
-            console.log('SettingsUIManager实例创建成功');
+            logger.info('SettingsUIManager实例创建成功');
         }
     }, 500);
 });
 
 // window加载后再次尝试
 window.addEventListener('load', () => {
-    console.log('window.load - 检查SettingsUIManager实例');
+    logger.info('window.load - 检查SettingsUIManager实例');
     
     if (!settingsManager) {
         settingsManager = new SettingsUIManager();
-        console.log('SettingsUIManager实例（window.load）创建成功');
+        logger.info('SettingsUIManager实例（window.load）创建成功');
     }
 });
 

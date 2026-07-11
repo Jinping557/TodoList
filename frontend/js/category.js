@@ -73,7 +73,7 @@ class CategoryManager {
                 e.stopPropagation();
                 const deleteBtn = e.target.closest('.category-delete-btn');
                 const categoryId = deleteBtn.dataset.categoryId;
-                console.log('Delete button clicked for category:', categoryId);
+                logger.info('Delete button clicked for category:', categoryId);
                 this.deleteCategory(categoryId);
                 return;
             }
@@ -83,7 +83,7 @@ class CategoryManager {
                 e.stopPropagation();
                 const editBtn = e.target.closest('.category-edit-btn');
                 const categoryId = editBtn.dataset.categoryId;
-                console.log('Edit button clicked for category:', categoryId);
+                logger.info('Edit button clicked for category:', categoryId);
                 this.editCategory(categoryId);
                 return;
             }
@@ -92,9 +92,9 @@ class CategoryManager {
             if (e.target.closest('.category-item') && !e.target.closest('.category-edit-btn') && !e.target.closest('.category-delete-btn')) {
                 const categoryItem = e.target.closest('.category-item');
                 const categoryId = categoryItem.dataset.category;
-                console.log('Category clicked:', categoryId); // 调试日志
-                console.log('Category element:', categoryItem); // 调试日志
-                console.log('Target element:', e.target); // 调试日志
+                logger.info('Category clicked:', categoryId); // 调试日志
+                logger.info('Category element:', categoryItem); // 调试日志
+                logger.info('Target element:', e.target); // 调试日志
                 this.filterByCategory(categoryId);
             }
         });
@@ -134,7 +134,7 @@ class CategoryManager {
                 Utils.showToast(`${window.languageManager.getText('loadCategoriesFailed', '加载分类失败')}: ${response.error}`, 'error');
             }
         } catch (error) {
-            console.error('加载分类失败:', error);
+            logger.error('加载分类失败:', error);
             Utils.showToast(window.languageManager.getText('loadCategoriesFailed', '加载分类失败'), 'error');
         }
     }
@@ -242,7 +242,7 @@ class CategoryManager {
                 }
             });
         } catch (error) {
-            console.error('获取任务统计失败:', error);
+            logger.error('获取任务统计失败:', error);
         }
         
         return counts;
@@ -250,39 +250,39 @@ class CategoryManager {
     
     // 按分类筛选
     async filterByCategory(categoryId) {
-        console.log('Filtering by category:', categoryId); // 调试日志
+        logger.info('Filtering by category:', categoryId); // 调试日志
         this.currentCategory = categoryId;
         this.setActiveCategory(categoryId);
         
         // 通知TodoManager进行筛选
         if (window.todoManager) {
-            console.log('Notifying TodoManager to filter by:', categoryId); // 调试日志
-            console.log('Current tasks before filter:', window.todoManager.tasks.length); // 调试日志
+            logger.info('Notifying TodoManager to filter by:', categoryId); // 调试日志
+            logger.info('Current tasks before filter:', window.todoManager.tasks.length); // 调试日志
             window.todoManager.currentFilter = categoryId;
             window.todoManager.currentPage = 1; // 重置到第一页
             window.todoManager.customDateFilter = null; // 清除自定义日期筛选
             window.todoManager.resetInfiniteScroll(); // 重置无限下拉状态
             await window.todoManager.loadTasks();
-            console.log('Filter completed'); // 调试日志
+            logger.info('Filter completed'); // 调试日志
         } else {
-            console.log('TodoManager not available'); // 调试日志
+            logger.info('TodoManager not available'); // 调试日志
         }
     }
     
     // 设置激活的分类
     setActiveCategory(categoryId) {
-        console.log('Setting active category:', categoryId); // 调试日志
+        logger.info('Setting active category:', categoryId); // 调试日志
         document.querySelectorAll('.category-item').forEach(item => {
             item.classList.remove('active');
         });
         
         const activeItem = document.querySelector(`[data-category="${categoryId}"]`);
-        console.log('Found active item:', activeItem); // 调试日志
+        logger.info('Found active item:', activeItem); // 调试日志
         if (activeItem) {
             activeItem.classList.add('active');
-            console.log('Active class added'); // 调试日志
+            logger.info('Active class added'); // 调试日志
         } else {
-            console.log('Active item not found for category:', categoryId); // 调试日志
+            logger.info('Active item not found for category:', categoryId); // 调试日志
         }
     }
     
@@ -363,7 +363,7 @@ class CategoryManager {
                 Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')}: ${response.error}`, 'error');
             }
         } catch (error) {
-            console.error('保存分类失败:', error);
+            logger.error('保存分类失败:', error);
             Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
         } finally {
             Utils.setLoading(false);
@@ -435,7 +435,7 @@ class CategoryManager {
                     Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')}: ${response.error}`, 'error');
                 }
             } catch (error) {
-                console.error('删除分类失败:', error);
+                logger.error('删除分类失败:', error);
                 Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
             } finally {
                 Utils.setLoading(false);
@@ -451,7 +451,7 @@ class CategoryManager {
                 return response.tasks.filter(task => task.categoryId === categoryId).length;
             }
         } catch (error) {
-            console.error('获取分类任务数量失败:', error);
+            logger.error('获取分类任务数量失败:', error);
         }
         return 0;
     }
