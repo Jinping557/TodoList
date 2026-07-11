@@ -5,16 +5,46 @@
 
 class Logger {
     constructor() {
-        this.enabled = true;
         this.level = 'info'; // debug, info, warning, error
-        this.checkPyWebViewAvailable();
     }
 
-    /**
-     * 检查pywebview是否可用
-     */
-    checkPyWebViewAvailable() {
-        this.isPyWebViewAvailable = typeof window.pywebview !== 'undefined' && window.pywebview.api;
+    // 获取调用者的文件路径和行号（返回 "file:line:column"）
+    getCallerLocation() {
+        const stack = new Error().stack;
+        if (!stack) return 'unknown';
+
+        const lines = stack.split('\n');
+        // 浏览器堆栈格式示例：
+        // 0: "Error"
+        // 1: "    at Logger.getCallerLocation (http://.../logger.js:13:23)"
+        // 2: "    at Logger.sendToBackend (http://.../logger.js:52:31)"
+        // 3: "    at Logger.info (http://.../logger.js:81:14)"
+        // 4: "    at App.init (http://.../main.js:35:20)"   ← 这是真正的调用者
+
+        // 跳过前两行（Error 和 getCallerLocation 自身），从第3行开始寻找第一个不属于工具内部的行
+        // 工具内部的特征：包含 "logger.info"、"logger.error"、"getCallerLocation" 等
+        const internalKeywords = ['getCallerLocation', 'logger.info', 'logger.error'];
+
+        for (let i = 4; i < lines.length; i++) {
+            const line = lines[i];
+            // 如果当前行不包含任何内部关键词，则认为是调用者
+            if (!internalKeywords.some(keyword => line.includes(keyword))) {
+                // 提取 "file:line:column"
+                const match = line.match(/\((.*):(\d+):(\d+)\)/) ||  // Chrome/Firefox 格式
+                              line.match(/at (.*):(\d+):(\d+)/);    // 部分旧格式
+                if (match) {
+                    const fullPath = match[1];   // 例如 "http://127.0.0.1:38648/js/main.js"
+                    const lineNum = match[2];
+                    const colNum = match[3];
+                    // 提取纯文件名（最后一个 '/' 之后的内容）
+                    const fileName = fullPath.split('/').pop() || fullPath;
+                    return `${fileName}:${lineNum}:${colNum}`; // 文件名:行号:列号
+                }
+                // 如果没有匹配到括号，可能格式不同，返回纯文本
+                return line.trim();
+            }
+        }
+        return 'unknown';
     }
 
     /**
@@ -24,20 +54,17 @@ class Logger {
      * @param {string} source - 日志来源
      */
     async sendToBackend(level, message, source = 'frontend') {
-        if (!this.enabled) return;
-
-        // 检查是否在pywebview环境中
-        if (this.isPyWebViewAvailable) {
-            try {
-                await window.pywebview.api.log(level, message, source);
-            } catch (error) {
-                // 如果后端日志记录失败，仍然使用console
-                console.error(`Failed to send log to backend: ${error}`);
-                console.log(`[${level.toUpperCase()}] [${source}] ${message}`);
-            }
-        } else {
-            // 非pywebview环境，只使用console
-            console.log(`[${level.toUpperCase()}] [${source}] ${message}`);
+        if (!window.pywebview || !window.pywebview.api) {
+            return;
+        }
+        const location = this.getCallerLocation();
+        const fullMessage = `[${location}] ${message}`;
+        try {
+            await window.pywebview.api.log(level, fullMessage, source);
+        } catch (error) {
+            // 如果后端日志记录失败，仍然使用console
+            console.error(`Failed to send log to backend: ${error}`);
+            console.log(`[${level.toUpperCase()}] [${source}] ${fullMessage}`);
         }
     }
 
@@ -99,14 +126,6 @@ class Logger {
      */
     setLevel(level) {
         this.level = level;
-    }
-
-    /**
-     * 启用或禁用日志
-     * @param {boolean} enabled - 是否启用
-     */
-    setEnabled(enabled) {
-        this.enabled = enabled;
     }
 }
 
