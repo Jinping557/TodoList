@@ -43,6 +43,7 @@ if sys.platform == 'darwin':
     ]
     extra_exclude_modules = [
         'backend.platforms.impl.desktop.win_impl',
+        'backend.platforms.impl.desktop.win_firewall_manager',
         'backend.platforms.impl.desktop.linux_impl',
         'backend.platforms.impl.mobile.android_impl',
         'backend.platforms.impl.mobile.common.calendar_manager',
@@ -58,6 +59,7 @@ elif sys.platform == 'win32':
         'winsdk.windows.ui.notifications',
         'winsdk.windows.foundation',
         'backend.platforms.impl.desktop.win_impl',
+        'backend.platforms.impl.desktop.win_firewall_manager',
     ]
     extra_exclude_modules = [
         'backend.platforms.impl.desktop.mac_impl',
@@ -77,6 +79,7 @@ else:  # Linux
     extra_exclude_modules = [
         'backend.platforms.impl.desktop.mac_impl',
         'backend.platforms.impl.desktop.win_impl',
+        'backend.platforms.impl.desktop.win_firewall_manager',
         'backend.platforms.impl.mobile.android_impl',
         'backend.platforms.impl.mobile.common.calendar_manager',
         'backend.platforms.impl.mobile.common.webdav.webdav_client',
