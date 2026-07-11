@@ -70,11 +70,13 @@ class Logger {
 
     /**
      * 记录调试信息
-     * @param {string} message - 日志消息
-     * @param {string} source - 日志来源
+     * @param {string} args - 日志消息
      */
-    debug(message, source = 'frontend') {
+    debug(...args) {
         if (this.level === 'debug') {
+            const message = args
+            .map(arg => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
+            .join(' ');
             this.sendToBackend('debug', message, source);
             console.debug(`[DEBUG] [${source}] ${message}`);
         }
@@ -82,42 +84,50 @@ class Logger {
 
     /**
      * 记录信息
-     * @param {string} message - 日志消息
-     * @param {string} source - 日志来源
+     * @param {string} args - 日志消息
      */
-    info(message, source = 'frontend') {
-        this.sendToBackend('info', message, source);
-        console.info(`[INFO] [${source}] ${message}`);
+    info(...args) {
+        const message = args
+            .map(arg => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
+            .join(' ');
+        this.sendToBackend('info', message);
+        console.info(`[INFO] ${message}`);
     }
 
     /**
      * 记录警告
-     * @param {string} message - 日志消息
-     * @param {string} source - 日志来源
+     * @param {string} args - 日志消息
      */
-    warning(message, source = 'frontend') {
-        this.sendToBackend('warning', message, source);
-        console.warn(`[WARNING] [${source}] ${message}`);
+    warning(...args) {
+        const message = args
+            .map(arg => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
+            .join(' ');
+        this.sendToBackend('warning', message);
+        console.warn(`[WARNING] ${message}`);
     }
 
     /**
      * 记录错误
-     * @param {string} message - 日志消息
-     * @param {string} source - 日志来源
+     * @param {string} args - 日志消息
      */
-    error(message, source = 'frontend') {
-        this.sendToBackend('error', message, source);
-        console.error(`[ERROR] [${source}] ${message}`);
+    error(...args) {
+        const message = args
+            .map(arg => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
+            .join(' ');
+        this.sendToBackend('error', message);
+        console.error(`[ERROR] ${message}`);
     }
 
     /**
      * 记录严重错误
-     * @param {string} message - 日志消息
-     * @param {string} source - 日志来源
+     * @param {string} args - 日志消息
      */
-    critical(message, source = 'frontend') {
-        this.sendToBackend('critical', message, source);
-        console.error(`[CRITICAL] [${source}] ${message}`);
+    critical(...args) {
+        const message = args
+            .map(arg => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
+            .join(' ');
+        this.sendToBackend('critical', message);
+        console.error(`[CRITICAL] ${message}`);
     }
 
     /**
