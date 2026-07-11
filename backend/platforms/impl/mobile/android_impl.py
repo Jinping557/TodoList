@@ -56,12 +56,12 @@ class AndroidService(PlatformService):
     def add_task_reminder_to_calendar(self, title, desc, start_time_ms):
         """添加任务提醒到日历的统一接口"""
         from backend.platforms.impl.mobile.common.calendar_manager import add_task_reminder_to_calendar
-        add_task_reminder_to_calendar(title, desc, start_time_ms)
+        add_task_reminder_to_calendar(title, desc, start_time_ms, self)
 
     def sync_reminder_to_calendar(self, sync_start_time, sync_end_time):
         """同步任务提醒到日历的统一接口"""
         from backend.platforms.impl.mobile.common.calendar_manager import sync_reminder_to_calendar
-        sync_reminder_to_calendar(sync_start_time, sync_end_time)
+        sync_reminder_to_calendar(sync_start_time, sync_end_time, self)
 
     def add_firewall_rule(self, port):
         """添加防火墙策略规则的统一接口"""
@@ -87,7 +87,11 @@ class AndroidService(PlatformService):
         """启动应用的统一接口"""
         from backend import start
         from backend.platforms.impl.mobile.common.webdav.webdav_data_sync import get_data_sync_manager
-        start.start_app(True, True, None, get_data_sync_manager()) # 安卓端需要开启SSL，否则功能无法使用
+        start.start_app(
+            True,
+            True, # 安卓端需要开启SSL，否则功能无法使用
+            None,
+            get_data_sync_manager(self))
 
     def frontend_logger(self):
         """前端日志的统一接口"""

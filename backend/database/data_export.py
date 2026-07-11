@@ -17,7 +17,7 @@ if str(backend_dir) not in sys.path:
 class DataExportManager:
     """数据管理器，负责数据的导出和导入"""
 
-    def __init__(self, data_file=None):
+    def __init__(self, platform_service, data_file=None):
         """初始化数据管理器
         
         Args:
@@ -37,6 +37,16 @@ class DataExportManager:
 
         # 设置SQLite文本处理，避免编码问题
         self._text_factory = lambda x: str(x, 'utf-8', 'replace') if isinstance(x, bytes) else x
+
+        # 设置跨平台服务
+        self.service = platform_service
+
+    def _get_logger(self):
+        import logging
+        if self.service is not None:
+            return self.service.backend_logger()
+        # 降级方案：使用标准 logging（避免 None 报错）
+        return logging.getLogger(__name__)
 
     # 获取安全的数据连接
     def _get_connection(self):
@@ -60,7 +70,7 @@ class DataExportManager:
             包含所有数据的字典，结构为 {'tasks': [...], 'categories': [...], 'settings': {...}}
         """
         try:
-            print("路径查询：", self.db_path)
+            self._get_logger().info("路径查询：", self.db_path)
             conn = self._get_connection()
             cursor = conn.cursor()
 
@@ -109,7 +119,7 @@ class DataExportManager:
 
             conn.close()
 
-            print("导出数据无异常", str(Path(self.db_path).stat().st_mtime))
+            self._get_logger().info("导出数据无异常", str(Path(self.db_path).stat().st_mtime))
 
             return {
                 'version': '1.0',
@@ -120,7 +130,7 @@ class DataExportManager:
             }
 
         except Exception as e:
-            print(f"导出数据错误: {e}")
+            self._get_logger().error(f"导出数据错误: {e}")
             return None
 
     def import_data(self, data: dict, backup: bool = True) -> bool:
@@ -137,7 +147,7 @@ class DataExportManager:
             # 备份当前数据库
             if backup:
                 backup_path = self._create_backup()
-                print(f"已创建数据库备份: {backup_path}")
+                self._get_logger().info(f"已创建数据库备份: {backup_path}")
 
             conn = self._get_connection()
             cursor = conn.cursor()
@@ -195,11 +205,11 @@ class DataExportManager:
             conn.commit()
             conn.close()
 
-            print("数据导入成功")
+            self._get_logger().info("数据导入成功")
             return True
 
         except Exception as e:
-            print(f"导入数据错误: {e}")
+            self._get_logger().error(f"导入数据错误: {e}")
             return False
 
     def get_data_summary(self) -> dict:
@@ -238,7 +248,7 @@ class DataExportManager:
             }
 
         except Exception as e:
-            print(f"获取数据摘要错误: {e}")
+            self._get_logger().error(f"获取数据摘要错误: {e}")
             return None
 
     def has_data(self) -> bool:
@@ -294,11 +304,11 @@ class DataExportManager:
             if not os.path.exists(self.db_path):
                 self._initialize_new_database()
             
-            print(f"数据文件已切换到: {new_data_file}")
+            self._get_logger().info(f"数据文件已切换到: {new_data_file}")
             return True
             
         except Exception as e:
-            print(f"切换数据文件失败: {e}")
+            self._get_logger().error(f"切换数据文件失败: {e}")
             return False
     
     def _initialize_new_database(self):
@@ -375,7 +385,7 @@ class DataExportManager:
             conn.close()
             
         except Exception as e:
-            print(f"初始化新数据库失败: {e}")
+            self._get_logger().error(f"初始化新数据库失败: {e}")
             raise
 
     def restore_backup(self, backup_path: str) -> bool:
@@ -393,9 +403,9 @@ class DataExportManager:
 
             # 恢复备份
             shutil.copy2(backup_path, self.db_path)
-            print(f"已从备份恢复: {backup_path}")
+            self._get_logger().info(f"已从备份恢复: {backup_path}")
             return True
 
         except Exception as e:
-            print(f"恢复备份错误: {e}")
+            self._get_logger().error(f"恢复备份错误: {e}")
             return False

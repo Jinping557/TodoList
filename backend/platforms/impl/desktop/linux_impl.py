@@ -2,7 +2,6 @@
 import os
 from typing import Dict, Any
 from pathlib import Path
-from backend.config_manager import get_config_manager
 from backend.platforms.interface.service import PlatformService
 
 class LinuxService(PlatformService):
@@ -85,21 +84,21 @@ class LinuxService(PlatformService):
     def start_keyboard(self):
         """应用启用快捷键的统一接口"""
         from backend.platforms.impl.desktop.common.smart_task import SmartTaskInput
-        SmartTaskInput()
+        SmartTaskInput(self)
 
     def start_desktop_task_reminder(self, is_start, event=None):
         """应用启用快捷键的统一接口"""
         from backend.platforms.impl.desktop.common.task_reminder import start_reminder, stop_reminder
         if is_start:
-            start_reminder(click_event=event)
+            start_reminder(platform_service=self, click_event=event)
         else:
-            stop_reminder()
+            stop_reminder(self)
 
     def add_new_desktop_task_reminder(self):
         """应用桌面端新任务添加消息提醒的统一接口"""
         from backend.platforms.impl.desktop.common.task_reminder import get_reminder
         # 重置已提醒任务列表，确保新任务可以被提醒
-        reminder = get_reminder()
+        reminder = get_reminder(self)
         reminder.reset_notified_tasks()
 
     def check_calendar_permission(self):
@@ -145,7 +144,7 @@ class LinuxService(PlatformService):
             desktop_file = autostart_dir / f"{app_name}.desktop"
 
             # 启动命令
-            launch_cmd = utils.get_launch_command()
+            launch_cmd = utils.get_launch_command(self)
 
             # 桌面文件内容
             desktop_content = f"""[Desktop Entry]

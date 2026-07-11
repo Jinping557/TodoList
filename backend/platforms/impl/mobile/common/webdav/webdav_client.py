@@ -11,9 +11,6 @@ from typing import Optional, Dict, Any
 from webdav3.client import Client
 from datetime import datetime, timezone
 
-logger = logging.getLogger(__name__)
-
-
 def _parse_webdav_time(time_str):
     """
     解析WebDAV返回的两种常见时间格式：
@@ -31,11 +28,18 @@ def _parse_webdav_time(time_str):
 class WebDAVClient:
     """坚果云WebDAV客户端"""
 
-    def __init__(self):
+    def __init__(self, platform_service):
         self.client = None
         self.username = None
         self.password = None
         self.remote_path = None
+        self.service = platform_service
+
+    def _get_logger(self):
+        if self.service is not None:
+            return self.service.backend_logger()
+        # 降级方案：使用标准 logging（避免 None 报错）
+        return logging.getLogger(__name__)
 
     def configure(self, username: str, password: str, remote_path: str) -> bool:
         """
@@ -50,7 +54,7 @@ class WebDAVClient:
             bool: 配置是否成功
         """
         if not username or not password:
-            logger.error("用户名或密码不能为空")
+            self._get_logger().error("用户名或密码不能为空")
             return False
             
         self.username = username
@@ -66,10 +70,10 @@ class WebDAVClient:
             }
             self.client = Client(options)
 
-            logger.info("WebDAV客户端配置成功")
+            self._get_logger().info("WebDAV客户端配置成功")
             return True
         except Exception as e:
-            logger.error(f"WebDAV客户端配置失败: {e}")
+            self._get_logger().error(f"WebDAV客户端配置失败: {e}")
             self.client = None
             return False
     
@@ -94,7 +98,7 @@ class WebDAVClient:
                 "message": "连接成功"
             }
         except Exception as e:
-            logger.error(f"WebDAV连接测试失败: {e}")
+            self._get_logger().error(f"WebDAV连接测试失败: {e}")
             return {
                 "success": False,
                 "error": f"连接失败: {str(e)}"
@@ -130,7 +134,7 @@ class WebDAVClient:
             
             # 上传文件
             self.client.upload_sync(remote_path = self.remote_path, local_path = local_file_path)
-            logger.info(f"文件上传成功: {local_file_path} -> {self.remote_path}")
+            self._get_logger().info(f"文件上传成功: {local_file_path} -> {self.remote_path}")
             
             return {
                 "success": True,
@@ -138,7 +142,7 @@ class WebDAVClient:
                 "remote_path": self.remote_path
             }
         except Exception as e:
-            logger.error(f"文件上传失败: {e}")
+            self._get_logger().error(f"文件上传失败: {e}")
             return {
                 "success": False,
                 "error": f"上传失败: {str(e)}"
@@ -181,7 +185,7 @@ class WebDAVClient:
 
             # 步骤3：获取本地文件的最后修改时间（若本地文件不存在，直接下载）
             if not os.path.exists(local_file_path):
-                print("本地文件不存在，执行首次下载")
+                self._get_logger().warning("本地文件不存在，执行首次下载")
                 self.client.download_sync(remote_path=self.remote_path, local_path=local_file_path)
                 return {
                     "success": True,
@@ -190,15 +194,13 @@ class WebDAVClient:
                 }
 
             local_modified = datetime.fromtimestamp(os.path.getmtime(local_file_path), tz=timezone.utc)
-            print(f"远程时间：{remote_modified}，本地时间：{local_modified.timestamp()}")
+            self._get_logger().info(f"远程时间：{remote_modified}，本地时间：{local_modified.timestamp()}")
 
             # 步骤4：对比时间戳（版本），仅远程更新时下载
             # 加1秒容差：避免系统时间微小差异导致误判
             if remote_modified > local_modified.timestamp() + 1 or is_overwrite:
                 self.client.download_sync(remote_path=self.remote_path, local_path=local_file_path)
-                from backend.platforms.core.factory import get_platform_service
-                service = get_platform_service()
-                service.sync_reminder_to_calendar(local_modified.timestamp() + 1, remote_modified)
+                self.service.sync_reminder_to_calendar(local_modified.timestamp() + 1, remote_modified)
                 return {
                     "success": True,
                     "message": "文件下载成功",
@@ -210,7 +212,7 @@ class WebDAVClient:
                     "error": "远程文件版本早于本地，跳过下载"
                 }
         except Exception as e:
-            logger.error(f"文件下载失败: {e}")
+            self._get_logger().error(f"文件下载失败: {e}")
             return {
                 "success": False,
                 "error": f"下载失败: {str(e)}"
@@ -236,7 +238,7 @@ class WebDAVClient:
                     current_path = f"{current_path}/{dir_name}" if current_path else dir_name
                     try:
                         self.client.mkdir(current_path)
-                        logger.debug(f"创建远程目录: {current_path}")
+                        self._get_logger().debug(f"创建远程目录: {current_path}")
                     except:
                         # 目录可能已经存在，忽略错误
                         pass
@@ -254,7 +256,7 @@ class WebDAVClient:
         try:
             return self.client.check(remote_path)
         except Exception as e:
-            logger.error(f"检查远程文件存在性失败: {e}")
+            self._get_logger().error(f"检查远程文件存在性失败: {e}")
             return False
     
     def is_configured(self) -> bool:
@@ -270,9 +272,9 @@ class WebDAVClient:
 # 全局WebDAV客户端实例
 _webdav_client: Optional[WebDAVClient] = None
 
-def get_webdav_client() -> WebDAVClient:
+def get_webdav_client(platform_service) -> WebDAVClient:
     """获取全局WebDAV客户端实例"""
     global _webdav_client
     if _webdav_client is None:
-        _webdav_client = WebDAVClient()
+        _webdav_client = WebDAVClient(platform_service)
     return _webdav_client

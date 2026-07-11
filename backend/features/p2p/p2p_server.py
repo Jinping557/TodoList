@@ -7,18 +7,23 @@ import json
 import struct
 from typing import Callable, Optional, Tuple
 
-from backend.platforms.core.factory import get_platform_service
-service = get_platform_service()
-
 class P2PServer:
     """P2P服务器，用于在局域网内共享数据"""
 
-    def __init__(self, port: int = 5000):
+    def __init__(self, platform_service, port: int = 5000):
         self.port = port
         self.server_socket: Optional[socket.socket] = None
         self.is_running = False
         self.on_data_received_callback: Optional[Callable] = None
         self.on_data_request_callback: Optional[Callable] = None
+        self.service = platform_service
+
+    def _get_logger(self):
+        import logging
+        if self.service is not None:
+            return self.service.backend_logger()
+        # 降级方案：使用标准 logging（避免 None 报错）
+        return logging.getLogger(__name__)
 
     def start(self, callback: Optional[Callable] = None) -> Tuple[bool, str]:
         """启动服务器
@@ -35,13 +40,13 @@ class P2PServer:
         self.on_data_received_callback = callback
 
         # 自动添加防火墙规则
-        print(f"[P2P服务器] 正在配置防火墙规则...")
-        fw_success, fw_msg = service.add_firewall_rule(self.port)
+        self._get_logger().info(f"[P2P服务器] 正在配置防火墙规则...")
+        fw_success, fw_msg = self.service.add_firewall_rule(self.port)
         if not fw_success:
-            print(f"[P2P服务器] 警告：{fw_msg}")
+            self._get_logger().warning(f"[P2P服务器] 警告：{fw_msg}")
             firewall_message = f"（注意：{fw_msg}）"
         else:
-            print(f"[P2P服务器] {fw_msg}")
+            self._get_logger().info(f"[P2P服务器] {fw_msg}")
             firewall_message = f"（{fw_msg}）"
 
         try:
@@ -55,23 +60,23 @@ class P2PServer:
             listen_thread = threading.Thread(target=self._listen_for_connections, daemon=True)
             listen_thread.start()
 
-            print(f"[P2P服务器] [OK] 服务器启动成功，监听 0.0.0.0:{self.port}")
+            self._get_logger().info(f"[P2P服务器] [OK] 服务器启动成功，监听 0.0.0.0:{self.port}")
             return True, f"服务器启动成功{firewall_message}"
 
         except OSError as e:
             error_msg = f"服务器启动失败（端口 {self.port} 可能被占用）: {e}"
-            print(f"[P2P服务器] [FAIL] {error_msg}")
+            self._get_logger().error(f"[P2P服务器] [FAIL] {error_msg}")
 
             # 启动失败时清理防火墙规则
-            service.remove_firewall_rule(self.port)
+            self.service.remove_firewall_rule(self.port)
 
             return False, error_msg
         except Exception as e:
             error_msg = f"服务器启动失败: {e}"
-            print(f"[P2P服务器] [FAIL] {error_msg}")
+            self._get_logger().error(f"[P2P服务器] [FAIL] {error_msg}")
 
             # 启动失败时清理防火墙规则
-            service.remove_firewall_rule(self.port)
+            self.service.remove_firewall_rule(self.port)
 
             return False, error_msg
 
@@ -89,7 +94,7 @@ class P2PServer:
         Returns:
             (success, message) 元组，success表示是否成功，message为详细信息
         """
-        print(f"[P2P服务器] 正在停止服务器...")
+        self._get_logger().info(f"[P2P服务器] 正在停止服务器...")
 
         self.is_running = False
         if self.server_socket:
@@ -100,14 +105,14 @@ class P2PServer:
             self.server_socket = None
 
         # 自动删除防火墙规则
-        print(f"[P2P服务器] 正在清理防火墙规则...")
-        fw_success, fw_msg = service.remove_firewall_rule(self.port)
+        self._get_logger().info(f"[P2P服务器] 正在清理防火墙规则...")
+        fw_success, fw_msg = self.service.remove_firewall_rule(self.port)
         if not fw_success:
-            print(f"[P2P服务器] 警告：{fw_msg}")
+            self._get_logger().warning(f"[P2P服务器] 警告：{fw_msg}")
         else:
-            print(f"[P2P服务器] {fw_msg}")
+            self._get_logger().info(f"[P2P服务器] {fw_msg}")
 
-        print(f"[P2P服务器] [OK] 服务器已停止")
+        self._get_logger().info(f"[P2P服务器] [OK] 服务器已停止")
         return True, "服务器已停止"
 
     def _listen_for_connections(self):
@@ -116,7 +121,7 @@ class P2PServer:
             try:
                 self.server_socket.settimeout(1.0)
                 client_socket, address = self.server_socket.accept()
-                print(f"收到来自 {address} 的连接")
+                self._get_logger().info(f"收到来自 {address} 的连接")
 
                 # 为每个客户端创建处理线程
                 client_thread = threading.Thread(
@@ -129,7 +134,7 @@ class P2PServer:
                 continue
             except Exception as e:
                 if self.is_running:
-                    print(f"接受连接错误: {e}")
+                    self._get_logger().error(f"接受连接错误: {e}")
                 break
 
     def _handle_client(self, client_socket: socket.socket, address):
@@ -149,7 +154,7 @@ class P2PServer:
 
             # 解析JSON数据
             data = json.loads(data_bytes.decode('utf-8'))
-            print(f"收到数据: {data.get('type', 'unknown')}")
+            self._get_logger().info(f"收到数据: {data.get('type', 'unknown')}")
 
             # 处理数据请求
             if data.get('type') == 'request_data':
@@ -177,7 +182,7 @@ class P2PServer:
                 self._send_response(client_socket, response)
 
         except Exception as e:
-            print(f"处理客户端错误: {e}")
+            self._get_logger().error(f"处理客户端错误: {e}")
             try:
                 error_response = json.dumps({'status': 'error', 'message': str(e)})
                 self._send_response(client_socket, error_response)

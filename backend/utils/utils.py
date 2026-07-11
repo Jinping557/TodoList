@@ -31,7 +31,7 @@ def str_to_bool(value: str) -> bool:
         return value.lower() == "true"
     return bool(value)  # 兜底转换
 
-def get_app_path() -> str:
+def get_app_path(platform_service) -> str:
     """获取应用可执行文件路径"""
     try:
         if getattr(sys, 'frozen', False):
@@ -47,14 +47,14 @@ def get_app_path() -> str:
             app_path = str(project_root / 'main.py')
             return app_path
     except Exception as e:
-        print(f"获取应用路径失败: {e}")
+        platform_service.backend_logger().error(f"获取应用路径失败: {e}")
         raise
 
-def get_launch_command() -> str:
+def get_launch_command(platform_service) -> str:
     """获取启动命令"""
     try:
         base_command = ''
-        app_path = get_app_path()
+        app_path = get_app_path(platform_service)
         if app_path.endswith('.py'):
             # Python脚本
             command = f'{base_command}"{sys.executable}" "{app_path}"'
@@ -62,8 +62,8 @@ def get_launch_command() -> str:
             # 可执行文件
             command = f'{base_command}"{app_path}"'
 
-        print(f"生成启动命令: {command}")
+        platform_service.backend_logger().info(f"生成启动命令: {command}")
         return command
     except Exception as e:
-        print(f"生成启动命令失败: {e}")
+        platform_service.backend_logger().error(f"生成启动命令失败: {e}")
         raise

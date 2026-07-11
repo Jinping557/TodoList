@@ -3,7 +3,6 @@ TodoList应用的前后端通信API
 """
 import os
 import sys
-import logging
 import webbrowser
 from datetime import datetime
 from pathlib import Path
@@ -12,8 +11,6 @@ from backend.database.operations import TodoDatabase
 from backend.database.data_export import DataExportManager
 from backend.features.p2p.p2p_server import P2PServer
 from backend.features.p2p.p2p_client import P2PClient
-
-logger = logging.getLogger(__name__)
 
 # 确保能找到database模块
 current_dir = Path(__file__).parent
@@ -35,9 +32,9 @@ class TodoApi:
         self.sync_manager = sync_manager
         self._received_data = None
         self._exported_data = None
-        self._p2p_server = P2PServer()
-        self._p2p_client = P2PClient()
-        self._data_manager = DataExportManager()
+        self._p2p_server = P2PServer(service)
+        self._p2p_client = P2PClient(service)
+        self._data_manager = DataExportManager(service)
         backend_logger.info("初始化TodoApi成功")
         try:
             service.add_new_desktop_task_reminder()
@@ -378,7 +375,7 @@ class TodoApi:
                 """数据接收回调"""
                 # 存储接收到的数据供前端获取
                 self._received_data = data
-                print(f"接收到来自 {address[0]} 的数据")
+                backend_logger.info(f"接收到来自 {address[0]} 的数据")
 
             def data_request_callback():
                 """数据请求回调 - 返回要共享的数据"""
@@ -523,7 +520,7 @@ class TodoApi:
             actual_file = str(get_app_data_file())
             
             # 获取配置管理器中的配置信息
-            config_manager = get_config_manager()
+            config_manager = get_config_manager(service)
             external_config = config_manager.get('data_file')
             
             return {
@@ -552,7 +549,7 @@ class TodoApi:
                 if hasattr(self, '_data_manager'):
                     self._data_manager.switch_data_file(file_path)
                 else:
-                    self._data_manager = DataExportManager(file_path)
+                    self._data_manager = DataExportManager(service, file_path)
                 
                 backend_logger.info(f"数据文件已设置为: {file_path}")
                 return {

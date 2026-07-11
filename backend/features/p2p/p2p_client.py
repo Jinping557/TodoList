@@ -10,8 +10,16 @@ from typing import Optional, List, Tuple
 class P2PClient:
     """P2P客户端，用于扫描局域网并接收共享数据"""
 
-    def __init__(self):
+    def __init__(self, platform_service):
         self.port = 5000
+        self.service = platform_service
+
+    def _get_logger(self):
+        import logging
+        if self.service is not None:
+            return self.service.backend_logger()
+        # 降级方案：使用标准 logging（避免 None 报错）
+        return logging.getLogger(__name__)
 
     def scan_devices(self, timeout: float = 3.0) -> List[Tuple[str, str]]:
         """扫描局域网内可用的设备
@@ -39,7 +47,7 @@ class P2PClient:
             threads = []
             results = []
 
-            print(f"开始扫描网段: {network_base}.0/24, 本机IP: {local_ip}")
+            self._get_logger().info(f"开始扫描网段: {network_base}.0/24, 本机IP: {local_ip}")
 
             for i in range(1, 255):
                 target_ip = f"{network_base}.{i}"
@@ -51,11 +59,11 @@ class P2PClient:
             for thread in threads:
                 thread.join()
 
-            print(f"扫描完成，发现 {len(results)} 个设备")
+            self._get_logger().info(f"扫描完成，发现 {len(results)} 个设备")
             devices = [(ip, "TodoList设备") for ip in results]
 
         except Exception as e:
-            print(f"扫描设备错误: {e}")
+            self._get_logger().error(f"扫描设备错误: {e}")
             import traceback
             traceback.print_exc()
 
@@ -73,7 +81,7 @@ class P2PClient:
             result = sock.connect_ex((ip, self.port))
             if result == 0:
                 results.append(ip)
-                print(f"发现设备: {ip}")
+                self._get_logger().info(f"发现设备: {ip}")
             sock.close()
         except:
             pass
@@ -140,11 +148,11 @@ class P2PClient:
             if response.get('status') == 'success':
                 return data
             else:
-                print(f"接收数据失败: {response.get('message')}")
+                self._get_logger().warning(f"接收数据失败: {response.get('message')}")
                 return None
 
         except Exception as e:
-            print(f"接收数据错误: {e}")
+            self._get_logger().error(f"接收数据错误: {e}")
             return None
 
     def _send_data(self, sock: socket.socket, data: str):

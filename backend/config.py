@@ -42,6 +42,9 @@ ANDROID_PRIMARY_USR_DIR = "/data/user/0/com.pywebview.todos.todolist"
 ANDROID_PRIMARY_DATA_DIR = "/data/data/com.pywebview.todos.todolist"
 ANDROID_EXTERNAL_DIR = "/sdcard/Android/data/com.pywebview.todos.todolist"
 
+from backend.platforms.core.factory import get_platform_service
+service = get_platform_service()
+backend_logger = service.backend_logger()
 
 def get_default_data_file():
     """获取默认数据文件路径"""
@@ -61,9 +64,9 @@ def get_current_data_file():
     # 首先尝试从外部配置管理器获取配置
     try:
         from backend.config_manager import get_data_file
-        return get_data_file()
+        return get_data_file(service)
     except Exception as e:
-        print(f"警告：从外部配置获取数据文件配置失败: {e}")
+        backend_logger.error(f"警告：从外部配置获取数据文件配置失败: {e}")
     
     # 回退到环境变量
     env_data_file = os.environ.get('TODO_DATA_FILE')
@@ -106,14 +109,14 @@ def set_data_file(path):
     # 保存到外部配置文件
     try:
         from backend.config_manager import set_data_file as set_external_data_file
-        success = set_external_data_file(path)
+        success = set_external_data_file(service, path)
         if success:
-            print(f"数据文件配置已保存到外部配置文件: {path}")
+            backend_logger.info(f"数据文件配置已保存到外部配置文件: {path}")
             return True
         else:
             raise Exception("外部配置保存失败")
     except Exception as e:
-        print(f"警告：保存数据文件配置到外部配置失败: {e}")
+        backend_logger.error(f"警告：保存数据文件配置到外部配置失败: {e}")
         # 如果外部配置保存失败，回退到环境变量
         os.environ['TODO_DATA_FILE'] = path
         return True

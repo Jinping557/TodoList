@@ -13,16 +13,21 @@ from datetime import datetime
 from backend.platforms.impl.mobile.common.webdav.webdav_config import get_webdav_config, is_webdav_enabled, set_webdav_config
 from backend.platforms.impl.mobile.common.webdav.webdav_client import get_webdav_client
 
-logger = logging.getLogger(__name__)
-
 class DataSyncManager:
     """数据同步管理器"""
     
-    def __init__(self):
+    def __init__(self, platform_service):
         self.sync_timer = None
         self.is_syncing = False
         self.last_sync_time = None
         self.on_sync_callback: Optional[Callable] = None
+        self.service = platform_service
+
+    def _get_logger(self):
+        if self.service is not None:
+            return self.service.backend_logger()
+        # 降级方案：使用标准 logging（避免 None 报错）
+        return logging.getLogger(__name__)
         
     def set_sync_callback(self, callback: Callable):
         """设置同步回调函数"""
@@ -33,7 +38,7 @@ class DataSyncManager:
         config = get_webdav_config()
         
         if not config.get('enabled', False) or not config.get('auto_sync', True):
-            logger.info("自动同步未启用")
+            self._get_logger().info("自动同步未启用")
             return
             
         interval = config.get('sync_interval', 15)  # 默认15s
@@ -44,23 +49,23 @@ class DataSyncManager:
         
         # 启动定时同步
         self._schedule_sync(interval)
-        logger.info(f"自动同步已启动，间隔: {interval}秒")
+        self._get_logger().info(f"自动同步已启动，间隔: {interval}秒")
     
     def stop_auto_sync(self):
         """停止自动同步"""
         if self.sync_timer:
             self.sync_timer.cancel()
             self.sync_timer = None
-            logger.info("自动同步已停止")
+            self._get_logger().info("自动同步已停止")
     
     def _schedule_sync(self, interval: int):
         """安排下次同步"""
         def sync_wrapper():
             try:
                 self.sync_from_cloud()
-                logger.info(f"定时同步中")
+                self._get_logger().info(f"定时同步中")
             except Exception as e:
-                logger.error(f"定时同步出错: {e}")
+                self._get_logger().error(f"定时同步出错: {e}")
             finally:
                 # 安排下一次同步
                 self._schedule_sync(interval)
@@ -90,10 +95,10 @@ class DataSyncManager:
         
         self.is_syncing = True
         try:
-            logger.info("开始从云端同步数据...")
+            self._get_logger().info("开始从云端同步数据...")
             
             # 获取WebDAV客户端
-            client = get_webdav_client()
+            client = get_webdav_client(self.service)
             config = get_webdav_config()
             
             # 配置客户端
@@ -112,14 +117,14 @@ class DataSyncManager:
             
             if result['success']:
                 self.last_sync_time = datetime.now()
-                logger.info("云端数据同步成功")
+                self._get_logger().info("云端数据同步成功")
                 
                 # 触发回调
                 if self.on_sync_callback:
                     try:
                         self.on_sync_callback()
                     except Exception as e:
-                        logger.error(f"同步回调执行失败: {e}")
+                        self._get_logger().error(f"同步回调执行失败: {e}")
                 
                 return {
                     "success": True,
@@ -127,11 +132,11 @@ class DataSyncManager:
                     "timestamp": self.last_sync_time.isoformat()
                 }
             else:
-                logger.error(f"云端数据同步失败: {result['error']}")
+                self._get_logger().error(f"云端数据同步失败: {result['error']}")
                 return result
                 
         except Exception as e:
-            logger.error(f"云端同步异常: {e}")
+            self._get_logger().error(f"云端同步异常: {e}")
             return {
                 "success": False,
                 "error": f"同步异常: {str(e)}"
@@ -160,10 +165,10 @@ class DataSyncManager:
         
         self.is_syncing = True
         try:
-            logger.info("开始上传数据到云端...")
+            self._get_logger().info("开始上传数据到云端...")
             
             # 获取WebDAV客户端
-            client = get_webdav_client()
+            client = get_webdav_client(self.service)
             config = get_webdav_config()
             
             # 配置客户端
@@ -189,18 +194,18 @@ class DataSyncManager:
             
             if result['success']:
                 self.last_sync_time = datetime.now()
-                logger.info("数据上传到云端成功")
+                self._get_logger().info("数据上传到云端成功")
                 return {
                     "success": True,
                     "message": "数据上传成功",
                     "timestamp": self.last_sync_time.isoformat()
                 }
             else:
-                logger.error(f"数据上传到云端失败: {result['error']}")
+                self._get_logger().error(f"数据上传到云端失败: {result['error']}")
                 return result
                 
         except Exception as e:
-            logger.error(f"云端上传异常: {e}")
+            self._get_logger().error(f"云端上传异常: {e}")
             return {
                 "success": False,
                 "error": f"上传异常: {str(e)}"
@@ -242,7 +247,7 @@ class DataSyncManager:
         try:
             self.sync_to_cloud()
         except Exception as e:
-            logger.error(f"变更时上传失败: {e}")
+            self._get_logger().error(f"变更时上传失败: {e}")
 
     def get_webdav_config(self):
         """获取WebDAV配置"""
@@ -260,10 +265,10 @@ class DataSyncManager:
         if success:
             # 如果启用了自动同步，重启同步管理器
             if config.get('enabled') and config.get('auto_sync'):
-                get_data_sync_manager().start_auto_sync()
+                get_data_sync_manager(self.service).start_auto_sync()
             elif not config.get('enabled') or not config.get('auto_sync'):
                 # 停止自动同步
-                get_data_sync_manager().stop_auto_sync()
+                get_data_sync_manager(self.service).stop_auto_sync()
 
             return {
                 'success': True,
@@ -278,7 +283,7 @@ class DataSyncManager:
     def test_webdav_connection(self, username, password, remote_path):
         """测试WebDAV连接"""
         # 创建临时客户端进行测试
-        client = get_webdav_client()
+        client = get_webdav_client(self.service)
         if client.configure(username, password, remote_path):
             result = client.test_connection()
             return result
@@ -291,9 +296,9 @@ class DataSyncManager:
 # 全局同步管理器实例
 _data_sync_manager: Optional[DataSyncManager] = None
 
-def get_data_sync_manager() -> DataSyncManager:
+def get_data_sync_manager(platform_service) -> DataSyncManager:
     """获取全局数据同步管理器实例"""
     global _data_sync_manager
     if _data_sync_manager is None:
-        _data_sync_manager = DataSyncManager()
+        _data_sync_manager = DataSyncManager(platform_service)
     return _data_sync_manager

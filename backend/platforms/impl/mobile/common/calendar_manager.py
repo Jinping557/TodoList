@@ -33,7 +33,7 @@ def check_permission():
             )
             request_method.invoke(mActivity, cast('[Ljava.lang.String;', need_request), 123)
 
-def add_task_reminder_to_calendar(title, desc, start_time_ms):
+def add_task_reminder_to_calendar(title, desc, start_time_ms, platform_service):
     from android import mActivity
     try:
         # 1. 获取必要的原生类
@@ -74,15 +74,15 @@ def add_task_reminder_to_calendar(title, desc, start_time_ms):
         rem_values.put("minutes", Integer(0))  # 0 = 准时
 
         content_resolver.insert(REMINDERS_URI, rem_values)
-        print(f"添加提醒成功！事件ID: {event_id}")
+        platform_service.backend_logger().info(f"添加提醒成功！事件ID: {event_id}")
         return f"设置成功！事件ID: {event_id}"
 
     except Exception as e:
         # 如果还是报 put 错误，打印出具体的错误信息
-        print(f"执行失败: {str(e)}")
+        platform_service.backend_logger().error(f"执行失败: {str(e)}")
         return f"执行失败: {str(e)}"
 
-def sync_reminder_to_calendar(sync_start_time, sync_end_time):
+def sync_reminder_to_calendar(sync_start_time, sync_end_time, platform_service):
     db = TodoDatabase()
     result = db.get_tasks_paginated(
         page_size=999,
@@ -92,7 +92,7 @@ def sync_reminder_to_calendar(sync_start_time, sync_end_time):
         sync_end_time= datetime.fromtimestamp(sync_end_time).date()
     )
     if result['tasks']:
-        print(f"添加提醒成功！事件ID: {result['tasks']}")
+        platform_service.backend_logger().error(f"添加提醒成功！事件ID: {result['tasks']}")
         for task in result['tasks']:
             target_time = datetime.fromisoformat(task['dueDate']).timestamp() * 1000
-            add_task_reminder_to_calendar(task['title'], task['description'], target_time)
+            add_task_reminder_to_calendar(task['title'], task['description'], target_time, platform_service)

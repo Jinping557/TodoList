@@ -3,7 +3,6 @@
 import sys
 from pathlib import Path
 from typing import Dict, Any
-from backend.config_manager import get_config_manager
 from backend.platforms.interface.service import PlatformService
 from typing import Tuple, Optional
 
@@ -193,21 +192,21 @@ class MacService(PlatformService):
     def start_keyboard(self):
         """应用启用快捷键的统一接口"""
         from backend.platforms.impl.desktop.common.smart_task import SmartTaskInput
-        SmartTaskInput()
+        SmartTaskInput(self)
 
     def start_desktop_task_reminder(self, is_start, event=None):
         """应用桌面端消息提醒的统一接口"""
         from backend.platforms.impl.desktop.common.task_reminder import start_reminder, stop_reminder
         if is_start:
-            start_reminder(click_event=event)
+            start_reminder(platform_service=self,click_event=event)
         else:
-            stop_reminder()
+            stop_reminder(self)
 
     def add_new_desktop_task_reminder(self):
         """应用桌面端新任务添加消息提醒的统一接口"""
         from backend.platforms.impl.desktop.common.task_reminder import get_reminder
         # 重置已提醒任务列表，确保新任务可以被提醒
-        reminder = get_reminder()
+        reminder = get_reminder(self)
         reminder.reset_notified_tasks()
 
     def check_calendar_permission(self):
@@ -243,7 +242,7 @@ class MacService(PlatformService):
     def enable_macos_auto_start(self, app_name) -> bool:
         """macOS平台启用自启动"""
         from backend.utils import utils
-        app_path = utils.get_app_path()
+        app_path = utils.get_app_path(self)
         try:
             # LaunchAgents目录
             launch_agents_dir = Path.home() / 'Library' / 'LaunchAgents'
