@@ -416,11 +416,10 @@ class SmartTaskInput:
 
     def setup_keyboard(self):
         """设置全局快捷键"""
-        from backend.utils.logger import app_logger
+        from backend.platforms.core.factory import get_platform_service
+        service = get_platform_service()
         try:
-            from backend.platforms.core.factory import get_platform_service
-            service = get_platform_service()
             raw_shortcut = self.db.get_setting('shortcut', '<ctrl>+<space>').strip().lower()
             self._hotkey_ref = service.shortcut_handler(raw_shortcut, self.toggle_window)
         except Exception as e:
-            app_logger.info(f"设置全局快捷键发生异常: {e}")
+            service.backend_logger().info(f"设置全局快捷键发生异常: {e}")

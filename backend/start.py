@@ -9,13 +9,16 @@ import sys
 from pathlib import Path
 
 import webview
-from backend.utils.logger import app_logger
 
 # 获取当前目录
 current_dir = Path(__file__).parent
 
 # 设置默认窗口置顶为false
 window_on_top = False
+
+from backend.platforms.core.factory import get_platform_service
+service = get_platform_service()
+backend_logger = service.backend_logger()
 
 def get_resource_path(relative_path):
     """获取资源文件的绝对路径，支持打包后的可执行文件"""
@@ -61,9 +64,9 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None, sync
         backend.globals.window.hide()
         return False  # 阻止窗口被销毁，从而实现控制窗口显示和隐藏，而非开启和关闭
 
-    app_logger.info("=" * 60)
-    app_logger.info("TodoList 应用启动")
-    app_logger.info("=" * 60)
+    backend_logger.info("=" * 60)
+    backend_logger.info("TodoList 应用启动")
+    backend_logger.info("=" * 60)
 
     # 创建一个极简的加载中 HTML 字符串，让窗口瞬间显示，避免白屏
     loading_html = """
@@ -88,7 +91,7 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None, sync
     """
 
     # 创建窗口：首先加载内存中的 loading 页面（零磁盘 I/O，瞬间弹出）
-    app_logger.info("创建应用窗口并展示加载动画...")
+    backend_logger.info("创建应用窗口并展示加载动画...")
     import backend.globals
     backend.globals.window = webview.create_window(
         'TodoList',
@@ -104,7 +107,7 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None, sync
 
     # 将后端耗时初始化逻辑，放到初始化回调中异步执行
     def lazy_initialize(window):
-        app_logger.info("异步后台：开始加载后端模块与初始化...")
+        backend_logger.info("异步后台：开始加载后端模块与初始化...")
 
         # 在子线程中延时或直接导入耗时模块
         from backend.api.todo_api import TodoApi
@@ -112,7 +115,7 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None, sync
 
         # 创建API实例
         api = TodoApi(is_android, sync_manager)
-        app_logger.info("TodoApi 实例创建成功")
+        backend_logger.info("TodoApi 实例创建成功")
 
         # 设置同步回调，当云端数据更新时刷新前端
         def on_sync_complete():
@@ -124,9 +127,9 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None, sync
                         if (window.categoryManager) { window.categoryManager.loadCategories(); window.categoryManager.renderCategories(false); }
                         """
                     backend.globals.window.evaluate_js(js_str)
-                    app_logger.info("前端页面已刷新以反映云端数据变化")
+                    backend_logger.info("前端页面已刷新以反映云端数据变化")
             except Exception as e:
-                app_logger.error(f"同步回调执行失败: {e}")
+                backend_logger.error(f"同步回调执行失败: {e}")
 
         if sync_manager:
             sync_manager.set_sync_callback(on_sync_complete)
@@ -137,7 +140,7 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None, sync
 
         # 获取前端文件路径
         frontend_path = get_resource_path('frontend/index.html')
-        app_logger.info(f"前端文件路径: {frontend_path}")
+        backend_logger.info(f"前端文件路径: {frontend_path}")
         # 重新绑定 API 并将窗口重定向到真正的业务前端文件
         window.set_title('TodoList')
         window.load_url(frontend_path)
@@ -148,7 +151,7 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None, sync
         # 快捷键功能(仅在桌面端启用)
         start_keyboard()
 
-    app_logger.info("启动webview...")
+    backend_logger.info("启动webview...")
     try:
         # 将 lazy_initialize 函数作为第一个参数传入
         # pywebview 启动窗口后会立即在后台启动一个线程执行此函数，解决Linux端窗口卡死问题
@@ -156,11 +159,11 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None, sync
                       private_mode=False, ssl=ssl_enable, debug=False, localization=chinese_localization)
     finally:
         # 窗口关闭后，停止自动同步
-        app_logger.info("正在停止后台服务...")
+        backend_logger.info("正在停止后台服务...")
         try:
             if hasattr(backend.globals.window, 'user_data') and 'sync_manager' in backend.globals.window.user_data:
                 backend.globals.window.user_data['sync_manager'].stop_auto_sync()
         except Exception as e:
-            app_logger.error(f"停止自动同步服务失败: {e}")
-        app_logger.info("TodoList 应用已关闭")
-        app_logger.info("=" * 60)
+            backend_logger.error(f"停止自动同步服务失败: {e}")
+        backend_logger.info("TodoList 应用已关闭")
+        backend_logger.info("=" * 60)

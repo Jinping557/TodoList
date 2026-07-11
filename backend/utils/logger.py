@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
-def get_log_directory():
+def get_log_directory(platform_service):
     """根据运行环境返回可写的日志目录"""
     # 1. 开发环境（未打包）
     if not getattr(sys, 'frozen', False):
@@ -17,15 +17,13 @@ def get_log_directory():
         return Path(__file__).parent.parent.parent / 'logs'
 
     # 2. 打包后环境
-    from backend.platforms.core.factory import get_platform_service
-    service = get_platform_service()
-    return service.get_log_directory()
+    return platform_service.get_log_directory()
 
-
-def setup_logger(name='todolist', level=logging.INFO, max_bytes=10*1024*1024, backup_count=5):
+def setup_logger(platform_service, name='todolist', level=logging.INFO, max_bytes=10*1024*1024, backup_count=5):
     """配置并返回logger实例
     
     Args:
+        platform_service: 平台
         name: logger名称
         level: 日志级别，默认INFO
         max_bytes: 单个日志文件最大大小，默认10MB
@@ -41,7 +39,7 @@ def setup_logger(name='todolist', level=logging.INFO, max_bytes=10*1024*1024, ba
     if logger.handlers:
         return logger
     
-    log_dir = get_log_directory()
+    log_dir = get_log_directory(platform_service)
     log_file = log_dir / f'{name}.log'
     log_dir.mkdir(parents=True, exist_ok=True)
     # 创建文件handler
@@ -71,45 +69,3 @@ def setup_logger(name='todolist', level=logging.INFO, max_bytes=10*1024*1024, ba
     logger.addHandler(console_handler)
     
     return logger
-
-
-def setup_frontend_logger(name='frontend', level=logging.INFO):
-    """配置前端日志记录器
-    
-    前端日志会通过pywebview的API传递到后端进行记录
-    
-    Args:
-        name: logger名称
-        level: 日志级别，默认INFO
-    
-    Returns:
-        logging.Logger: 配置好的logger实例
-    """
-    return setup_logger(name, level)
-
-
-# 创建默认的logger实例
-backend_logger = setup_logger('backend')
-frontend_logger = setup_logger('frontend')
-app_logger = setup_logger('app')
-
-
-def log_frontend_message(level, message, source='frontend'):
-    """记录从前端传来的日志消息
-    
-    Args:
-        level: 日志级别（debug, info, warning, error, critical）
-        message: 日志消息
-        source: 日志来源
-    """
-    logger = frontend_logger
-    level_map = {
-        'debug': logger.debug,
-        'info': logger.info,
-        'warning': logger.warning,
-        'error': logger.error,
-        'critical': logger.critical
-    }
-    
-    log_func = level_map.get(level.lower(), logger.info)
-    log_func(f"[{source}] {message}")

@@ -213,5 +213,17 @@ class LinuxService(PlatformService):
         manager = SystemTrayManager(self)
         manager.start_app(True)
 
+    def frontend_logger(self):
+        """前端日志的统一接口"""
+        from backend.utils.logger import setup_logger
+        # 创建默认的logger实例
+        return setup_logger(self, 'frontend')
+
+    def backend_logger(self):
+        """后端日志的统一接口"""
+        from backend.utils.logger import setup_logger
+        # 创建默认的logger实例
+        return setup_logger(self, 'backend')
+
 # 用于给工厂注册的导出变量
 ExportService = LinuxService

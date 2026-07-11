@@ -6,13 +6,11 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 import sqlite3
-import os
-import sys
-
-from backend.config import ANDROID_PACKAGE_NAME, ANDROID_PRIMARY_DATA_DIR
-from backend.utils.logger import backend_logger
 from backend.database.models import Tag, Task, Category
+from backend.platforms.core.factory import get_platform_service
 
+service = get_platform_service()
+backend_logger = service.backend_logger()
 
 def get_app_data_file():
     """获取应用数据文件路径"""

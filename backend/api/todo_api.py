@@ -12,7 +12,6 @@ from backend.database.operations import TodoDatabase
 from backend.database.data_export import DataExportManager
 from backend.features.p2p.p2p_server import P2PServer
 from backend.features.p2p.p2p_client import P2PClient
-from backend.utils.logger import backend_logger, log_frontend_message
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +23,7 @@ if str(backend_dir) not in sys.path:
 
 from backend.platforms.core.factory import get_platform_service
 service = get_platform_service()
+backend_logger = service.backend_logger()
 
 class TodoApi:
     """TodoList应用的API类，提供前后端通信接口"""
@@ -642,7 +642,17 @@ class TodoApi:
             message: 日志消息
             source: 日志来源
         """
-        log_frontend_message(level, message, source)
+        log = service.frontend_logger()
+        level_map = {
+            'debug': log.debug,
+            'info': log.info,
+            'warning': log.warning,
+            'error': log.error,
+            'critical': log.critical
+        }
+
+        log_func = level_map.get(level.lower(), log.info)
+        log_func(f"[{source}] {message}")
 
     # ==================== 标签相关API ====================
 

@@ -32,16 +32,16 @@ os.chdir(str(data_dir))
 
 from backend.platforms.core.factory import get_platform_service
 service = get_platform_service()
+backend_logger = service.backend_logger()
 service.start_prepare()
 
 if __name__ == '__main__':
     try:
         from backend import start
-        from backend.utils.logger import app_logger
 
-        app_logger.info("=" * 60)
-        app_logger.info("从 main.py 启动 TodoList 应用")
-        app_logger.info("=" * 60)
+        backend_logger.info("=" * 60)
+        backend_logger.info("从 main.py 启动 TodoList 应用")
+        backend_logger.info("=" * 60)
 
         service.start_app()
 

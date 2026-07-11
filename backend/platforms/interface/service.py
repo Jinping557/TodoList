@@ -96,3 +96,13 @@ class PlatformService(ABC):
     def start_app(self):
         """启动应用的统一接口"""
         pass
+
+    @abstractmethod
+    def frontend_logger(self):
+        """前端日志的统一接口"""
+        pass
+
+    @abstractmethod
+    def backend_logger(self):
+        """后端日志的统一接口"""
+        pass

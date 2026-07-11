@@ -44,7 +44,6 @@ class SystemTrayManager:
     def start_app(self, ssl_enable):
         try:
             from backend import start
-            from backend.utils.logger import app_logger
 
             from PIL import Image
             from pystray import Icon, Menu, MenuItem

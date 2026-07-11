@@ -89,5 +89,17 @@ class AndroidService(PlatformService):
         from backend.platforms.impl.mobile.common.webdav.webdav_data_sync import get_data_sync_manager
         start.start_app(True, True, None, get_data_sync_manager()) # 安卓端需要开启SSL，否则功能无法使用
 
+    def frontend_logger(self):
+        """前端日志的统一接口"""
+        from backend.utils.logger import setup_logger
+        # 创建默认的logger实例
+        return setup_logger(self, 'frontend')
+
+    def backend_logger(self):
+        """后端日志的统一接口"""
+        from backend.utils.logger import setup_logger
+        # 创建默认的logger实例
+        return setup_logger(self, 'backend')
+
 # 用于给工厂注册的导出变量
 ExportService = AndroidService

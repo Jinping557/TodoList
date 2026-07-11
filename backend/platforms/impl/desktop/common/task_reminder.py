@@ -12,8 +12,10 @@ from datetime import datetime
 from queue import Queue
 from backend.utils import utils
 from backend.database.operations import TodoDatabase
-from backend.utils.logger import app_logger
+from backend.platforms.core.factory import get_platform_service
 
+service = get_platform_service()
+backend_logger = service.backend_logger()
 
 class TaskReminder:
     """任务到期提醒器"""
@@ -53,7 +55,7 @@ class TaskReminder:
         self.notify_thread = threading.Thread(target=self._process_notifications, daemon=True, args=(click_event,))
         self.notify_thread.start()
         
-        app_logger.info("任务到期提醒服务已启动")
+        backend_logger.info("任务到期提醒服务已启动")
         
     def stop(self):
         if not self.running:
@@ -78,7 +80,7 @@ class TaskReminder:
         if self.notify_thread and self.notify_thread.is_alive():
             self.notify_thread.join(timeout=1)
 
-        app_logger.info("任务到期提醒服务已停止")
+        backend_logger.info("任务到期提醒服务已停止")
         
     def _check_tasks(self):
         """后台线程检查任务到期"""
