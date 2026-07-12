@@ -24,7 +24,6 @@ class LanguageManager {
             await this.applyLanguage(this.currentLanguage);
             
             this.isInitialized = true;
-            logger.info('LanguageManager initialized successfully');
         } catch (error) {
             logger.error('Failed to initialize LanguageManager:', error);
             // 使用默认语言
@@ -71,7 +70,6 @@ class LanguageManager {
             if (result.success) {
                 localStorage.setItem('todolist_language', language);
             }
-            logger.info('Language setting saved:', language);
         } catch (error) {
             logger.error('Failed to save language setting:', error);
             this.currentLanguage = 'zh';
@@ -102,7 +100,6 @@ class LanguageManager {
             // 通知观察者
             this.notifyObservers();
             
-            logger.info('Language switched to:', language);
             return true;
         } catch (error) {
             logger.error('Failed to switch language:', error);
@@ -115,10 +112,8 @@ class LanguageManager {
         return new Promise((resolve) => {
             const checkConfig = () => {
                 if (window.Languages && window.Languages.zh && window.Languages.en) {
-                    logger.info('Languages config loaded successfully');
                     resolve();
                 } else {
-                    logger.info('Waiting for languages config to load...');
                     setTimeout(checkConfig, 100);
                 }
             };

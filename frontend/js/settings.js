@@ -60,7 +60,6 @@ class SettingsUIManager {
             await this.restoreSettings();
             
             this.isInitialized = true;
-            logger.info('SettingsUIManager initialized successfully');
         } catch (error) {
             logger.error('Failed to initialize SettingsUIManager:', error);
         }
@@ -703,12 +702,10 @@ class SettingsUIManager {
         // 延迟打开数据同步模态框，确保设置中心完全关闭
         const modal = document.getElementById('data-sync-modal');
         setTimeout(() => {
-            logger.info('打开模态框');
             if (modal) {
                 modal.style.display = 'flex';
                 this.updateWebDAVConfig();
             } else {
-                logger.info('模态框未找到！');
                 Utils.showToast(window.languageManager.getText('initializationFailed', '应用初始化失败'), 'error');
             }
         }, 100);
@@ -738,8 +735,6 @@ class SettingsUIManager {
             
             // 恢复主题设置
             await BusinessUtils.ThemeManager.init();
-            
-            logger.info('Settings restored successfully');
         } catch (error) {
             logger.error('Failed to restore settings:', error);
         }
@@ -890,7 +885,6 @@ class SettingsUIManager {
             // 保存窗口置顶状态
             localStorage.setItem('todolist_windowOnTop', this.onTop.toString());
             await window.pywebview.api.set_window_on_top_config(this.onTop.toString());
-            logger.info('Settings saved successfully', this.onTop.toString());
         } catch (error) {
             logger.error('Failed to save settings:', error);
         }
@@ -908,8 +902,6 @@ class SettingsUIManager {
 
             if (result.success && result.config) {
                 const config = result.config;
-
-                logger.info('WebDAV config:', config);
 
                 // 更新开关状态
                 if (this.webdavEnableToggle) {
@@ -1339,24 +1331,18 @@ let settingsManager = null;
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
-    logger.info('DOMContentLoaded - 创建SettingsUIManager实例');
-    
     // 延迟初始化，确保所有脚本都加载完成
     setTimeout(() => {
         if (!settingsManager) {
             settingsManager = new SettingsUIManager();
-            logger.info('SettingsUIManager实例创建成功');
         }
     }, 500);
 });
 
 // window加载后再次尝试
 window.addEventListener('load', () => {
-    logger.info('window.load - 检查SettingsUIManager实例');
-    
     if (!settingsManager) {
         settingsManager = new SettingsUIManager();
-        logger.info('SettingsUIManager实例（window.load）创建成功');
     }
 });
 

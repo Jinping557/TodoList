@@ -9,8 +9,6 @@ class App {
     // 初始化应用
     async init() {
         try {
-            logger.info('Initializing TodoList App...');
-            
             // 检查环境
             if (!this.checkEnvironment()) {
                 return;
@@ -33,7 +31,6 @@ class App {
             
             this.isInitialized = true;
             logger.info('TodoList App initialized successfully');
-            
         } catch (error) {
             logger.error(`Failed to initialize app: ${error}`);
             Utils.showToast(window.languageManager.getText('initializationFailed', '应用初始化失败'), 'error');
@@ -202,15 +199,9 @@ class App {
     
     // 处理页面可见性变化
     handleVisibilityChange() {
-        if (document.hidden) {
-            // 页面隐藏时暂停一些操作
-            logger.info('Page hidden');
-        } else {
+        if (!document.hidden && this.isInitialized) {
             // 页面显示时刷新数据
-            logger.info('Page visible');
-            if (this.isInitialized) {
-                this.refreshData();
-            }
+            this.refreshData();
         }
     }
     
@@ -234,10 +225,8 @@ class App {
         for (const module of modules) {
             try {
                 if (module.instance) {
-                    logger.info(`Initializing ${module.name}...`);
                     await module.instance.init();
                     this.modules.push(module);
-                    logger.info(`${module.name} initialized`);
                 }
             } catch (error) {
                 logger.error(`Failed to initialize ${module.name}:`, error);
@@ -260,9 +249,6 @@ class App {
             });
             
             await Promise.all(refreshPromises);
-            
-            logger.info('All data refreshed');
-            
         } catch (error) {
             logger.error('Failed to refresh data:', error);
             Utils.showToast(window.languageManager.getText('refreshDataFailed', '刷新数据失败'), 'error');
@@ -355,7 +341,6 @@ class App {
             modal.classList.add('show');
             // 防止背景滚动
             document.body.style.overflow = 'hidden';
-            logger.info('Contact author modal shown');
         }
     }
     
@@ -366,7 +351,6 @@ class App {
             modal.classList.remove('show');
             // 恢复背景滚动
             document.body.style.overflow = '';
-            logger.info('Contact author modal hidden');
         }
     }
     
@@ -377,7 +361,6 @@ class App {
             modal.classList.add('show');
             // 防止背景滚动
             document.body.style.overflow = 'hidden';
-            logger.info('More menu shown');
         }
     }
     
@@ -388,14 +371,11 @@ class App {
             modal.classList.remove('show');
             // 恢复背景滚动
             document.body.style.overflow = '';
-            logger.info('More menu hidden');
         }
     }
     
     // 处理更多菜单动作
     async handleMoreMenuAction(event, action) {
-        logger.info(`Handling more menu action: ${action}`);
-
         switch (action) {
             case 'calendar-view':
                 await this.toggleView(event);
@@ -475,6 +455,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 导出到全局
 window.App = app;
-
-// 添加调试信息到控制台
-logger.info('TodoList App loaded. Debug mode:', window.location.hostname === 'localhost');

@@ -558,8 +558,7 @@ class TodoManager {
                     this.customDateFilter || null
                 );
             }
-            logger.info('查询数据库');
-            
+
             if (response.success) {
                 this.tasks = response.tasks;
                 this.totalTasks = response.total;
@@ -567,16 +566,6 @@ class TodoManager {
 
                 // 调试信息：检查周期性任务字段
                 const recurringTasks = this.tasks.filter(t => t.isRecurring || t.parentTaskId);
-                logger.info('加载任务完成，周期性任务数量:', recurringTasks.length);
-                recurringTasks.forEach(task => {
-                    logger.info('周期性任务详情:', {
-                        id: task.id,
-                        title: task.title,
-                        isRecurring: task.isRecurring,
-                        parentTaskId: task.parentTaskId,
-                        recurrenceType: task.recurrenceType
-                    });
-                });
 
                 // 根据屏幕尺寸决定显示模式
                 const isLargeScreen = window.innerWidth > 480;
@@ -629,12 +618,8 @@ class TodoManager {
 
         if (!tasksList) return;
 
-        logger.info('Rendering tasks with filter:', this.currentFilter); // 调试日志
-        logger.info('Total tasks:', this.tasks.length); // 调试日志
-
         // 不再需要前端过滤，因为后端已经处理了筛选
         const filteredTasks = this.tasks;
-        logger.info('Filtered tasks:', filteredTasks.length); // 调试日志
 
         // 更新日历视图数据
         if (window.calendarManager) {
@@ -1061,20 +1046,12 @@ class TodoManager {
             const taskId = btn.dataset.taskId;
             const task = this.tasks.find(t => t.id === taskId);
 
-            // 调试信息
-            logger.info(`编辑按钮调试 - 任务ID: ${taskId}`, {
-                task: task,
-                isRecurring: task?.isRecurring,
-                parentTaskId: task?.parentTaskId
-            });
-
             // 如果是周期性任务，禁用编辑按钮并添加点击提示
             if (task && (task.isRecurring || task.parentTaskId)) {
                 btn.disabled = true;
                 btn.title = `${window.languageManager.getText('recurringTaskEditTip', '周期性任务不支持编辑')}`;
                 btn.style.opacity = '0.5';
                 btn.style.cursor = 'not-allowed';
-                logger.info(`禁用编辑按钮: ${taskId}`);
 
                 // 设置点击事件处理，显示提示信息
                 btn.onclick = (e) => {
@@ -1087,7 +1064,6 @@ class TodoManager {
                 btn.title = `${window.languageManager.getText('normalTaskEditTip', '编辑')}`;
                 btn.style.opacity = '';
                 btn.style.cursor = '';
-                logger.info(`启用编辑按钮: ${taskId}`);
 
                 // 设置编辑功能
                 btn.onclick = (e) => {
@@ -1222,8 +1198,7 @@ class TodoManager {
 
         // 获取当前选中的分类ID
         const currentCategory = this.currentFilter && this.currentFilter !== 'all' ? this.currentFilter : '';
-        logger.info('Setting default category for new task:', currentCategory || 'no category');
-        
+
         // 加载分类选项并设置默认选中
         this.loadCategoryOptions(currentCategory);
 
@@ -1323,14 +1298,10 @@ class TodoManager {
             const page = this.parentTaskState.currentPage;
             const pageSize = this.parentTaskState.pageSize;
             
-            logger.info('加载父任务:', { page, pageSize, searchQuery, isNewSearch }); // 调试日志
-            
             // 获取任务列表
             const response = await window.pywebview.api.get_todos(
                 page, pageSize, null, null, null, null, null, null, searchQuery || null
             );
-            
-            logger.info('API响应:', response); // 调试日志
             
             if (response.success) {
                 let tasks = response.tasks.filter(t => !t.isRecurring && !t.parentTaskId);
@@ -1344,8 +1315,6 @@ class TodoManager {
                     results.innerHTML = '';
                 }
                 
-                logger.info('过滤后的任务:', tasks.length); // 调试日志
-                
                 // 渲染任务列表
                 if (tasks.length > 0) {
                     tasks.forEach(task => {
@@ -1357,8 +1326,6 @@ class TodoManager {
                     const total = response.total || 0;
                     const loadedCount = page * pageSize;
                     this.parentTaskState.hasMore = loadedCount < total;
-                    
-                    logger.info('分页信息:', { total, loadedCount, hasMore: this.parentTaskState.hasMore }); // 调试日志
                     
                     loadMore.style.display = this.parentTaskState.hasMore ? 'block' : 'none';
                     empty.style.display = 'none';
@@ -2042,8 +2009,6 @@ class TodoManager {
     
     // 显示周期性任务删除对话框
     showRecurringDeleteDialog(task) {
-        logger.info('显示周期性任务删除对话框:', task);
-        
         const dialogContent = `
             <div style="margin-bottom: 16px;">
                 <strong>${Utils.escapeHtml(task.title)}</strong>
@@ -2066,16 +2031,12 @@ class TodoManager {
             </div>
         `;
         
-        logger.info('对话框内容已创建');
-        
         Utils.confirmDialog(
             dialogContent,
             async () => {
-                logger.info('确认删除回调被调用');
                 // 在确认时实时获取选中的值
                 const checkedRadio = document.querySelector('input[name="delete-option"]:checked');
-                logger.info('找到的选中单选框:', checkedRadio);
-                
+
                 const deleteOption = checkedRadio ? checkedRadio.value : 'single';
                 const deleteAll = deleteOption === 'all';
                 logger.info('删除选项:', deleteOption, 'deleteAll:', deleteAll);
@@ -2086,20 +2047,15 @@ class TodoManager {
             },
             '删除周期性任务'
         );
-        
-        logger.info('confirmDialog已调用');
     }
     
     // 执行删除操作
     async performDelete(taskId, deleteAll) {
-        logger.info('开始执行删除操作:', { taskId, deleteAll });
-        
         try {
             Utils.setLoading(true, '删除中...');
             
             const response = await window.pywebview.api.delete_todo(taskId, deleteAll);
-            logger.info('删除API响应:', response);
-            
+
             if (response.success) {
                 const message = deleteAll ?
                     window.languageManager.getText('periodicTaskDeleted', '整个周期任务删除成功') :

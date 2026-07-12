@@ -92,9 +92,6 @@ class CategoryManager {
             if (e.target.closest('.category-item') && !e.target.closest('.category-edit-btn') && !e.target.closest('.category-delete-btn')) {
                 const categoryItem = e.target.closest('.category-item');
                 const categoryId = categoryItem.dataset.category;
-                logger.info('Category clicked:', categoryId); // 调试日志
-                logger.info('Category element:', categoryItem); // 调试日志
-                logger.info('Target element:', e.target); // 调试日志
                 this.filterByCategory(categoryId);
             }
         });
@@ -250,39 +247,28 @@ class CategoryManager {
     
     // 按分类筛选
     async filterByCategory(categoryId) {
-        logger.info('Filtering by category:', categoryId); // 调试日志
         this.currentCategory = categoryId;
         this.setActiveCategory(categoryId);
         
         // 通知TodoManager进行筛选
         if (window.todoManager) {
-            logger.info('Notifying TodoManager to filter by:', categoryId); // 调试日志
-            logger.info('Current tasks before filter:', window.todoManager.tasks.length); // 调试日志
             window.todoManager.currentFilter = categoryId;
             window.todoManager.currentPage = 1; // 重置到第一页
             window.todoManager.customDateFilter = null; // 清除自定义日期筛选
             window.todoManager.resetInfiniteScroll(); // 重置无限下拉状态
             await window.todoManager.loadTasks();
-            logger.info('Filter completed'); // 调试日志
-        } else {
-            logger.info('TodoManager not available'); // 调试日志
         }
     }
     
     // 设置激活的分类
     setActiveCategory(categoryId) {
-        logger.info('Setting active category:', categoryId); // 调试日志
         document.querySelectorAll('.category-item').forEach(item => {
             item.classList.remove('active');
         });
         
         const activeItem = document.querySelector(`[data-category="${categoryId}"]`);
-        logger.info('Found active item:', activeItem); // 调试日志
         if (activeItem) {
             activeItem.classList.add('active');
-            logger.info('Active class added'); // 调试日志
-        } else {
-            logger.info('Active item not found for category:', categoryId); // 调试日志
         }
     }
     

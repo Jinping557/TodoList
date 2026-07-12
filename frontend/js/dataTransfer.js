@@ -4,7 +4,6 @@
 
 class DataTransfer {
     constructor() {
-        logger.info('DataTransfer构造函数被调用');
         this.isSharing = false;
         this.currentMode = 'share';
         this.sharedData = null;
@@ -22,7 +21,6 @@ class DataTransfer {
             setTimeout(() => {
                 this.bindEvents();
                 this.isInitialized = true;
-                logger.info('DataTransfer初始化完成');
             }, 100);
         } catch (error) {
             logger.error('DataTransfer初始化失败:', error);
@@ -31,18 +29,9 @@ class DataTransfer {
     }
 
     initDOM() {
-        logger.info('初始化DOM元素...');
-        
         // 核心模态框元素
         this.modal = document.getElementById('data-transfer-modal');
         this.closeBtn = document.getElementById('data-transfer-close');
-        
-        if (!this.modal) {
-            logger.error('未找到数据传输模态框元素');
-            return false;
-        }
-        
-        // 其他可选元素
         this.shareModeBtn = document.getElementById('share-mode-btn');
         this.receiveModeBtn = document.getElementById('receive-mode-btn');
         this.shareModePanel = document.getElementById('share-mode-panel');
@@ -61,18 +50,10 @@ class DataTransfer {
         this.importWarning = document.getElementById('import-warning');
         this.confirmImportBtn = document.getElementById('confirm-import-btn');
         this.cancelImportBtn = document.getElementById('cancel-import-btn');
-
-        logger.info('DOM元素初始化完成');
         return true;
     }
 
     bindEvents() {
-        logger.info('开始绑定事件...');
-
-        // 注意：数据传输通过设置中心的数据共享/接收按钮来调用
-
-        logger.info('数据传输按钮事件绑定已跳过（功能已迁移到设置中心）');
-
         // 关闭模态框
         if (this.closeBtn) {
             this.closeBtn.addEventListener('click', () => this.closeModal());
@@ -116,23 +97,19 @@ class DataTransfer {
         if (this.cancelImportBtn) {
             this.cancelImportBtn.addEventListener('click', () => this.cancelImport());
         }
-
-        logger.info('所有事件绑定完成');
     }
 
     openModal() {
-        logger.info('打开模态框');
         if (this.modal) {
             this.modal.style.display = 'flex';
             this.loadDataSummary();
         } else {
-            logger.info('模态框未找到！');
+            logger.error('模态框未找到！');
             Utils.showToast(window.languageManager.getText('initializationFailed', '应用初始化失败'), 'error');
         }
     }
 
     closeModal() {
-        logger.info('关闭模态框');
         if (this.modal) {
             this.modal.style.display = 'none';
             if (this.isSharing) {
@@ -179,7 +156,6 @@ class DataTransfer {
     }
 
     async startSharing() {
-        logger.info('启动共享...');
         try {
             const exportResult = await window.pywebview.api.p2p_export_data();
             if (exportResult.success) {
@@ -369,13 +345,10 @@ let dataTransfer = null;
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
-    logger.info('DOMContentLoaded - 创建DataTransfer实例');
-
     // 延迟初始化，确保所有脚本都加载完成
     setTimeout(() => {
         if (!dataTransfer) {
             dataTransfer = new DataTransfer();
-            logger.info('DataTransfer实例创建成功');
             // 导出到全局
             window.dataTransfer = dataTransfer;
         }
@@ -384,11 +357,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // window加载后再次尝试
 window.addEventListener('load', () => {
-    logger.info('window.load - 检查DataTransfer实例');
-
     if (!dataTransfer) {
         dataTransfer = new DataTransfer();
-        logger.info('DataTransfer实例（window.load）创建成功');
         // 导出到全局
         window.dataTransfer = dataTransfer;
     }
@@ -396,7 +366,6 @@ window.addEventListener('load', () => {
 
 // 全局函数，作为备用方案
 window.openDataTransferModal = function() {
-    logger.info('openDataTransferModal被调用');
     if (dataTransfer) {
         dataTransfer.openModal();
     } else {
