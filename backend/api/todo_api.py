@@ -11,6 +11,7 @@ from backend.database.operations import TodoDatabase
 from backend.database.data_export import DataExportManager
 from backend.features.p2p.p2p_server import P2PServer
 from backend.features.p2p.p2p_client import P2PClient
+from backend.utils import utils
 
 # 确保能找到database模块
 current_dir = Path(__file__).parent
@@ -859,7 +860,6 @@ class TodoApi:
     
     def get_auto_start_config(self):
         """获取开机自启动配置"""
-        from backend.utils import utils
         try:
             status = service.get_auto_start_status()
             return {
@@ -901,7 +901,6 @@ class TodoApi:
     def set_window_on_top_config(self, enabled):
         """设置窗口置顶配置"""
         try:
-            from backend.utils import utils
             import backend.globals
             self.set_setting('window_on_top', enabled)
             backend.globals.window.on_top = utils.str_to_bool(self.db.get_setting('window_on_top', False))
@@ -912,7 +911,6 @@ class TodoApi:
     def get_window_on_top_config(self):
         """获取窗口置顶配置"""
         try:
-            from backend.utils import utils
             enabled = utils.str_to_bool(self.db.get_setting('window_on_top', False))
             return {
                 'success': True,
@@ -941,6 +939,28 @@ class TodoApi:
             return {
                 'success': True,
                 'config': shortcut
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
+    def set_shortcut_enabled(self, enabled):
+        """设置快捷操作开关"""
+        try:
+            self.set_setting('shortcut_enabled', enabled)
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
+    def get_shortcut_enabled(self):
+        """获取快捷操作开关状态"""
+        try:
+            enabled = utils.str_to_bool(self.db.get_setting('shortcut_enabled', True))
+            return {
+                'success': True,
+                'enabled': enabled
             }
         except Exception as e:
             return {

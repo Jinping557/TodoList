@@ -149,7 +149,11 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None, sync
         window.on_top = utils.str_to_bool(api.db.get_setting('window_on_top', False))
 
         # 快捷键功能(仅在桌面端启用)
-        start_keyboard()
+        enabled = api.db.get_setting('shortcut_enabled', True)
+        if not enabled:
+            backend_logger.info("快捷操作功能已关闭，跳过快捷键注册")
+        else:
+            start_keyboard()
 
     backend_logger.info("启动webview...")
     try:

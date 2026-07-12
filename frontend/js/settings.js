@@ -34,6 +34,7 @@ class SettingsUIManager {
         this.currentButtonKey = null;  // 当前按钮设置的组合键
         this.smartKeyShow = null;           // 快捷按键
         this.smartKeyApply = null;           // 快捷按键应用
+        this.shortcutToggle = null;          // 快捷操作开关
 
         // 组合键记录（用于监听时记录完整的组合键）
         this.currentModifiers = {
@@ -96,6 +97,7 @@ class SettingsUIManager {
         // 快捷按键元素
         this.smartKeyShow = document.getElementById('smart-key-show');
         this.smartKeyApply = document.getElementById('smart-key-apply');
+        this.shortcutToggle = document.getElementById('shortcut-toggle');
 
         // ⬇️ 【Mac 适配核心 】：允许该元素接收键盘焦点，并去掉点击时的蓝色外框
         if (this.smartKeyShow) {
@@ -219,6 +221,11 @@ class SettingsUIManager {
                 }
             });
         }
+
+        // 快捷操作开关事件绑定
+        if (this.shortcutToggle) {
+            this.shortcutToggle.addEventListener('change', () => this.toggleShortcut());
+        }
     }
     
     async openModal() {
@@ -256,6 +263,7 @@ class SettingsUIManager {
         this.updateAutoStartState();
 
         // 更新快捷键配置
+        this.updateShortcutToggleState();
         this.updateShortcutConfig();
     }
 
@@ -588,6 +596,75 @@ class SettingsUIManager {
         } catch (error) {
             logger.error('更新快捷键配置失败:', error);
             this.smartKeyShow.textContent = '<ctrl>+<space>';
+        }
+    }
+
+    // 更新快捷操作开关状态
+    async updateShortcutToggleState() {
+        if (!this.shortcutToggle) {
+            return;
+        }
+
+        let enabled = localStorage.getItem('todolist_shortcut_enabled');
+        if (!enabled) {
+            try {
+                if (window.pywebview && window.pywebview.api) {
+                    const result = await window.pywebview.api.get_shortcut_enabled();
+                    if (result.success) {
+                        enabled = result.enabled.toString();
+                        localStorage.setItem('todolist_shortcut_enabled', enabled);
+                    }
+                }
+            } catch (error) {
+                logger.error('更新快捷操作开关状态失败:', error);
+            }
+        }
+        const isEnabled = enabled === 'true';
+        this.shortcutToggle.checked = isEnabled;
+        this.setShortcutEditable(isEnabled);
+    }
+
+    // 设置快捷操作配置是否可编辑
+    setShortcutEditable(enabled) {
+        if (this.smartKeyShow) {
+            this.smartKeyShow.disabled = !enabled;
+            this.smartKeyShow.style.opacity = enabled ? '' : '0.5';
+        }
+        if (this.smartKeyApply) {
+            this.smartKeyApply.disabled = !enabled;
+            this.smartKeyApply.style.opacity = enabled ? '' : '0.5';
+        }
+    }
+
+    // 切换快捷操作开关
+    async toggleShortcut() {
+        if (!this.shortcutToggle) {
+            return;
+        }
+
+        const enabled = this.shortcutToggle.checked;
+
+        try {
+            if (!window.pywebview || !window.pywebview.api) {
+                Utils.showToast(window.languageManager.getText('retry', '发生未知异常，请稍后重试！'), 'error');
+                return;
+            }
+
+            const result = await window.pywebview.api.set_shortcut_enabled(enabled);
+            localStorage.setItem('todolist_shortcut_enabled', enabled.toString());
+            this.setShortcutEditable(enabled);
+            if (result.success) {
+                Utils.showToast(enabled ?
+                    `${window.languageManager.getText('settingsShortcutEnabled', '快捷操作已启用')}, ${window.languageManager.getText('settingsShortcutNeedRestart', '请重启应用后尝试')}` :
+                    `${window.languageManager.getText('settingsShortcutDisabled', '快捷操作已禁用')}, ${window.languageManager.getText('settingsShortcutNeedRestart', '请重启应用后尝试')}`,
+                    'success');
+            } else {
+                this.setShortcutEditable(!enabled);
+                Utils.showToast(result.error || window.languageManager.getText('settingsFailed', '设置失败'), 'error');
+            }
+        } catch (error) {
+            logger.error('设置快捷操作开关失败:', error);
+            Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
         }
     }
 
