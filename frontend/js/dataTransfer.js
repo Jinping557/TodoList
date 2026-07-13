@@ -135,11 +135,11 @@ class DataTransfer {
     }
 
     async loadDataSummary() {
-        try {
-            if (typeof window.pywebview !== 'undefined' && window.pywebview.api) {
-                const result = await window.pywebview.api.p2p_get_data_summary();
-                if (result.success && result.summary) {
-                    const summary = result.summary;
+        await Utils.apiCall({
+            apiMethod: 'p2p_get_data_summary',
+            onSuccess: (response) => {
+                const summary = response.summary;
+                if (summary) {
                     this.shareDataSummary.innerHTML = `
                         <p><strong>${window.languageManager.getText('statsTotalTasks', '总任务数')}:</strong> ${summary.total_tasks}</p>
                         <p><strong>${window.languageManager.getText('statsCompletedTasks', '已完成')}:</strong> ${summary.completed_tasks}</p>
@@ -148,60 +148,51 @@ class DataTransfer {
                         <p><strong>${window.languageManager.getText('statsLastUpdateTime', '最后更新')}:</strong> ${summary.last_updated || '无'}</p>
                     `;
                 }
-            }
-        } catch (error) {
-            logger.error('加载数据摘要失败:', error);
-            this.shareDataSummary.innerHTML = '<p>加载数据失败</p>';
-        }
+            },
+            onError: (error) => this.shareDataSummary.innerHTML = '<p>加载数据失败</p>'
+        });
     }
 
     async startSharing() {
-        try {
-            const exportResult = await window.pywebview.api.p2p_export_data();
-            if (exportResult.success) {
-                this.sharedData = exportResult.data;
+        await Utils.apiCall({
+            apiMethod: 'p2p_export_data',
+            onSuccess: (response) => {
+                this.sharedData = response.data;
 
                 // 显示加载状态
                 Utils.setLoading(true, '配置开启防火墻中...');
-                const result = await window.pywebview.api.p2p_start_server();
-                if (result.success) {
-                    this.isSharing = true;
-                    this.startShareBtn.style.display = 'none';
-                    this.stopShareBtn.style.display = 'block';
-                    this.shareStatus.style.display = 'block';
-                    this.shareIp.textContent = result.ip;
-                    this.sharePort.textContent = result.port;
+                Utils.apiCall({
+                    apiMethod: 'p2p_start_server',
+                    onSuccess: (response) => {
+                        this.isSharing = true;
+                        this.startShareBtn.style.display = 'none';
+                        this.stopShareBtn.style.display = 'block';
+                        this.shareStatus.style.display = 'block';
+                        this.shareIp.textContent = response.ip;
+                        this.sharePort.textContent = response.port;
 
-                    // 显示详细的启动信息，包括防火墙配置状态
-                    let message = `✓ ${window.languageManager.getText('sharingStarted', '共享已启动')}\n\n`;
+                        // 显示详细的启动信息，包括防火墙配置状态
+                        let message = `✓ ${window.languageManager.getText('sharingStarted', '共享已启动')}\n\n`;
 
-                    // 如果消息包含防火墙相关信息，显示给用户
-                    if (result.message) {
-                        message += `\n\n:\n${result.message}`;
-                    }
-                    Utils.setLoading(false);
-                    Utils.showToast(message, 'success');
-                } else {
-                    Utils.setLoading(false);
-                    logger.error('启动P2P失败:', result.error);
-                    Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${result.error}`, 'error');
-                }
-            } else {
-                logger.error('导出数据失败:', exportResult.error);
-                Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${exportResult.error}`, 'error');
-            }
-        } catch (error) {
-            logger.error('启动共享失败:', error);
-            Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${error.message}`, 'error');
-        }
+                        // 如果消息包含防火墙相关信息，显示给用户
+                        if (response.message) {
+                            message += `\n\n:\n${response.message}`;
+                        }
+                        Utils.setLoading(false);
+                        Utils.showToast(message, 'success');
+                    },
+                    onFinally: () => Utils.setLoading(false)
+                });
+            },
+            onError: (error) => Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${error.message}`, 'error')
+        });
     }
 
     async stopSharing() {
-        try {
-            // 显示加载状态
-            Utils.setLoading(true, '配置关闭防火墻中...');
-            const result = await window.pywebview.api.p2p_stop_server();
-            if (result.success) {
+        Utils.setLoading(true, '配置关闭防火墻中...');
+        await Utils.apiCall({
+            apiMethod: 'p2p_stop_server',
+            onSuccess: (response) => {
                 this.isSharing = false;
                 this.startShareBtn.style.display = 'block';
                 this.stopShareBtn.style.display = 'none';
@@ -209,40 +200,32 @@ class DataTransfer {
                 this.sharedData = null;
                 Utils.setLoading(false);
                 Utils.showToast(window.languageManager.getText('sharingStopped', '共享已停止'), 'success');
-            } else {
-                Utils.setLoading(false);
-                Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
-            }
-        } catch (error) {
-            Utils.setLoading(false);
-            logger.error('停止共享失败:', error);
-            Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${error.message}`, 'error');
-        }
+            },
+            onError: (error) => Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${error.message}`, 'error'),
+            onFinally: () => Utils.setLoading(false)
+        });
     }
 
     async scanDevices() {
-        try {
-            this.scanDevicesBtn.disabled = true;
-            this.scanDevicesBtn.textContent = '扫描中...';
-
-            const result = await window.pywebview.api.p2p_scan_devices();
-            if (result.success) {
-                if (result.devices && result.devices.length > 0) {
-                    this.displayDevices(result.devices);
+        this.scanDevicesBtn.disabled = true;
+        this.scanDevicesBtn.textContent = '扫描中...';
+        await Utils.apiCall({
+            apiMethod: 'p2p_scan_devices',
+            onSuccess: (response) => {
+                const devices = response.devices;
+                if (devices && devices.length > 0) {
+                    this.displayDevices(devices);
                 } else {
                     this.deviceList.innerHTML = `<p>${window.languageManager.getText('NoDeviceFound', '未找到可用的设备')}</p>`;
                 }
                 this.deviceListSection.style.display = 'block';
-            } else {
-                Utils.showToast(`${window.languageManager.getText('unknownErrorOccurred', '发生了未知错误')}: ${result.error}`, 'error');
+            },
+            onError: (error) => Utils.showToast(`${window.languageManager.getText('unknownErrorOccurred', '发生了未知错误')}: ${error.message}`, 'error'),
+            onFinally: () => {
+                this.scanDevicesBtn.disabled = false;
+                this.scanDevicesBtn.textContent = '扫描局域网设备';
             }
-        } catch (error) {
-            logger.error('扫描设备失败:', error);
-            Utils.showToast(`${window.languageManager.getText('unknownErrorOccurred', '发生了未知错误')}: ${error.message}`, 'error');
-        } finally {
-            this.scanDevicesBtn.disabled = false;
-            this.scanDevicesBtn.textContent = '扫描局域网设备';
-        }
+        });
     }
 
     displayDevices(devices) {
@@ -261,27 +244,31 @@ class DataTransfer {
     }
 
     async receiveData(ip) {
-        try {
-            this.deviceList.innerHTML = '<p style="text-align: center;">正在接收数据...</p>';
+        this.deviceList.innerHTML = '<p style="text-align: center;">正在接收数据...</p>';
+        await Utils.apiCall({
+            apiMethod: 'p2p_receive_data',
+            apiArgs: [ip],
+            onSuccess: (response) => {
+                const data = response.data;
+                if (data) {
+                    this.displayReceivedData(data);
+                    this.receiveDataPreviewSection.style.display = 'block';
 
-            const result = await window.pywebview.api.p2p_receive_data(ip);
-            if (result.success && result.data) {
-                this.displayReceivedData(result.data);
-                this.receiveDataPreviewSection.style.display = 'block';
-
-                const hasDataResult = await window.pywebview.api.p2p_has_data();
-                if (hasDataResult.success && hasDataResult.has_data) {
-                    this.importWarning.style.display = 'flex';
+                    Utils.apiCall({
+                        apiMethod: 'p2p_has_data',
+                        onSuccess: (response) => {
+                            if (response.has_data) {
+                                this.importWarning.style.display = 'flex';
+                            }
+                        }
+                    });
                 }
-            } else {
+            },
+            onError: (error) => {
                 this.deviceList.innerHTML = `<p style="text-align: center;">${window.languageManager.getText('receiveDataFailed', '接收数据失败')}</p>`;
-                Utils.showToast(window.languageManager.getText('receiveDataFailed', '接收数据失败'), 'error');
+                Utils.showToast(`${window.languageManager.getText('receiveDataFailed', '接收数据失败')}: ${error.message}`, 'error');
             }
-        } catch (error) {
-            logger.error('接收数据失败:', error);
-            this.deviceList.innerHTML = `<p style="text-align: center;">${window.languageManager.getText('receiveDataFailed', '接收数据失败')}</p>`;
-            Utils.showToast(`${window.languageManager.getText('receiveDataFailed', '接收数据失败')}: ${error.message}`, 'error');
-        }
+        });
     }
 
     displayReceivedData(data) {
@@ -300,38 +287,36 @@ class DataTransfer {
     }
 
     async confirmImport() {
-        try {
-            this.closeModal();
-            Utils.confirmDialog(
-                window.languageManager.getText('settingsImportWarning', '注意：当前操作将覆盖本地所有数据。建议先备份重要数据。是否继续？'),
-                async () => {
-                    this.confirmImportBtn.disabled = true;
-                    this.confirmImportBtn.textContent = '导入中...';
-
-                    const result = await window.pywebview.api.p2p_get_received_data();
-                    if (result.success && result.data) {
-                        const importResult = await window.pywebview.api.p2p_import_data(result.data);
-                        if (importResult.success) {
-                            Utils.showToast(window.languageManager.getText('dataImportedSuccess', '数据导入成功'), 'success');
-                            this.closeModal();
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1000);
-                        } else {
-                            Utils.showToast(`${window.languageManager.getText('dataImportedFailed', '数据导入失败')}: ${importResult.error}`, 'error');
+        this.closeModal();
+        Utils.confirmDialog(
+            window.languageManager.getText('settingsImportWarning', '注意：当前操作将覆盖本地所有数据。建议先备份重要数据。是否继续？'),
+            async () => {
+                this.confirmImportBtn.disabled = true;
+                this.confirmImportBtn.textContent = '导入中...';
+                Utils.apiCall({
+                    apiMethod: 'p2p_get_received_data',
+                    onSuccess: (response) => {
+                        const data = response.data;
+                        if (data) {
+                            Utils.apiCall({
+                                apiMethod: 'p2p_import_data',
+                                apiArgs: [data],
+                                onSuccess: (response) => {
+                                    Utils.showToast(window.languageManager.getText('dataImportedSuccess', '数据导入成功'), 'success');
+                                    this.closeModal();
+                                    setTimeout(() => location.reload(), 1000);
+                                }
+                            });
                         }
-                    } else {
-                        Utils.showToast(window.languageManager.getText('retrieveDataFailed', '无法获取接收到的数据'), 'error');
+                    },
+                    onError: (error) => Utils.showToast(`${window.languageManager.getText('dataImportedFailed', '数据导入失败')}: ${error.message}`, 'error'),
+                    onFinally: () => {
+                        this.confirmImportBtn.disabled = false;
+                        this.confirmImportBtn.textContent = '确认导入';
                     }
-                }
-            );
-        } catch (error) {
-            logger.error('导入数据失败:', error);
-            Utils.showToast(`${window.languageManager.getText('dataImportedFailed', '数据导入失败')}: ${error.message}`, 'error');
-        } finally {
-            this.confirmImportBtn.disabled = false;
-            this.confirmImportBtn.textContent = '确认导入';
-        }
+                });
+            }
+        );
     }
 
     cancelImport() {

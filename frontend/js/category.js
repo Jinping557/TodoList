@@ -122,18 +122,11 @@ class CategoryManager {
     
     // 加载分类
     async loadCategories() {
-        try {
-            const response = await window.pywebview.api.get_categories();
-            
-            if (response.success) {
-                this.categories = response.categories;
-            } else {
-                Utils.showToast(`${window.languageManager.getText('loadCategoriesFailed', '加载分类失败')}: ${response.error}`, 'error');
-            }
-        } catch (error) {
-            logger.error('加载分类失败:', error);
-            Utils.showToast(window.languageManager.getText('loadCategoriesFailed', '加载分类失败'), 'error');
-        }
+        await Utils.apiCall({
+            apiMethod: 'get_categories',
+            onSuccess: (response) => this.categories = response.categories,
+            onError: (error) => Utils.showToast(window.languageManager.getText('loadCategoriesFailed', '加载分类失败'), 'error')
+        });
     }
     
     // 渲染分类列表
@@ -205,43 +198,33 @@ class CategoryManager {
     // 获取任务数量统计
     async getTaskCounts(defaultFiltered = true, filteredTasks = null) {
         const counts = { all: 0 };
-        
-        try {
-            // 如果没有传入筛选后的任务，则获取所有任务
-            let tasks;
-            if (filteredTasks) {
-                tasks = filteredTasks;
-            } else {
-                const response = defaultFiltered ? await window.pywebview.api.get_todos() : await window.pywebview.api.get_todos(
-                    1,  // page
-                    999999,  // page_size - 设置一个足够大的值以获取所有任务
-                    null,  // 分类
-                    'uncompleted',  // 状态
-                    null,  // 优先级
-                    null,  // 逾期
-                    null,  // year
-                    null,  // month
-                    null,  // search-input
-                    null   // custom-date
-                );
-                if (response.success) {
-                    tasks = response.tasks;
-                } else {
-                    return counts;
-                }
-            }
-            
-            counts.all = tasks.length;
-            
-            tasks.forEach(task => {
-                if (task.categoryId) {
-                    counts[task.categoryId] = (counts[task.categoryId] || 0) + 1;
-                }
+        let tasks = [];
+
+        // 如果外部已传入筛选后的任务，直接使用，无需调 API
+        if (filteredTasks) {
+            tasks = filteredTasks;
+        } else {
+            // 根据 defaultFiltered 决定 API 参数（保持原有逻辑）
+            const apiArgs = defaultFiltered
+                ? []
+                : [1, 999999, null, 'uncompleted', null, null, null, null, null, null];
+
+            // 调用公共方法，自动处理加载检查、错误日志和成功/失败回调
+            await Utils.apiCall({
+                apiMethod: 'get_todos',
+                apiArgs: apiArgs,
+                onSuccess: (response) => tasks = response.tasks
             });
-        } catch (error) {
-            logger.error('获取任务统计失败:', error);
         }
-        
+
+        // ---- 统计逻辑 ----
+        counts.all = tasks.length;
+        tasks.forEach(task => {
+            if (task.categoryId) {
+                counts[task.categoryId] = (counts[task.categoryId] || 0) + 1;
+            }
+        });
+
         return counts;
     }
     
@@ -316,44 +299,39 @@ class CategoryManager {
             Utils.showToast(window.languageManager.getText('errorCategoryExisted', '分类名称已存在'), 'warning');
             return;
         }
-        
-        try {
-            Utils.setLoading(true, isEdit ? '更新中...' : '创建中...');
-            
-            let response;
-            if (isEdit) {
-                response = await window.pywebview.api.update_category(editingId, categoryData);
-            } else {
-                response = await window.pywebview.api.add_category(categoryData);
-            }
-            
-            if (response.success) {
+
+        let apiMethod;
+        let apiArgs = [];
+        if (isEdit) {
+            apiMethod = 'update_category';
+            apiArgs = [editingId, categoryData];
+        } else {
+            apiMethod = 'add_category';
+            apiArgs = [categoryData];
+        }
+        Utils.setLoading(true, isEdit ? '更新中...' : '创建中...');
+        await Utils.apiCall({
+            apiMethod: apiMethod,
+            apiArgs: apiArgs,
+            onSuccess: (response) => {
                 Utils.showToast(isEdit ?
                     window.languageManager.getText('categoryUpdated', '分类更新成功') :
                     window.languageManager.getText('categoryCreated', '分类创建成功'), 'success');
                 Utils.ModalManager.hide('category-modal');
 
-                await this.loadCategories();
-                await this.renderCategories();
-                
-                // 重新加载任务列表以更新分类信息
+                this.loadCategories();
+                this.renderCategories();
+
                 if (window.todoManager) {
-                    await window.todoManager.loadTasks();
+                    // 重新加载任务列表以更新分类信息
+                    window.todoManager.loadTasks();
+                    // 触发云端同步上传
+                    window.todoManager.triggerCloudUpload();
                 }
-                
-                // 触发云端同步上传
-                if (window.todoManager) {
-                    await window.todoManager.triggerCloudUpload();
-                }
-            } else {
-                Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')}: ${response.error}`, 'error');
-            }
-        } catch (error) {
-            logger.error('保存分类失败:', error);
-            Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
-        } finally {
-            Utils.setLoading(false);
-        }
+            },
+            onError: (error) => Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error'),
+            onFinally: () => Utils.setLoading(false)
+        });
     }
     
     // 删除分类
@@ -393,53 +371,42 @@ class CategoryManager {
             : `确定要删除分类"${category.name}"吗？`;
         
         Utils.confirmDialog(message, async () => {
-            try {
-                Utils.setLoading(true, '删除中...');
-                
-                const response = await window.pywebview.api.delete_category(categoryId);
-                if (response.success) {
+            Utils.setLoading(true, '删除中...');
+            Utils.apiCall({
+                apiMethod: 'delete_category',
+                apiArgs: [categoryId],
+                onSuccess: (response) => {
                     Utils.showToast(window.languageManager.getText('categoryDeleted', '分类删除成功'), 'success');
 
                     // 如果当前选中的是被删除的分类，切换到"全部"
                     if (this.currentCategory === categoryId) {
                         this.filterByCategory('all');
                     }
-                    
-                    await this.loadCategories();
-                    await this.renderCategories();
-                    
-                    // 重新加载任务列表
+
+                    this.loadCategories();
+                    this.renderCategories();
+
                     if (window.todoManager) {
-                        await window.todoManager.loadTasks();
+                        // 重新加载任务列表
+                        window.todoManager.loadTasks();
+                        // 触发云端同步上传
+                        window.todoManager.triggerCloudUpload();
                     }
-                    
-                    // 触发云端同步上传
-                    if (window.todoManager) {
-                        await window.todoManager.triggerCloudUpload();
-                    }
-                } else {
-                    Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')}: ${response.error}`, 'error');
-                }
-            } catch (error) {
-                logger.error('删除分类失败:', error);
-                Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
-            } finally {
-                Utils.setLoading(false);
-            }
+                },
+                onError: (error) => Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error'),
+                onFinally: () => Utils.setLoading(false)
+            });
         });
     }
     
     // 获取分类下的任务数量
     async getCategoryTaskCount(categoryId) {
-        try {
-            const response = await window.pywebview.api.get_todos();
-            if (response.success) {
-                return response.tasks.filter(task => task.categoryId === categoryId).length;
-            }
-        } catch (error) {
-            logger.error('获取分类任务数量失败:', error);
-        }
-        return 0;
+        let count = 0;
+        await Utils.apiCall({
+            apiMethod: 'get_todos',
+            onSuccess: (response) => count = response.tasks.filter(task => task.categoryId === categoryId).length
+        });
+        return count;
     }
     
     // 获取分类信息

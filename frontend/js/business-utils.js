@@ -58,22 +58,15 @@ const ThemeManager = {
             return;
         }
 
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                return;
-            }
-
-            const result = await window.pywebview.api.get_theme_config();
-
-            if (result.success) {
-                theme = result.config;
+        await Utils.apiCall({
+            apiMethod: 'get_theme_config',
+            onSuccess: (response) => {
+                theme = response.config;
                 localStorage.setItem('todolist_theme', theme);
                 this.updateToggleButton(theme);
-            }
-        } catch (error) {
-            logger.error('获取主题信息失败:', error);
-            this.updateToggleButton('light');
-        }
+            },
+            onError: (error) => this.updateToggleButton('light')
+        });
     },
 
     updateToggleButton(theme) {

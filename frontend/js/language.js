@@ -39,41 +39,31 @@ class LanguageManager {
             return;
         }
 
-        try {
-            // 先等待 pywebview 加载完成
-            const isLoaded = await Utils.loadPywebviewApi();
-
-            if (!isLoaded) {
-               throw new Error('pywebview加载失败！');
-            }
-
-            const result = await window.pywebview.api.get_language_config();
-            if (result.success) {
-                const savedLanguage = result.config;
+        await Utils.apiCall({
+            apiMethod: 'get_language_config',
+            onSuccess: (response) => {
+                const savedLanguage = response.config;
                 localStorage.setItem('todolist_language', savedLanguage);
                 this.currentLanguage = savedLanguage;
+            },
+            onError: (error) => {
+                this.currentLanguage = 'zh';
             }
-        } catch (error) {
-            logger.error('Failed to restore language setting:', error);
-            this.currentLanguage = 'zh';
-        }
+        });
     }
     
     // 保存语言设置
     async saveLanguageSetting(language) {
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                return;
-            }
-
-            const result = await window.pywebview.api.set_language_config(language);
-            if (result.success) {
+        await Utils.apiCall({
+            apiMethod: 'set_language_config',
+            apiArgs: [language],
+            onSuccess: (response) => {
                 localStorage.setItem('todolist_language', language);
+            },
+            onError: (error) => {
+                this.currentLanguage = 'zh';
             }
-        } catch (error) {
-            logger.error('Failed to save language setting:', error);
-            this.currentLanguage = 'zh';
-        }
+        });
     }
     
     // 切换语言

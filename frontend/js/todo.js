@@ -111,13 +111,10 @@ class TodoManager {
     
     // 触发云端同步上传
     async triggerCloudUpload() {
-        try {
-            if (window.pywebview && window.pywebview.api) {
-                await window.pywebview.api.trigger_upload_on_change();
-            }
-        } catch (error) {
-            logger.error('触发云端上传失败:', error);
-        }
+        await Utils.apiCall({
+            apiMethod: 'trigger_upload_on_change',
+            successCheck: (response) => true
+        });
     }
 
     // 绑定事件
@@ -468,7 +465,10 @@ class TodoManager {
                 // 添加日历权限检查
                 const hasPermission = localStorage.getItem('calendar_permission') === 'true';
                 if (!hasPermission && this.isMobileDevice()) {
-                    await window.pywebview.api.check_calendar_permission();
+                    await Utils.apiCall({
+                        apiMethod: 'check_calendar_permission',
+                        successCheck: (response) => true
+                    });
                     localStorage.setItem('calendar_permission', 'true');
                 }
                 // 执行实时校验
@@ -503,78 +503,42 @@ class TodoManager {
             timeInput.addEventListener('change', updateClearTimeBtn);
         }
     }
-
-    // 加载pywebview的todos-api
-    async safeGetTodos(...args) {
-        // 先等待 pywebview 加载完成
-        const isLoaded = await Utils.loadPywebviewApi();
-
-        if (!isLoaded) {
-           throw new Error('pywebview加载失败！');
-        }
-
-        // pywebview 已加载，正常调用
-        return await window.pywebview.api.get_todos(...args);
-    }
     
     // 加载任务
     async loadTasks() {
-        try {
-            Utils.setLoading(true, '加载任务...');
-
-            let response;
-            
-            // 检查是否是子任务搜索模式（以">"开头）
-            if (this.searchQuery && this.searchQuery.startsWith('>')) {
-                const parentName = this.searchQuery.substring(1).trim();
-                if (parentName) {
-                    response = await window.pywebview.api.search_subtasks_by_parent_name(
-                        parentName,
-                        this.currentPage,
-                        this.pageSize
-                    );
-                } else {
-                    response = await this.safeGetTodos(
-                        this.currentPage,
-                        this.pageSize,
-                        this.currentFilter === 'all' ? null : this.currentFilter,
-                        this.statusFilter === 'all' ? null : this.statusFilter,
-                        this.priorityFilter === 'all' ? null : this.priorityFilter,
-                        this.dueDateFilter === 'all' ? null : this.dueDateFilter,
-                        null, null, null, null
-                    );
-                }
-            } else {
-                response = await this.safeGetTodos(
-                    this.currentPage,
-                    this.pageSize,
-                    this.currentFilter === 'all' ? null : this.currentFilter,
-                    this.statusFilter === 'all' ? null : this.statusFilter,
-                    this.priorityFilter === 'all' ? null : this.priorityFilter,
-                    this.dueDateFilter === 'all' ? null : this.dueDateFilter,
-                    null,  // year
-                    null,  // month
-                    this.searchQuery || null,
-                    this.customDateFilter || null
-                );
-            }
-
-            if (response.success) {
+        Utils.setLoading(true, '加载任务...');
+        const isLoadSubtasks = this.searchQuery && this.searchQuery.startsWith('>') && this.searchQuery.substring(1).trim();
+        let apiMethod;
+        let apiArgs;
+        if (isLoadSubtasks) {
+            apiMethod = 'search_subtasks_by_parent_name';
+            apiArgs = [this.searchQuery.substring(1).trim(), this.currentPage, this.pageSize];
+        } else {
+            apiMethod = 'get_todos';
+            apiArgs = [
+                this.currentPage,
+                this.pageSize,
+                this.currentFilter === 'all' ? null : this.currentFilter,
+                this.statusFilter === 'all' ? null : this.statusFilter,
+                this.priorityFilter === 'all' ? null : this.priorityFilter,
+                this.dueDateFilter === 'all' ? null : this.dueDateFilter,
+                null,  // year
+                null,  // month
+                this.searchQuery || null,
+                this.customDateFilter || null
+            ];
+        }
+        await Utils.apiCall({
+            apiMethod: apiMethod,
+            apiArgs: apiArgs,
+            onSuccess: (response) => {
                 this.tasks = response.tasks;
                 this.totalTasks = response.total;
                 this.totalPages = response.total_pages;
-
-                // 调试信息：检查周期性任务字段
-                const recurringTasks = this.tasks.filter(t => t.isRecurring || t.parentTaskId);
-
-                // 根据屏幕尺寸决定显示模式
-                const isLargeScreen = window.innerWidth > 480;
-
-                if (isLargeScreen) {
+                if (window.innerWidth > 480) {
                     // 大屏幕(大于480px)：使用表格分页模式，每页10条
-                    await this.renderTasks();
+                    this.renderTasks();
                     this.renderPagination();
-
                     // 隐藏无限下拉相关
                     const loadingMoreEl = document.getElementById('loading-more');
                     const noMoreEl = document.getElementById('no-more-tasks');
@@ -582,12 +546,12 @@ class TodoManager {
                     if (noMoreEl) noMoreEl.style.display = 'none';
                 } else {
                     // 小屏幕：使用无限下拉模式
-                    await this.renderTasks();
+                    this.renderTasks();
                     this.initInfiniteScroll();
                 }
 
-                await this.updateStats();
-                await this.updateCategoryCounts();
+                this.updateStats();
+                this.updateCategoryCounts();
 
                 // 更新日历视图数据
                 if (window.calendarManager) {
@@ -598,16 +562,11 @@ class TodoManager {
                 if (window.categoryManager) {
                     window.categoryManager.setActiveCategory(this.currentFilter);
                 }
-            } else {
-                logger.error('加载任务失败:', response.error);
-                Utils.showToast(window.languageManager.getText('loadingTaskFailed', '加载任务失败'), 'error');
-            }
-        } catch (error) {
-            logger.error('加载任务失败:', error);
-            Utils.showToast(window.languageManager.getText('loadingTaskFailed', '加载任务失败'), 'error');
-        } finally {
-            Utils.setLoading(false);
-        }
+            },
+            onError: (error) => Utils.showToast(window.languageManager.getText('loadingTaskFailed', '加载任务失败'), 'error'),
+            onFinally: () => Utils.setLoading(false)
+        });
+
     }
     
     // 渲染任务列表
@@ -1087,32 +1046,23 @@ class TodoManager {
     
     // 加载分类名称
     async loadCategoryNames() {
-        try {
-            // 确保pywebview已加载完成
-            const isLoaded = await Utils.loadPywebviewApi();
-            if (!isLoaded) {
-                logger.error('pywebview未加载，无法获取分类');
-                return;
-            }
-            
-            const response = await window.pywebview.api.get_categories();
-            if (response.success) {
+        await Utils.apiCall({
+            apiMethod: 'get_categories',
+            onSuccess: (response) => {
                 const categories = response.categories;
                 const categoryMap = {};
-                
+
                 categories.forEach(cat => {
                     categoryMap[cat.id] = cat.name;
                 });
-                
+
                 document.querySelectorAll('.task-category').forEach(el => {
                     const categoryId = el.dataset.categoryId;
                     const categoryName = categoryMap[categoryId] || '未知分类';
                     el.textContent = `📁 ${categoryName}`;
                 });
             }
-        } catch (error) {
-            logger.error('加载分类失败:', error);
-        }
+        });
     }
     
     // 切换任务状态
@@ -1123,50 +1073,50 @@ class TodoManager {
         
         // 如果是要完成任务，检查是否有未完成的子任务
         if (!task.completed) {
-            try {
-                const childrenResponse = await window.pywebview.api.get_children(taskId);
-                if (childrenResponse.success && childrenResponse.children && childrenResponse.children.length > 0) {
-                    const uncompletedChildren = childrenResponse.children.filter(child => !child.completed);
-                    if (uncompletedChildren.length > 0) {
-                        Utils.showToast(
-                            window.languageManager.getText('cannotCompleteWithUncompletedChildren', '该任务存在未完成的子任务，请先完成所有子任务'),
-                            'warning'
-                        );
-                        return;
+            let hasUnCompletedChildren = false;
+            await Utils.apiCall({
+                apiMethod: 'get_children',
+                apiArgs: [taskId],
+                onSuccess: (response) => {
+                    if (response.children && response.children.length > 0) {
+                        const uncompletedChildren = response.children.filter(child => !child.completed);
+                        hasUnCompletedChildren = uncompletedChildren.length > 0;
                     }
                 }
-            } catch (error) {
-                logger.error('检查子任务失败:', error);
+            });
+            if (hasUnCompletedChildren) {
+                Utils.showToast(window.languageManager.getText('cannotCompleteWithUncompletedChildren',
+                    '该任务存在未完成的子任务，请先完成所有子任务'), 'warning');
+                return;
             }
         }
-        
-        try {
-            const response = await window.pywebview.api.toggle_todo(taskId);
-            if (response.success) {
+
+        await Utils.apiCall({
+            apiMethod: 'toggle_todo',
+            apiArgs: [taskId],
+            onSuccess: (response) => {
                 // 更新本地数据
                 const task = this.tasks.find(t => t.id === taskId);
                 if (task) {
                     task.completed = response.task.completed;
                     task.updatedAt = response.task.updatedAt;
                     this.renderTasks();
-                    await this.updateStats();
-                    await this.updateCategoryCounts();
-                    
+                    this.updateStats();
+                    this.updateCategoryCounts();
+
                     // 不需要调用 renderCategories()，updateCategoryCounts() 已经更新了分类统计
                     Utils.showToast(task.completed ?
                         window.languageManager.getText('taskCompleted', '任务已完成') :
                         window.languageManager.getText('taskReopened', '任务已重新开启'), 'success');
 
                     // 触发云端同步上传
-                    await this.triggerCloudUpload();
+                    this.triggerCloudUpload();
                 }
-            } else {
-                Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')}: ${response.error}`, 'error');
+            },
+            onError: (error) => {
+                Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
             }
-        } catch (error) {
-            logger.error('切换任务状态失败:', error);
-            Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
-        }
+        });
     }
     
     // 显示添加任务模态框
@@ -1292,55 +1242,50 @@ class TodoManager {
         
         loading.style.display = 'block';
         empty.style.display = 'none';
-        
-        try {
-            const searchQuery = this.parentTaskState.searchQuery;
-            const page = this.parentTaskState.currentPage;
-            const pageSize = this.parentTaskState.pageSize;
-            
-            // 获取任务列表
-            const response = await window.pywebview.api.get_todos(
-                page, pageSize, null, null, null, null, null, null, searchQuery || null
-            );
-            
-            if (response.success) {
+
+        const searchQuery = this.parentTaskState.searchQuery;
+        const page = this.parentTaskState.currentPage;
+        const pageSize = this.parentTaskState.pageSize;
+        await Utils.apiCall({
+            apiMethod: 'get_todos',
+            apiArgs: [page, pageSize, null, null, null, null, null, null, searchQuery || null],
+            onSuccess: (response) => {
                 let tasks = response.tasks.filter(t => !t.isRecurring && !t.parentTaskId);
-                
+
                 // 排除当前编辑的任务
                 if (this.parentTaskState.editingTaskId) {
                     tasks = tasks.filter(t => t.id !== this.parentTaskState.editingTaskId);
                 }
-                
+
                 if (isNewSearch) {
                     results.innerHTML = '';
                 }
-                
+
                 // 渲染任务列表
                 if (tasks.length > 0) {
                     tasks.forEach(task => {
                         const item = this.createParentTaskItem(task);
                         results.appendChild(item);
                     });
-                    
+
                     // 使用后端返回的分页信息判断是否有更多
                     const total = response.total || 0;
                     const loadedCount = page * pageSize;
                     this.parentTaskState.hasMore = loadedCount < total;
-                    
+
                     loadMore.style.display = this.parentTaskState.hasMore ? 'block' : 'none';
                     empty.style.display = 'none';
                 } else if (results.children.length === 0) {
                     empty.style.display = 'block';
                     loadMore.style.display = 'none';
                 }
+            },
+            onFinally: () => {
+                this.parentTaskState.isLoading = false;
+                this.parentTaskState.currentPage++;
+                loading.style.display = 'none';
             }
-        } catch (error) {
-            logger.error('加载父任务列表失败:', error);
-        } finally {
-            this.parentTaskState.isLoading = false;
-            this.parentTaskState.currentPage++;
-            loading.style.display = 'none';
-        }
+        });
     }
     
     // 创建父任务列表项
@@ -1400,19 +1345,19 @@ class TodoManager {
         this.initParentTaskCombobox();
         
         // 获取当前任务的父任务
-        try {
-            const response = await window.pywebview.api.get_parent(taskId);
-            if (response.success && response.parent) {
-                const input = document.getElementById('task-parent-input');
-                const hiddenInput = document.getElementById('task-parent');
-                
-                input.value = response.parent.title;
-                hiddenInput.value = response.parent.id;
-                this.parentTaskState.selectedId = response.parent.id;
+        await Utils.apiCall({
+            apiMethod: 'get_parent',
+            apiArgs: [taskId],
+            onSuccess: (response) => {
+                if (response.parent) {
+                    const input = document.getElementById('task-parent-input');
+                    const hiddenInput = document.getElementById('task-parent');
+                    input.value = response.parent.title;
+                    hiddenInput.value = response.parent.id;
+                    this.parentTaskState.selectedId = response.parent.id;
+                }
             }
-        } catch (error) {
-            logger.error('获取父任务信息失败:', error);
-        }
+        });
     }
     
     // 加载子任务数量并更新显示
@@ -1421,23 +1366,24 @@ class TodoManager {
         if (subtaskCountEls.length === 0) return;
         
         const taskIds = Array.from(subtaskCountEls).map(el => el.dataset.taskId);
-        
+
         for (const taskId of taskIds) {
-            try {
-                const response = await window.pywebview.api.get_children(taskId);
-                if (response.success && response.children && response.children.length > 0) {
-                    const countEl = document.querySelector(`.subtask-count[data-task-id="${taskId}"]`);
-                    if (countEl) {
-                        const countSpan = countEl.querySelector('.count');
-                        if (countSpan) {
-                            countSpan.textContent = response.children.length;
+            await Utils.apiCall({
+                apiMethod: 'get_children',
+                apiArgs: [taskId],
+                onSuccess: (response) => {
+                    if (response.children && response.children.length > 0) {
+                        const countEl = document.querySelector(`.subtask-count[data-task-id="${taskId}"]`);
+                        if (countEl) {
+                            const countSpan = countEl.querySelector('.count');
+                            if (countSpan) {
+                                countSpan.textContent = response.children.length;
+                            }
+                            countEl.style.display = 'inline';
                         }
-                        countEl.style.display = 'inline';
                     }
                 }
-            } catch (error) {
-                logger.error(`加载任务 ${taskId} 的子任务数量失败:`, error);
-            }
+            });
         }
     }
     
@@ -1472,11 +1418,11 @@ class TodoManager {
 
         // 如果当前页任务中不存在该任务，再查询数据库
         if (!task) {
-            let response = await window.pywebview.api.get_todo(taskId);
-
-            if (response.success) {
-                task = response.task;
-            }
+            await Utils.apiCall({
+                apiMethod: 'get_todo',
+                apiArgs: [taskId],
+                onSuccess: (response) => task = response.task
+            });
         }
         if (!task) return;
 
@@ -1498,43 +1444,45 @@ class TodoManager {
         // 获取父任务和子任务信息
         let parentInfo = '';
         let childrenInfo = '';
-        
-        try {
-            const parentResponse = await window.pywebview.api.get_parent(taskId);
-            if (parentResponse.success && parentResponse.parent) {
-                const parent = parentResponse.parent;
-                parentInfo = `
-                    <div>
-                        <strong style="display: block; color: var(--text-secondary); margin-bottom: 8px; font-size: 14px;">${window.languageManager.getText('parentTask', '父任务')}</strong>
-                        <span style="color: var(--primary-color); font-size: 14px; cursor: pointer;" class="link-text" data-task-id="${parent.id}">
-                            🔗 ${Utils.escapeHtml(parent.title)}
-                        </span>
-                    </div>
-                `;
-            }
-        } catch (error) {
-            logger.error('获取父任务信息失败:', error);
-        }
 
-        try {
-            const childrenResponse = await window.pywebview.api.get_children(taskId);
-            if (childrenResponse.success && childrenResponse.children && childrenResponse.children.length > 0) {
-                const children = childrenResponse.children;
-                const childrenHtml = children.map(child => 
-                    `<span style="display: block; color: var(--primary-color); font-size: 14px; cursor: pointer; margin-bottom: 4px;" class="link-text" data-task-id="${child.id}">
-                        📋 ${Utils.escapeHtml(child.title)} ${child.completed ? '✓' : ''}
-                    </span>`
-                ).join('');
-                childrenInfo = `
-                    <div style="grid-column: 1 / -1;">
-                        <strong style="display: block; color: var(--text-secondary); margin-bottom: 8px; font-size: 14px;">${window.languageManager.getText('subTasks', '子任务')} (${children.length})</strong>
-                        <div>${childrenHtml}</div>
-                    </div>
-                `;
+        await Utils.apiCall({
+            apiMethod: 'get_parent',
+            apiArgs: [taskId],
+            onSuccess: (response) => {
+                const parent = response.parent;
+                if (parent) {
+                    parentInfo = `
+                        <div>
+                            <strong style="display: block; color: var(--text-secondary); margin-bottom: 8px; font-size: 14px;">${window.languageManager.getText('parentTask', '父任务')}</strong>
+                            <span style="color: var(--primary-color); font-size: 14px; cursor: pointer;" class="link-text" data-task-id="${parent.id}">
+                                🔗 ${Utils.escapeHtml(parent.title)}
+                            </span>
+                        </div>
+                    `;
+                }
             }
-        } catch (error) {
-            logger.error('获取子任务信息失败:', error);
-        }
+        });
+
+        await Utils.apiCall({
+            apiMethod: 'get_children',
+            apiArgs: [taskId],
+            onSuccess: (response) => {
+                if (response.children && response.children.length > 0) {
+                    const children = response.children;
+                    const childrenHtml = children.map(child =>
+                        `<span style="display: block; color: var(--primary-color); font-size: 14px; cursor: pointer; margin-bottom: 4px;" class="link-text" data-task-id="${child.id}">
+                            📋 ${Utils.escapeHtml(child.title)} ${child.completed ? '✓' : ''}
+                        </span>`
+                    ).join('');
+                    childrenInfo = `
+                        <div style="grid-column: 1 / -1;">
+                            <strong style="display: block; color: var(--text-secondary); margin-bottom: 8px; font-size: 14px;">${window.languageManager.getText('subTasks', '子任务')} (${children.length})</strong>
+                            <div>${childrenHtml}</div>
+                        </div>
+                    `;
+                }
+            }
+        });
 
         const detailContent = `
             <div style="padding: 20px;">
@@ -1632,9 +1580,9 @@ class TodoManager {
     async loadCategoryNameForDetail(categoryId) {
         if (!categoryId) return;
 
-        try {
-            const response = await window.pywebview.api.get_categories();
-            if (response.success) {
+        await Utils.apiCall({
+            apiMethod: 'get_categories',
+            onSuccess: (response) => {
                 const categories = response.categories;
                 const category = categories.find(cat => cat.id === categoryId);
                 const categoryEl = document.querySelector('.task-category-detail');
@@ -1642,9 +1590,7 @@ class TodoManager {
                     categoryEl.textContent = category.name;
                 }
             }
-        } catch (error) {
-            logger.error('加载分类失败:', error);
-        }
+        });
     }
 
     // 编辑任务
@@ -1723,14 +1669,15 @@ class TodoManager {
     // 加载父任务选项（编辑模式）
     async loadParentTaskOptionsForEdit(taskId) {
         let parentId = '';
-        try {
-            const response = await window.pywebview.api.get_parent(taskId);
-            if (response.success && response.parent) {
-                parentId = response.parent.id;
+        await Utils.apiCall({
+            apiMethod: 'get_parent',
+            apiArgs: [taskId],
+            onSuccess: (response) => {
+                if (response.parent) {
+                    parentId = response.parent.id
+                }
             }
-        } catch (error) {
-            logger.error('获取父任务信息失败:', error);
-        }
+        });
         await this.loadParentTaskOptions(parentId);
     }
     
@@ -1804,12 +1751,11 @@ class TodoManager {
     async loadCategoryOptions(selectedId = '') {
         const categorySelect = document.getElementById('task-category');
         if (!categorySelect) return;
-        
-        try {
-            const response = await window.pywebview.api.get_categories();
-            if (response.success) {
+
+        await Utils.apiCall({
+            apiMethod: 'get_categories',
+            onSuccess: (response) => {
                 const categories = response.categories;
-                
                 categorySelect.innerHTML = `<option value="">${window.languageManager.getText('uncategorized', '未分类')}</option>`;
                 categories.forEach(cat => {
                     const option = document.createElement('option');
@@ -1819,9 +1765,7 @@ class TodoManager {
                     categorySelect.appendChild(option);
                 });
             }
-        } catch (error) {
-            logger.error('加载分类选项失败:', error);
-        }
+        });
     }
     
     // 处理任务表单提交
@@ -1888,88 +1832,75 @@ class TodoManager {
             Utils.showToast(window.languageManager.getText('errorTitleRequired', '请输入任务标题'), 'warning');
             return;
         }
-        
-        try {
-            Utils.setLoading(true, isEdit ? '保存中...' : '创建中...');
-            
-            let response;
-            if (isEdit) {
-                response = await window.pywebview.api.update_todo(editingId, taskData);
-            } else {
-                // 如果是周期性任务，使用专门的API
-                if (taskData.isRecurring) {
-                    response = await window.pywebview.api.add_recurring_todo(taskData);
-                } else {
-                    response = await window.pywebview.api.add_todo(taskData);
-                }
-            }
-            
-            if (response.success) {
+
+        let apiMethod;
+        let apiArgs;
+        if (isEdit) {
+            apiMethod = 'update_todo';
+            apiArgs = [editingId, taskData];
+        } else {
+            apiMethod = taskData.isRecurring ? 'add_recurring_todo' : 'add_todo';
+            apiArgs = [taskData];
+        }
+
+        await Utils.apiCall({
+            apiMethod: apiMethod,
+            apiArgs: apiArgs,
+            onSuccess: (response) => {
                 const message = isEdit ? window.languageManager.getText('taskUpdated', '任务更新成功') :
                     window.languageManager.getText('taskCreated', '任务创建成功');
-                
+
                 const taskId = isEdit ? editingId : response.task.id;
-                
+
                 // 处理父任务关联
                 if (isEdit) {
                     // 编辑模式下需要处理父任务的更新/删除
-                    try {
-                        // 获取当前父任务
-                        const parentResponse = await window.pywebview.api.get_parent(taskId);
-                        const currentParentId = parentResponse.success && parentResponse.parent ? parentResponse.parent.id : null;
-                        
-                        if (currentParentId !== parentTaskId) {
-                            // 父任务发生了变化
-                            if (currentParentId) {
-                                // 先删除旧关联
-                                await window.pywebview.api.remove_task_relation(taskId);
-                            }
-                            if (parentTaskId) {
-                                // 添加新关联
-                                await window.pywebview.api.add_task_relation(taskId, parentTaskId);
-                            }
+                    // 获取当前父任务
+                    Utils.apiCall({
+                        apiMethod: 'get_parent',
+                        apiArgs: [taskId],
+                        onSuccess: (response) => {
+                            const currentParentId = response.parent ? response.parent.id : null;
+                            // 父任务发生了变化：先删除旧关联，再添加新关联
+                            if (currentParentId) Utils.apiCall({apiMethod: 'remove_task_relation', apiArgs: [taskId], successCheck: (response) => true})
+                            if (parentTaskId) Utils.apiCall({apiMethod: 'add_task_relation', apiArgs: [taskId, parentTaskId], successCheck: (response) => true})
+                        },
+                        onError: (error) => {
+                            Utils.showToast(window.languageManager.getText('updateParentRelationFailed', '更新父任务关联失败'), 'warning');
                         }
-                    } catch (relationError) {
-                        logger.error('更新父任务关联失败:', relationError);
-                        Utils.showToast(window.languageManager.getText('updateParentRelationFailed', '更新父任务关联失败'), 'warning');
-                    }
+                    });
                 } else if (parentTaskId) {
                     // 新建模式下直接添加关联
-                    try {
-                        await window.pywebview.api.add_task_relation(taskId, parentTaskId);
-                    } catch (relationError) {
-                        logger.error('添加父任务关联失败:', relationError);
-                        Utils.showToast(window.languageManager.getText('addParentRelationFailed', '添加父任务关联失败'), 'warning');
-                    }
+                    Utils.apiCall({
+                        apiMethod: 'add_task_relation',
+                        apiArgs: [taskId, parentTaskId],
+                        successCheck: (response) => true,
+                        onError: (error) => {
+                            Utils.showToast(window.languageManager.getText('addParentRelationFailed', '添加父任务关联失败'), 'warning');
+                        }
+                    });
                 }
-                
+
                 Utils.showToast(message, 'success');
                 Utils.ModalManager.hide('task-modal');
 
                 // 移动端调整：如果当前页不是第一页，重置到第一页
                 if (this.isMobileDevice()) {
                     this.resetInfiniteScroll(); // 重置无限下拉状态
-                    await this.loadTasks();
-                } else {
-                    await this.loadTasks();
                 }
-                await window.timelineManager.renderTimeline();
+                this.loadTasks();
+                window.timelineManager.renderTimeline();
 
                 // loadTasks() 内部已经调用了 updateCategoryCounts()，不需要再调用 renderCategories()
                 // renderCategories() 会重新获取所有任务（默认只取前10条），导致数据不准确
-                
+
                 // 触发云端同步上传
-                await this.triggerCloudUpload();
-                await this.loadTagsModule();
-            } else {
-                Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${response.error}`, 'error');
-            }
-        } catch (error) {
-            logger.error('保存任务失败:', error);
-            Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
-        } finally {
-            Utils.setLoading(false);
-        }
+                this.triggerCloudUpload();
+                this.loadTagsModule();
+            },
+            onError: (error) => Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error'),
+            onFinally: () => Utils.setLoading(false)
+        });
     }
     
     // 删除任务
@@ -1978,18 +1909,21 @@ class TodoManager {
         if (!task) return;
         
         // 检查是否有子任务
-        try {
-            const childrenResponse = await window.pywebview.api.get_children(taskId);
-            if (childrenResponse.success && childrenResponse.children && childrenResponse.children.length > 0) {
-                Utils.showToast(
-                    window.languageManager.getText('cannotDeleteWithChildren', '该任务存在子任务，请先解除关联后再删除'),
-                    'warning'
-                );
-                return;
+        let checkChildrenFailed = false;
+        await Utils.apiCall({
+            apiMethod: 'get_children',
+            apiArgs: [taskId],
+            onSuccess: (response) => {
+                if (response.children && response.children.length > 0) {
+                    Utils.showToast(
+                        window.languageManager.getText('cannotDeleteWithChildren', '该任务存在子任务，请先解除关联后再删除'),
+                        'warning'
+                    );
+                    checkChildrenFailed = true;
+                }
             }
-        } catch (error) {
-            logger.error('检查子任务失败:', error);
-        }
+        });
+        if (checkChildrenFailed) return;
         
         // 检查是否为周期性任务
         const isRecurringTask = task.isRecurring || task.parentTaskId;
@@ -2051,12 +1985,11 @@ class TodoManager {
     
     // 执行删除操作
     async performDelete(taskId, deleteAll) {
-        try {
-            Utils.setLoading(true, '删除中...');
-            
-            const response = await window.pywebview.api.delete_todo(taskId, deleteAll);
-
-            if (response.success) {
+        Utils.setLoading(true, '删除中...');
+        await Utils.apiCall({
+            apiMethod: 'delete_todo',
+            apiArgs: [taskId, deleteAll],
+            onSuccess: (response) => {
                 const message = deleteAll ?
                     window.languageManager.getText('periodicTaskDeleted', '整个周期任务删除成功') :
                     window.languageManager.getText('taskDeleted', '任务删除成功');
@@ -2065,73 +1998,63 @@ class TodoManager {
                 // 移动端调整：如果当前页不是第一页，重置到第一页
                 if (this.isMobileDevice()) {
                     this.resetInfiniteScroll(); // 重置无限下拉状态
-                    await this.loadTasks();
                 } else {
                     // 安全检查：确保任务列表存在
                     if (Array.isArray(this.tasks)) {
-                        await this.loadTasks();
                         // 如果删除任务后，页面任务数量为空且有前置页，渲染前置页数据
                         if (this.tasks.length === 0 && this.currentPage > 1) {
                             this.currentPage = this.currentPage - 1;
-                            await this.loadTasks();
                         }
                     } else {
                         logger.warning('任务列表状态异常，重新初始化');
                         this.tasks = [];
-                        await this.loadTasks();
                     }
                 }
-                await window.timelineManager.renderTimeline();
+                window.timelineManager.renderTimeline();
                 // loadTasks() 已经包含了 updateStats() 和 updateCategoryCounts() 的调用
                 // 不需要再调用 renderCategories()，否则会导致数据不准确
-                
+
                 // 触发云端同步上传
-                await this.triggerCloudUpload();
-                await this.loadTagsModule();
-            } else {
-                Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${response.error}`, 'error');
+                this.triggerCloudUpload();
+                this.loadTagsModule();
+            },
+            onError: (error) => {
+                Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
+            },
+            onFinally: () => {
+                Utils.setLoading(false);
+                // 重新加载任务以确保数据一致性
+                this.loadTasks();
             }
-        } catch (error) {
-            logger.error('删除任务失败:', error);
-            Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
-            
-            // 发生错误时重新加载任务以确保数据一致性
-            try {
-                await this.loadTasks();
-                // loadTasks() 已经包含了 updateStats() 和 updateCategoryCounts() 的调用
-                // 这里不需要重复调用
-            } catch (reloadError) {
-                logger.error('重新加载任务失败:', reloadError);
-            }
-        } finally {
-            Utils.setLoading(false);
-        }
+        });
     }
     
     // 更新分类任务数量：当前保持分类数量更新变化不受搜索条件影响，因而设置大部分入参为null
     async updateCategoryCounts() {
         if (window.categoryManager) {
             // 获取当前筛选条件下的所有任务（不分页）
-            const response = await window.pywebview.api.get_todos(
-                1,  // page
-                999999,  // page_size - 设置一个足够大的值以获取所有任务
-                null,  // 分类
-                'uncompleted',  // 状态
-                null,  // 优先级
-                null,  // 逾期
-                null,  // year
-                null,  // month
-                null,  // search-input
-                null   // custom-date
-            );
-
-            if (response.success) {
-                // 使用当前筛选条件下的所有任务更新分类计数
-                window.categoryManager.updateCategoryCounts(response.tasks);
-            } else {
-                // 如果获取失败，使用当前页的任务
-                window.categoryManager.updateCategoryCounts(this.tasks);
-            }
+            await Utils.apiCall({
+                apiMethod: 'get_todos',
+                apiArgs: [
+                    1,  // page
+                    999999,  // page_size - 设置一个足够大的值以获取所有任务
+                    null,  // 分类
+                    'uncompleted',  // 状态
+                    null,  // 优先级
+                    null,  // 逾期
+                    null,  // year
+                    null,  // month
+                    null,  // search-input
+                    null   // custom-date
+                ],
+                onSuccess: (response) => {
+                    window.categoryManager.updateCategoryCounts(response.tasks);
+                },
+                onError: (error) => {
+                    // 如果获取失败，使用当前页的任务
+                    window.categoryManager.updateCategoryCounts(this.tasks);
+                }
+            });
         }
     }
 
@@ -2250,14 +2173,11 @@ class TodoManager {
     
     // 更新统计信息
     async updateStats() {
-        try {
-            // 更新日期范围显示
-            this.updateStatsDateRange();
-
-            // 从后端获取所有任务的统计数据
-            const response = await window.pywebview.api.get_stats(this.statsDimension);
-
-            if (response.success) {
+        this.updateStatsDateRange();
+        await Utils.apiCall({
+            apiMethod: 'get_stats',
+            apiArgs: [this.statsDimension],
+            onSuccess: (response) => {
                 const totalTasksEl = document.getElementById('total-tasks');
                 const completedTasksEl = document.getElementById('completed-tasks');
                 const completionRateEl = document.getElementById('completion-rate');
@@ -2275,9 +2195,7 @@ class TodoManager {
                 completionRateEl.textContent = rate + '%';
                 noDueDateEl.textContent = noDueDate;
             }
-        } catch (error) {
-            logger.error('更新统计信息失败:', error);
-        }
+        });
     }
 
     // 更新统计日期范围显示
@@ -2480,9 +2398,9 @@ class TodoManager {
         this.isLoadingMore = true;
         this.showLoadingMore();
 
-        try {
-            const nextPage = this.currentPage + 1;
-            const response = await this.safeGetTodos(
+        await Utils.apiCall({
+            apiMethod: 'get_todos',
+            apiArgs: [
                 nextPage,
                 this.pageSize,
                 this.currentFilter === 'all' ? null : this.currentFilter,
@@ -2493,34 +2411,33 @@ class TodoManager {
                 null,
                 this.searchQuery || null,
                 this.customDateFilter || null
-            );
-
-            if (response.success && response.tasks.length > 0) {
-                // 将新任务追加到现有任务列表
-                this.tasks = [...this.tasks, ...response.tasks];
-                this.currentPage = nextPage;
-
-                // 渲染新增的任务
-                this.appendTasks(response.tasks);
-
-                // 检查是否还有更多任务
-                this.hasMoreTasks = this.currentPage < this.totalPages;
-
-                // 如果是最后一页，显示到底提示
-                if (!this.hasMoreTasks) {
+            ],
+            onSuccess: (response) => {
+                if (response.tasks.length > 0) {
+                    // 将新任务追加到现有任务列表
+                    this.tasks = [...this.tasks, ...response.tasks];
+                    this.currentPage = nextPage;
+                    // 渲染新增的任务
+                    this.appendTasks(response.tasks);
+                    // 检查是否还有更多任务
+                    this.hasMoreTasks = this.currentPage < this.totalPages;
+                    // 如果是最后一页，显示到底提示
+                    if (!this.hasMoreTasks) {
+                        this.showNoMoreTasks();
+                    }
+                } else {
+                    this.hasMoreTasks = false;
                     this.showNoMoreTasks();
                 }
-            } else {
-                this.hasMoreTasks = false;
-                this.showNoMoreTasks();
+            },
+            onError: (error) => {
+                Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
+            },
+            onFinally: () => {
+                this.isLoadingMore = false;
+                this.hideLoadingMore();
             }
-        } catch (error) {
-            logger.error('加载更多任务失败:', error);
-            Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
-        } finally {
-            this.isLoadingMore = false;
-            this.hideLoadingMore();
-        }
+        });
     }
 
     // 追加任务到列表
@@ -2667,15 +2584,13 @@ class TodoManager {
 
     // 加载标签选择器
     async loadTagsSelector() {
-        try {
-            const response = await window.pywebview.api.get_all_tags();
-            if (response.success) {
+        await Utils.apiCall({
+            apiMethod: 'get_all_tags',
+            onSuccess: (response) => {
                 this.availableTags = response.tags;
                 this.renderTagsSelector();
             }
-        } catch (error) {
-            logger.error('加载标签失败:', error);
-        }
+        });
     }
 
     // 渲染标签选择器
@@ -2766,9 +2681,10 @@ class TodoManager {
         Utils.confirmDialog(
             '确定要删除这个标签吗？',
             async () => {
-                try {
-                    const response = await window.pywebview.api.delete_tag(tagId);
-                    if (response.success) {
+                await Utils.apiCall({
+                    apiMethod: 'delete_tag',
+                    apiArgs: [tagId],
+                    onSuccess: (response) => {
                         Utils.showToast(window.languageManager.getText('taskTagDeleted', '标签删除成功'), 'success');
                         // 从已选标签中移除
                         const index = this.selectedTags.indexOf(tagId);
@@ -2776,15 +2692,13 @@ class TodoManager {
                             this.selectedTags.splice(index, 1);
                         }
                         // 重新加载标签
-                        await this.loadTagsSelector();
-                        await this.loadTagsModule();
-                    } else {
-                        Utils.showToast(`${window.languageManager.getText('operationFailed', '操作失败')} : ${response.error}`, 'error');
+                        this.loadTagsSelector();
+                        this.loadTagsModule();
+                    },
+                    onError: (error) => {
+                        Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
                     }
-                } catch (error) {
-                    logger.error('删除标签失败:', error);
-                    Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
-                }
+                });
             }
         );
     }
@@ -2871,9 +2785,9 @@ class TodoManager {
 
     // 加载标签管理模块数据
     async loadTagsModule() {
-        try {
-            const response = await window.pywebview.api.get_all_tags();
-            if (response.success) {
+        await Utils.apiCall({
+            apiMethod: 'get_all_tags',
+            onSuccess: (response) => {
                 this.availableTags = response.tags;
                 const showMoreTags = document.getElementById('show-more-tags');
                 const showLessTags = document.getElementById('show-less-tags');
@@ -2894,9 +2808,7 @@ class TodoManager {
                 }
                 this.renderTagsModule([]);
             }
-        } catch (error) {
-            logger.error('加载标签失败:', error);
-        }
+        });
     }
 
     // 渲染标签管理模块

@@ -212,12 +212,16 @@ class SettingsUIManager {
             this.smartKeyApply.addEventListener('click', async () => {
                 this.currentButtonKey = this.smartKeyShow.textContent;
                 this.resetModifiers();
-                const result = await window.pywebview.api.set_shortcut_config(this.currentButtonKey);
-                if (result) {
-                    localStorage.setItem('todolist_shortcut', this.currentButtonKey);
-                    Utils.showToast(`${window.languageManager.getText('settingsShortcutAs', '已设置为')}: ${this.currentButtonKey},
-                        ${window.languageManager.getText('settingsShortcutNeedRestart', '请重启应用后尝试')}`, 'success');
-                }
+                await Utils.apiCall({
+                    apiMethod: 'set_shortcut_config',
+                    apiArgs: [this.currentButtonKey],
+                    successCheck: (response) => true,
+                    onSuccess: (response) => {
+                        localStorage.setItem('todolist_shortcut', this.currentButtonKey);
+                        Utils.showToast(`${window.languageManager.getText('settingsShortcutAs', '已设置为')}: ${this.currentButtonKey},
+                            ${window.languageManager.getText('settingsShortcutNeedRestart', '请重启应用后尝试')}`, 'success');
+                    },
+                });
             });
         }
 
@@ -305,16 +309,17 @@ class SettingsUIManager {
         // 更新主题切换按钮
         BusinessUtils.ThemeManager.updateToggleButton(theme);
 
-        // 保存到数据库
-        try {
-            localStorage.setItem('todolist_theme', theme);
-            await window.pywebview.api.set_theme_config(theme);
-            Utils.showToast(`${theme === 'dark' ?
-                window.languageManager.getText('darkModeSwitched', '已切换到深色主题') :
-                window.languageManager.getText('LightModeSwitched', '已切换到浅色主题')}`, 'success');
-        } catch (error) {
-            logger.error('保存主题失败:', error);
-        }
+        await Utils.apiCall({
+            apiMethod: 'set_theme_config',
+            apiArgs: [theme],
+            successCheck: (response) => true,
+            onSuccess: (response) => {
+                localStorage.setItem('todolist_theme', theme);
+                Utils.showToast(`${theme === 'dark' ?
+                    window.languageManager.getText('darkModeSwitched', '已切换到深色主题') :
+                    window.languageManager.getText('LightModeSwitched', '已切换到浅色主题')}`, 'success');
+            }
+        });
     }
     
     // 处理语言切换开关
@@ -379,37 +384,23 @@ class SettingsUIManager {
         }
         
         const enabled = this.autoStartToggle.checked;
-        
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                Utils.showToast(window.languageManager.getText('retry', '发生未知异常，请稍后重试！'), 'error');
-                return;
-            }
-            
-            // 显示加载状态
-            this.autoStartToggle.disabled = true;
-            
-            const result = await window.pywebview.api.set_auto_start_config(enabled);
-            localStorage.setItem('todolist_auto_start', enabled.toString());
-            
-            if (result.success) {
+
+        this.autoStartToggle.disabled = true;
+        await Utils.apiCall({
+            apiMethod: 'set_auto_start_config',
+            apiArgs: [enabled],
+            onSuccess: (response) => {
+                localStorage.setItem('todolist_auto_start', enabled.toString());
                 Utils.showToast(enabled ?
                     window.languageManager.getText('settingsAutoStartEnabled','开机启动已启用') :
                     window.languageManager.getText('settingsAutoStartDisabled', '开机启动已禁用'), 'success');
-            } else {
-                // 恢复开关状态
+            },
+            onError: (error) => {
                 this.autoStartToggle.checked = !enabled;
-                Utils.showToast(result.error || window.languageManager.getText('settingsFailed', '设置失败'), 'error');
-            }
-        } catch (error) {
-            logger.error('设置开机启动失败:', error);
-            // 恢复开关状态
-            this.autoStartToggle.checked = !enabled;
-            Utils.showToast(`${window.languageManager.getText('settingsFailed', '设置失败')}: ${error.message}`, 'error');
-        } finally {
-            // 恢复开关状态
-            this.autoStartToggle.disabled = false;
-        }
+                Utils.showToast(`${window.languageManager.getText('settingsFailed', '设置失败')}: ${error.message}`, 'error');
+            },
+            onFinally: () => this.autoStartToggle.disabled = false
+        });
     }
     
     // 更新设置中心的语言文本
@@ -513,29 +504,22 @@ class SettingsUIManager {
             this.autoStartToggle.checked = autoStart === 'true';
             return;
         }
-        
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                return;
-            }
-            
-            const result = await window.pywebview.api.get_auto_start_config();
-            
-            if (result.success) {
-                this.autoStartToggle.checked = result.config.enabled;
-                localStorage.setItem('todolist_auto_start', result.config.enabled.toString());
-                
+
+        await Utils.apiCall({
+            apiMethod: 'get_auto_start_config',
+            onSuccess: (response) => {
+                this.autoStartToggle.checked = response.config.enabled;
+                localStorage.setItem('todolist_auto_start', response.config.enabled.toString());
+
                 // 如果平台不支持，禁用开关
-                if (!result.config.supported) {
+                if (!response.config.supported) {
                     this.autoStartToggle.disabled = true;
                     Utils.showToast(window.languageManager.getText('settingsAutoStartWarning', '当前平台不支持开机启动功能'), 'warning');
                 } else {
                     this.autoStartToggle.disabled = false;
                 }
             }
-        } catch (error) {
-            logger.error('更新开机启动状态失败:', error);
-        }
+        });
     }
 
     // 更新窗口置顶状态
@@ -551,22 +535,17 @@ class SettingsUIManager {
             return;
         }
 
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                return;
-            }
-
-            const result = await window.pywebview.api.get_window_on_top_config();
-
-            if (result.success) {
-                this.windowTopToggle.checked = result.enabled;
+        await Utils.apiCall({
+            apiMethod: 'get_window_on_top_config',
+            onSuccess: (response) => {
+                this.windowTopToggle.checked = response.enabled;
+                this.onTop = this.windowTopToggle.checked;
+            },
+            onError: (error) => {
+                this.windowTopToggle.checked = false;
                 this.onTop = this.windowTopToggle.checked;
             }
-        } catch (error) {
-            logger.error('更新窗口置顶状态失败:', error);
-            this.windowTopToggle.checked = false;
-            this.onTop = this.windowTopToggle.checked;
-        }
+        });
     }
 
     // 更新快捷键配置
@@ -581,21 +560,16 @@ class SettingsUIManager {
             return;
         }
 
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                return;
+        await Utils.apiCall({
+            apiMethod: 'get_shortcut_config',
+            onSuccess: (response) => {
+                localStorage.setItem('todolist_shortcut', response.config);
+                this.smartKeyShow.textContent = response.config;
+            },
+            onError: (error) => {
+                this.smartKeyShow.textContent = '<ctrl>+<space>';
             }
-
-            const result = await window.pywebview.api.get_shortcut_config();
-
-            if (result.success) {
-                localStorage.setItem('todolist_shortcut', result.config);
-                this.smartKeyShow.textContent = result.config;
-            }
-        } catch (error) {
-            logger.error('更新快捷键配置失败:', error);
-            this.smartKeyShow.textContent = '<ctrl>+<space>';
-        }
+        });
     }
 
     // 更新快捷操作开关状态
@@ -606,17 +580,13 @@ class SettingsUIManager {
 
         let enabled = localStorage.getItem('todolist_shortcut_enabled');
         if (!enabled) {
-            try {
-                if (window.pywebview && window.pywebview.api) {
-                    const result = await window.pywebview.api.get_shortcut_enabled();
-                    if (result.success) {
-                        enabled = result.enabled.toString();
-                        localStorage.setItem('todolist_shortcut_enabled', enabled);
-                    }
+            await Utils.apiCall({
+                apiMethod: 'get_shortcut_enabled',
+                onSuccess: (response) => {
+                    enabled = response.enabled.toString();
+                    localStorage.setItem('todolist_shortcut_enabled', enabled);
                 }
-            } catch (error) {
-                logger.error('更新快捷操作开关状态失败:', error);
-            }
+            });
         }
         const isEnabled = enabled === 'true';
         this.shortcutToggle.checked = isEnabled;
@@ -643,28 +613,22 @@ class SettingsUIManager {
 
         const enabled = this.shortcutToggle.checked;
 
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                Utils.showToast(window.languageManager.getText('retry', '发生未知异常，请稍后重试！'), 'error');
-                return;
-            }
-
-            const result = await window.pywebview.api.set_shortcut_enabled(enabled);
-            localStorage.setItem('todolist_shortcut_enabled', enabled.toString());
-            this.setShortcutEditable(enabled);
-            if (result.success) {
+        await Utils.apiCall({
+            apiMethod: 'set_shortcut_enabled',
+            apiArgs: [enabled],
+            onSuccess: (response) => {
+                localStorage.setItem('todolist_shortcut_enabled', enabled.toString());
+                this.setShortcutEditable(enabled);
                 Utils.showToast(enabled ?
                     `${window.languageManager.getText('settingsShortcutEnabled', '快捷操作已启用')}, ${window.languageManager.getText('settingsShortcutNeedRestart', '请重启应用后尝试')}` :
                     `${window.languageManager.getText('settingsShortcutDisabled', '快捷操作已禁用')}, ${window.languageManager.getText('settingsShortcutNeedRestart', '请重启应用后尝试')}`,
                     'success');
-            } else {
+            },
+            onError: (error) => {
                 this.setShortcutEditable(!enabled);
-                Utils.showToast(result.error || window.languageManager.getText('settingsFailed', '设置失败'), 'error');
+                Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
             }
-        } catch (error) {
-            logger.error('设置快捷操作开关失败:', error);
-            Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
-        }
+        });
     }
 
     //  处理数据管理按钮点击: mode = 'share' | 'receive'
@@ -744,49 +708,31 @@ class SettingsUIManager {
     
     async updateDataFileConfig() {
         // 更新数据文件配置显示
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                Utils.showToast(window.languageManager.getText('retry', '发生未知异常，请稍后重试！'), 'error');
-                return;
-            }
-            
-            const result = await window.pywebview.api.get_data_file_config();
-            
-            if (result.success) {
+        await Utils.apiCall({
+            apiMethod: 'get_data_file_config',
+            onSuccess: (response) => {
                 if (this.dataDirBtn) {
-                    this.dataDirBtn.textContent = result.current_file;
-                    this.dataDirBtn.title = result.current_file;
+                    this.dataDirBtn.textContent = response.current_file;
+                    this.dataDirBtn.title = response.current_file;
                 }
-            } else {
-                Utils.showToast('获取配置失败: ' + result.error, 'error');
+            },
+            onError: (error) => {
+                Utils.showToast('获取配置时发生错误', 'error');
             }
-        } catch (error) {
-            logger.error('更新数据文件配置失败:', error);
-            Utils.showToast('获取配置时发生错误', 'error');
-        }
+        });
     }
     
     async browseFile() {
         // 浏览选择文件
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                Utils.showToast(window.languageManager.getText('retry', '发生未知异常，请稍后重试！'), 'error');
-                return;
-            }
-            
-            // 显示加载状态
-            this.setDirectoryButtonsDisabled(true);
-            Utils.showToast('正在打开文件选择对话框...', 'warning');
-            
-            // 调用pywebview的文件选择对话框
-            const result = await window.pywebview.api.select_file_dialog();
-            
-            if (result && result.success && result.selected_path) {
-                // 将选择的文件路径填入输入框
-                if (this.dataDirBtn) {
-                    this.dataDirBtn.textContent = result.selected_path;
-                    this.dataDirBtn.title = result.selected_path;
-                    Utils.showToast(`已选择文件: ${result.selected_path}`, 'success');
+        this.setDirectoryButtonsDisabled(true);
+        await Utils.apiCall({
+            apiMethod: 'select_file_dialog',
+            onSuccess: (response) => {
+                const selectedPath = response.selected_path;
+                if (selectedPath && this.dataDirBtn) {
+                    this.dataDirBtn.textContent = selectedPath;
+                    this.dataDirBtn.title = selectedPath;
+                    Utils.showToast(`已选择文件: ${selectedPath}`, 'success');
 
                     // 自动聚焦到应用按钮，方便用户快速操作
                     setTimeout(() => {
@@ -795,74 +741,62 @@ class SettingsUIManager {
                         }
                     }, 300);
                 }
-            } else if (result && !result.success) {
-                const errorMsg = result.error || '用户取消了操作';
-                Utils.showToast(`文件选择失败: ${errorMsg}`, 'error');
-                if (!errorMsg.includes('取消')) {
-                    Utils.showToast('文件选择失败: ' + errorMsg, 'error');
-                }
-            }
-            
-        } catch (error) {
-            logger.error('浏览文件失败:', error);
-            Utils.showToast('浏览文件时发生错误: ' + error.message, 'error');
-        } finally {
-            this.setDirectoryButtonsDisabled(false);
-        }
+            },
+            onError: (error) => {
+                Utils.showToast('浏览文件时发生错误: ' + error.message, 'error');
+            },
+            onFinally: () => this.setDirectoryButtonsDisabled(false)
+        });
     }
     
     async applyDataFile() {
         // 应用新的数据文件配置
-        try {
-            if (!this.dataDirBtn || !this.dataDirBtn.textContent.trim()) {
-                Utils.showToast('请输入数据文件路径', 'warning');
-                return;
-            }
-            
-            const newFile = this.dataDirBtn.textContent.trim();
-            
-            // 显示加载状态
-            this.setDirectoryButtonsDisabled(true);
-            Utils.showToast('正在验证文件...', 'warning');
-            
-            // 验证文件路径
-            const validationResult = await window.pywebview.api.validate_data_file(newFile);
-            
-            if (!validationResult.success) {
-                Utils.showToast(validationResult.error, 'error');
-                this.setDirectoryButtonsDisabled(false);
-                return;
-            }
-
-            // 确认提示
-            this.closeModal();
-            Utils.confirmDialog(
-                window.languageManager.getText('settingsStorageWarning', '注意：这将影响所有数据的读写操作，当前数据会被移动到新文件。建议先备份重要数据。是否继续？'),
-                async () => {
-                    try {
-                        const result = await window.pywebview.api.set_data_file_config(newFile);
-                        if (result.success) {
-                            // 更新显示
-                            await this.updateDataFileConfig();
-
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1000);
-                        } else {
-                            Utils.showToast(`${window.languageManager.getText('settingsFailed', '设置失败')}: ${response.error}`, 'error');
-                        }
-                    } catch (error) {
-                        logger.error('应用数据文件配置失败:', error);
-                        Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
-                    }
-                }
-            );
-        } catch (error) {
-            logger.error('应用数据文件配置失败:', error);
-            Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
-        } finally {
-            this.setDirectoryButtonsDisabled(false);
+        if (!this.dataDirBtn || !this.dataDirBtn.textContent.trim()) {
+            Utils.showToast('请输入数据文件路径', 'warning');
+            return;
         }
+
+        const newFile = this.dataDirBtn.textContent.trim();
+
+        // 显示加载状态
+        this.setDirectoryButtonsDisabled(true);
+        Utils.showToast('正在验证文件...', 'warning');
+
+        // 验证文件路径
+        let isValidateFailed = false;
+        await Utils.apiCall({
+            apiMethod: 'validate_data_file',
+            successCheck: (response) => !response.success,
+            apiArgs: [newFile],
+            onSuccess: (response) => {
+                isValidateFailed = true;
+                Utils.showToast(response.error, 'error');
+            },
+        });
+        if (isValidateFailed) {
+            this.setDirectoryButtonsDisabled(false);
+            return;
+        }
+
+        // 确认提示
+        this.closeModal();
+        Utils.confirmDialog(
+            window.languageManager.getText('settingsStorageWarning', '注意：这将影响所有数据的读写操作，当前数据会被移动到新文件。建议先备份重要数据。是否继续？'),
+            async () => {
+                await Utils.apiCall({
+                    apiMethod: 'set_data_file_config',
+                    apiArgs: [newFile],
+                    onSuccess: (response) => {
+                        this.updateDataFileConfig();
+                        setTimeout(() => location.reload(), 1000);
+                    },
+                    onError: (error) => {
+                        Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
+                    },
+                    onFinally: () => this.setDirectoryButtonsDisabled(false)
+                });
+            }
+        );
     }
     
     setDirectoryButtonsDisabled(disabled) {
@@ -881,54 +815,31 @@ class SettingsUIManager {
     }
     
     async saveSettings() {
-        try {
-            // 保存窗口置顶状态
-            localStorage.setItem('todolist_windowOnTop', this.onTop.toString());
-            await window.pywebview.api.set_window_on_top_config(this.onTop.toString());
-        } catch (error) {
-            logger.error('Failed to save settings:', error);
-        }
+        await Utils.apiCall({
+            apiMethod: 'set_window_on_top_config',
+            apiArgs: [this.onTop.toString()],
+            successCheck: (response) => true,
+            onSuccess: (response) => localStorage.setItem('todolist_windowOnTop', this.onTop.toString())
+        });
     }
 
     // ==================== WebDAV相关方法 ====================
     async updateWebDAVConfig() {
         // 更新WebDAV配置显示
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                return;
-            }
-
-            const result = await window.pywebview.api.get_webdav_config();
-
-            if (result.success && result.config) {
-                const config = result.config;
-
-                // 更新开关状态
-                if (this.webdavEnableToggle) {
+        await Utils.apiCall({
+            apiMethod: 'get_webdav_config',
+            onSuccess: (response) => {
+                const config = response.config;
+                if (config) {
                     this.webdavEnableToggle.checked = config.enabled || false;
+                    this.webdavUsernameInput.value = config.username || '';
+                    this.webdavPasswordInput.value = config.password || '';
+                    this.webdavRemotePathInput.value = config.remote_path || '';
+                    this.webdavFirstSyncModeSelect.value = config.first_sync_mode || 'remote_overwrite';
                     this.toggleWebDAVPanel();
                 }
-
-                // 更新输入框
-                if (this.webdavUsernameInput) {
-                    this.webdavUsernameInput.value = config.username || '';
-                }
-
-                if (this.webdavPasswordInput) {
-                    this.webdavPasswordInput.value = config.password || '';
-                }
-
-                if (this.webdavRemotePathInput) {
-                    this.webdavRemotePathInput.value = config.remote_path || '';
-                }
-
-                if (this.webdavFirstSyncModeSelect) {
-                    this.webdavFirstSyncModeSelect.value = config.first_sync_mode || 'remote_overwrite';
-                }
             }
-        } catch (error) {
-            logger.error('更新WebDAV配置失败:', error);
-        }
+        });
     }
 
     async toggleWebDAV() {
@@ -952,110 +863,77 @@ class SettingsUIManager {
 
     async testWebDAVConnection() {
         // 测试WebDAV连接
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                Utils.showToast(window.languageManager.getText('retry', '发生未知异常，请稍后重试！'), 'error');
-                return;
-            }
+        // 获取当前输入的配置
+        const username = this.webdavUsernameInput.value.trim();
+        const password = this.webdavPasswordInput.value;
+        const remotePath = this.webdavRemotePathInput.value;
 
-            // 获取当前输入的配置
-            const username = this.webdavUsernameInput.value.trim();
-            const password = this.webdavPasswordInput.value;
-            const remotePath = this.webdavRemotePathInput.value;
-
-            if (!username || !password || !remotePath) {
-                Utils.showToast(window.languageManager.getText('itemRequired', '请填写必填项！'), 'warning');
-                return;
-            }
-
-            // 调用测试API
-            const result = await window.pywebview.api.test_webdav_connection(username, password, remotePath);
-
-            if (result.success) {
+        if (!username || !password || !remotePath) {
+            Utils.showToast(window.languageManager.getText('itemRequired', '请填写必填项！'), 'warning');
+            return;
+        }
+        await Utils.apiCall({
+            apiMethod: 'test_webdav_connection',
+            apiArgs: [username, password, remotePath],
+            onSuccess: (response) => {
                 this.showWebDAVStatus(`✅ ${window.languageManager.getText('settingsConnectSuccess', '连接成功！可以正常使用云端同步功能！')}`, 'success');
                 Utils.showToast(window.languageManager.getText('settingsConnectSuccess', '连接成功！可以正常使用云端同步功能！'), 'success');
-            } else {
-                this.showWebDAVStatus(`❌ ${window.languageManager.getText('settingsConnectionFailed', '连接失败')}：${result.error}`, 'error');
-                Utils.showToast(`${window.languageManager.getText('settingsConnectionFailed', '连接失败')}: ${result.error}`, 'error');
+            },
+            onError: (error) => {
+                this.showWebDAVStatus(`❌ ${window.languageManager.getText('settingsConnectionFailed', '连接失败')}：${error.message}`, 'error');
+                Utils.showToast(window.languageManager.getText('settingsConnectionFailed', '连接失败'), 'error');
             }
-        } catch (error) {
-            logger.error('测试WebDAV连接失败:', error);
-            this.showWebDAVStatus(`❌ ${window.languageManager.getText('settingsConnectionFailed', '连接失败')}：${error.message}`, 'error');
-            Utils.showToast(window.languageManager.getText('settingsConnectionFailed', '连接失败'), 'error');
-        }
+        });
     }
 
     async saveWebDAVConfig() {
         // 保存WebDAV配置
-        try {
-            if (!window.pywebview || !window.pywebview.api) {
-                Utils.showToast(window.languageManager.getText('retry', '发生未知异常，请稍后重试！'), 'error');
+        const config = {
+            enabled: this.webdavEnableToggle.checked,
+            username: this.webdavUsernameInput.value.trim(),
+            password: this.webdavPasswordInput.value,
+            remote_path : this.webdavRemotePathInput.value,
+            auto_sync: true,
+            first_sync_mode: this.webdavFirstSyncModeSelect.value
+        };
+
+        // 验证启用时必需的字段
+        if (config.enabled) {
+            if (!config.username || !config.password || !config.remote_path) {
+                Utils.showToast(window.languageManager.getText('itemRequired', '请填写必填项！'), 'warning');
                 return;
             }
-
-            const config = {
-                enabled: this.webdavEnableToggle.checked,
-                username: this.webdavUsernameInput.value.trim(),
-                password: this.webdavPasswordInput.value,
-                remote_path : this.webdavRemotePathInput.value,
-                auto_sync: true,
-                first_sync_mode: this.webdavFirstSyncModeSelect.value
-            };
-
-            // 验证启用时必需的字段
-            if (config.enabled) {
-                if (!config.username || !config.password || !config.remote_path) {
-                    Utils.showToast(window.languageManager.getText('itemRequired', '请填写必填项！'), 'warning');
-                    return;
-                }
-            }
-
-            // 强制同步
-            const modal = document.getElementById('data-sync-modal');
-            modal.style.display = 'none';
-            modal.classList.remove('show');
-            // 确认提示
-            Utils.confirmDialog(
-                config.first_sync_mode === 'local_overwrite' ?
-                window.languageManager.getText('settingsSyncModeLocalWarning', '注意：当前操作将直接触发一次本地数据强制覆盖远程文件数据。建议先备份重要数据。是否继续？') :
-                window.languageManager.getText('settingsSyncModeRemoteWarning', '注意：当前操作将直接触发一次远程数据强制覆盖本地文件数据。建议先备份重要数据。是否继续？'),
-                async () => {
-                    try {
-                        // 保存配置
-                        const result = await window.pywebview.api.set_webdav_config(config);
-
-                        if (result.success) {
-                            Utils.showToast(window.languageManager.getText('settingsSaveSuccess', '保存成功'), 'success');
-
-                            // 根据首次同步模式执行不同的操作
-                            if (config.first_sync_mode === 'local_overwrite') {
-                                // 本地覆盖远程：上传本地数据到云端
-                                await window.pywebview.api.sync_to_cloud();
-                            } else {
-                                // 远程覆盖本地：从云端下载数据
-                                await window.pywebview.api.sync_from_cloud(true);
-                            }
-
-                            this.showWebDAVStatus(window.languageManager.getText('settingsSaveSuccess', '保存成功'), 'success');
-
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1000);
-                        } else {
-                            Utils.showToast(`${window.languageManager.getText('settingsFailed', '设置失败')}: ${response.error}`, 'error');
-                            this.showWebDAVStatus(`${window.languageManager.getText('settingsFailed', '设置失败')}：${result.error}`, 'error');
-                        }
-                    } catch (error) {
-                        logger.error('应用配置失败:', error);
-                        Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
-                    }
-                }
-            );
-        } catch (error) {
-            logger.error('保存WebDAV配置失败:', error);
-            Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
-            this.showWebDAVStatus(`${window.languageManager.getText('settingsFailed', '设置失败')}：${error.message}`, 'error');
         }
+
+        const modal = document.getElementById('data-sync-modal');
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        // 强制同步 确认提示
+        Utils.confirmDialog(
+            config.first_sync_mode === 'local_overwrite' ?
+            window.languageManager.getText('settingsSyncModeLocalWarning', '注意：当前操作将直接触发一次本地数据强制覆盖远程文件数据。建议先备份重要数据。是否继续？') :
+            window.languageManager.getText('settingsSyncModeRemoteWarning', '注意：当前操作将直接触发一次远程数据强制覆盖本地文件数据。建议先备份重要数据。是否继续？'),
+            async () => {
+                await Utils.apiCall({
+                    apiMethod: 'set_webdav_config',
+                    apiArgs: [config],
+                    onSuccess: (response) => {
+                        Utils.showToast(window.languageManager.getText('settingsSaveSuccess', '保存成功'), 'success');
+                        // 根据首次同步模式执行不同的操作: 本地覆盖远程-上传本地数据到云端 or 远程覆盖本地-从云端下载数据
+                        Utils.apiCall({
+                            apiMethod: config.first_sync_mode === 'local_overwrite' ? 'sync_to_cloud' : 'sync_from_cloud',
+                            apiArgs: config.first_sync_mode === 'local_overwrite' ? [] : [true],
+                        });
+                        this.showWebDAVStatus(window.languageManager.getText('settingsSaveSuccess', '保存成功'), 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    },
+                    onError: (error) => {
+                        Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
+                        this.showWebDAVStatus(`${window.languageManager.getText('settingsFailed', '设置失败')}：${error.message}`, 'error');
+                    }
+                });
+            }
+        );
     }
 
     showWebDAVStatus(message, type) {
@@ -1145,22 +1023,23 @@ class SettingsUIManager {
         // 初始化导出选项（分类、年份、标签）
         try {
             // 获取分类列表
-            const categoriesResponse = await window.pywebview.api.get_categories();
-            if (categoriesResponse.success) {
-                this.updateExportCategories(categoriesResponse.categories);
-            }
+            await Utils.apiCall({
+                apiMethod: 'get_categories',
+                onSuccess: (response) => this.updateExportCategories(response.categories)
+            });
 
             // 获取标签列表
-            const tagsResponse = await window.pywebview.api.get_all_tags();
-            if (tagsResponse.success) {
-                this.updateExportTags(tagsResponse.tags);
-            }
+            await Utils.apiCall({
+                apiMethod: 'get_all_tags',
+                onSuccess: (response) => this.updateExportTags(response.tags)
+            });
 
             // 获取所有任务以提取年份
-            const tasksResponse = await window.pywebview.api.get_todos(1, 10000, null, null, null, null, null, null, null, null);
-            if (tasksResponse.success) {
-                this.updateExportYears(tasksResponse.tasks);
-            }
+            await Utils.apiCall({
+                apiMethod: 'get_todos',
+                apiArgs: [1, 10000, null, null, null, null, null, null, null, null],
+                onSuccess: (response) => this.updateExportYears(response.tasks)
+            });
 
             // 绑定导出模态框事件
             this.bindExportModalEvents();
@@ -1250,39 +1129,34 @@ class SettingsUIManager {
     }
 
     async executeExport() {
-        try {
-            // 获取筛选条件
-            const priority = document.getElementById('export-priority')?.value || 'all';
-            const status = document.getElementById('export-status')?.value || 'all';
-            const year = document.getElementById('export-year')?.value || null;
-            const month = document.getElementById('export-month')?.value || null;
-            const categoryId = document.getElementById('export-category')?.value || 'all';
+        // 获取筛选条件
+        const priority = document.getElementById('export-priority')?.value || 'all';
+        const status = document.getElementById('export-status')?.value || 'all';
+        const year = document.getElementById('export-year')?.value || null;
+        const month = document.getElementById('export-month')?.value || null;
+        const categoryId = document.getElementById('export-category')?.value || 'all';
 
-            // 获取选中的标签
-            const tagCheckboxes = document.querySelectorAll('#export-tags-container input[type="checkbox"]:checked');
-            const tagIds = Array.from(tagCheckboxes).map(cb => cb.value);
-
-            // 调用后端API导出
-            const result = await window.pywebview.api.export_tasks_excel(
+        // 获取选中的标签
+        const tagCheckboxes = document.querySelectorAll('#export-tags-container input[type="checkbox"]:checked');
+        const tagIds = Array.from(tagCheckboxes).map(cb => cb.value);
+        await Utils.apiCall({
+            apiMethod: 'export_tasks_excel',
+            apiArgs: [
                 priority,
                 status,
                 year ? parseInt(year) : null,
                 month ? parseInt(month) : null,
                 categoryId === 'all' ? null : categoryId,
                 tagIds.length > 0 ? tagIds : null
-            );
-
-            if (result.success) {
-                Utils.showToast(result.message, 'success');
-            } else {
-                Utils.showToast(result.error || '导出失败', 'error');
-            }
-
-            this.closeExportModal();
-        } catch (error) {
-            logger.error('导出任务失败:', error);
-            Utils.showToast('导出任务失败: ' + error.message, 'error');
-        }
+            ],
+            onSuccess: (response) => {
+                Utils.showToast(response.message, 'success');
+            },
+            onError: (error) => {
+                Utils.showToast('导出任务失败: ' + error.message, 'error');
+            },
+            onFinally: () => this.closeExportModal()
+        });
     }
 
     // 处理按键按下

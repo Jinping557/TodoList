@@ -26,25 +26,28 @@ class TimelineManager {
     }
 
     async getTasks(startDate, endDate) {
-        const response = await window.pywebview.api.get_todos(
-            1,  // page
-            999999,  // page_size - 设置一个足够大的值以获取所有任务
-            this.categoryId=== 'all' ? null : this.currentFilter,
-            this.statusFilter === 'all' ? null : this.statusFilter,
-            this.priorityFilter === 'all' ? null : this.priorityFilter,
-            this.dueDateFilter === 'all' ? null : this.dueDateFilter,
-            null,  // year
-            null,  // month
-            null,  // search-input
-            null,  // custom-date
-            this.formatDate(startDate),
-            this.formatDate(endDate)
-        );
-        if (response.success) {
-            // 使用当前筛选条件下的所有任务更新分类计数
-            return this.convertTasks(response.tasks);
-        }
-        return []
+        let tasks = [];
+        await Utils.apiCall({
+            apiMethod: 'get_todos',
+            apiArgs: [
+                1,  // page
+                999999,  // page_size - 设置一个足够大的值以获取所有任务
+                this.categoryId=== 'all' ? null : this.currentFilter,
+                this.statusFilter === 'all' ? null : this.statusFilter,
+                this.priorityFilter === 'all' ? null : this.priorityFilter,
+                this.dueDateFilter === 'all' ? null : this.dueDateFilter,
+                null,  // year
+                null,  // month
+                null,  // search-input
+                null,  // custom-date
+                this.formatDate(startDate),
+                this.formatDate(endDate)
+            ],
+            onSuccess: (response) => {
+                tasks = this.convertTasks(response.tasks);
+            }
+        });
+        return tasks;
     }
 
     convertTasks(tasks) {
@@ -336,13 +339,14 @@ class TimelineManager {
             const endHour = parts[1].padStart(2, '0') == 24 ? 23 : parts[1].padStart(2, '0');
             // 拼接为 ISO 日期时间（本地时间，不带时区）
             const dueDateStr = `${currentTask.date}T${endHour}:00:00`;
-            const response = await window.pywebview.api.update_todo_due_date(
-                currentTask.id,
-                dueDateStr
-            );
-            if (!response.success) {
-                Utils.showToast(response.error, 'warning');;
-            }
+            await Utils.apiCall({
+                apiMethod: 'update_todo_due_date',
+                apiArgs: [currentTask.id, dueDateStr],
+                successCheck: (response) => !response.success,
+                onSuccess: (response) => {
+                    Utils.showToast(response.error, 'warning');
+                }
+            });
         }
         this.currentDragTaskId = null;
         document.querySelectorAll('.grid-cell').forEach(cell => cell.classList.remove('drag-over'));

@@ -170,7 +170,11 @@ class App {
                 e.preventDefault(); // 阻止链接在 WebView 内打开
                 var url = e.target.href;
                 // 调用 Python 后端的 open_in_browser 方法
-                window.pywebview.api.open_in_browser(url);
+                Utils.apiCall({
+                    apiMethod: 'open_in_browser',
+                    apiArgs: [url],
+                    successCheck: (response) => true
+                });
             });
         })
 
