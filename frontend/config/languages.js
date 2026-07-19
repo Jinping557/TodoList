@@ -232,6 +232,8 @@ const Languages = {
         // 关于
         about: "关于",
         sourceCode: "源码地址",
+        document: "相关文档",
+        documentText: "TodoList功能介绍",
         statement: "开源声明",
         statementText: "仅供使用，勿商用",
 
@@ -516,6 +518,8 @@ const Languages = {
         // 关于
         about: "About",
         sourceCode: "SourceCode",
+        document: "Document",
+        documentText: "Usage Guide",
         statement: "Statement",
         statementText: "Personal use only, not for commercial use.",
 

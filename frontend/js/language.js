@@ -694,13 +694,15 @@ class LanguageManager {
         if (sectionTitles[2]) sectionTitles[2].textContent = lang.about;
         const aboutSection = sectionTitles[2].closest('.setting-section');
         const aboutOptions = aboutSection.querySelectorAll('.setting-text');
-        if (aboutOptions.length >= 2) {
+        if (aboutOptions.length >= 3) {
             aboutOptions[0].textContent = lang.sourceCode;
-            aboutOptions[1].textContent = lang.statement;
+            aboutOptions[1].textContent = lang.document;
+            aboutOptions[2].textContent = lang.statement;
         }
         const externalLinks = aboutSection.querySelectorAll('.external-link');
-        if (externalLinks.length >= 2) {
-            externalLinks[1].textContent = lang.statementText;
+        if (externalLinks.length >= 3) {
+            externalLinks[1].textContent = lang.documentText;
+            externalLinks[2].textContent = lang.statementText;
         }
     }
     
