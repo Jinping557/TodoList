@@ -170,6 +170,3 @@ class P2PClient:
                 return None
             data.extend(chunk)
         return bytes(data)
-
-
-import threading
