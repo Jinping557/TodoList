@@ -105,5 +105,10 @@ class AndroidService(PlatformService):
         # 创建默认的logger实例
         return setup_logger(self, 'backend')
 
+    def export_tasks_excel(self, db = None, priority=None, status=None, year=None, month=None,
+                           category_id=None, tag_ids=None):
+        """后端数据导出的统一接口"""
+        return {'success': False, 'error': '当前系统不支持'}
+
 # 用于给工厂注册的导出变量
 ExportService = AndroidService

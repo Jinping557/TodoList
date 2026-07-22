@@ -106,3 +106,9 @@ class PlatformService(ABC):
     def backend_logger(self):
         """后端日志的统一接口"""
         pass
+
+    @abstractmethod
+    def export_tasks_excel(self, db = None, priority=None, status=None, year=None, month=None,
+                           category_id=None, tag_ids=None):
+        """后端数据导出的统一接口"""
+        pass

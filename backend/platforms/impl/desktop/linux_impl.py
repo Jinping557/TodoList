@@ -2,9 +2,9 @@
 import os
 from typing import Dict, Any
 from pathlib import Path
-from backend.platforms.interface.service import PlatformService
+from backend.platforms.impl.desktop.common.common_impl import DesktopCommonService
 
-class LinuxService(PlatformService):
+class LinuxService(DesktopCommonService):
     def shortcut_handler(self, shortcut, handler):
         try:
             import backend.globals

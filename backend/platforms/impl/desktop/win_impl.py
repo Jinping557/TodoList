@@ -1,11 +1,11 @@
 # impl/desktop/win_impl.py
-from backend.platforms.interface.service import PlatformService
+from backend.platforms.impl.desktop.common.common_impl import DesktopCommonService
 from backend.platforms.impl.desktop.win_firewall_manager import FirewallManager
 
 import os
 from pathlib import Path
 
-class WindowsService(PlatformService):
+class WindowsService(DesktopCommonService):
     def shortcut_handler(self, shortcut, handler):
         try:
             import backend.globals

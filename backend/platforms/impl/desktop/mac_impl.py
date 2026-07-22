@@ -3,10 +3,10 @@
 import sys
 from pathlib import Path
 from typing import Dict, Any
-from backend.platforms.interface.service import PlatformService
+from backend.platforms.impl.desktop.common.common_impl import DesktopCommonService
 from typing import Tuple, Optional
 
-class MacService(PlatformService):
+class MacService(DesktopCommonService):
     def shortcut_handler(self, shortcut, handler):
         from quickmachotkey import quickHotKey, mask
         from quickmachotkey.constants import (

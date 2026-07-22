@@ -104,6 +104,7 @@ base_hiddenimports = [
     'backend.platforms.impl.desktop.common.smart_task',
     'backend.platforms.impl.desktop.common.system_tray',
     'backend.platforms.impl.desktop.common.task_reminder',
+    'backend.platforms.impl.desktop.common.common_impl',
     'backend.features.p2p.p2p_client',
     'backend.features.p2p.p2p_server',
     'backend.platforms.core_factory',
