@@ -41,52 +41,8 @@ class WindowsService(DesktopCommonService):
         """获取应用图标的统一接口"""
         return base_path / 'todo_icon.ico'
 
-    def is_ssl_enable(self):
-        """获取是否开启ssl的统一接口"""
-        return True
-
-    def is_default_hide(self):
-        """获取是否隐藏快捷键窗口的统一接口"""
-        return True
-
-    def icon_exit(self):
-        """图标注销消息的统一接口"""
-        pass
-
     def start_prepare(self):
         """应用启动前准备工作的统一接口"""
-        pass
-
-    def start_keyboard(self):
-        """应用启用快捷键的统一接口"""
-        from backend.platforms.impl.desktop.common.smart_task import SmartTaskInput
-        SmartTaskInput(self)
-
-    def start_desktop_task_reminder(self, is_start, event=None):
-        """应用桌面端消息提醒的统一接口"""
-        from backend.platforms.impl.desktop.common.task_reminder import start_reminder, stop_reminder
-        if is_start:
-            start_reminder(platform_service=self,click_event=event)
-        else:
-            stop_reminder(self)
-
-    def add_new_desktop_task_reminder(self):
-        """应用桌面端新任务添加消息提醒的统一接口"""
-        from backend.platforms.impl.desktop.common.task_reminder import get_reminder
-        # 重置已提醒任务列表，确保新任务可以被提醒
-        reminder = get_reminder(self)
-        reminder.reset_notified_tasks()
-
-    def check_calendar_permission(self):
-        """校验日历使用权限的统一接口"""
-        pass
-
-    def add_task_reminder_to_calendar(self, title, desc, start_time_ms):
-        """添加任务提醒到日历的统一接口"""
-        pass
-
-    def sync_reminder_to_calendar(self, sync_start_time, sync_end_time):
-        """同步任务提醒到日历的统一接口"""
         pass
 
     def add_firewall_rule(self, port):
@@ -220,18 +176,6 @@ class WindowsService(DesktopCommonService):
         from backend.platforms.impl.desktop.common.system_tray import SystemTrayManager
         manager = SystemTrayManager(self)
         manager.start_app(True)
-
-    def frontend_logger(self):
-        """前端日志的统一接口"""
-        from backend.utils.logger import setup_logger
-        # 创建默认的logger实例
-        return setup_logger(self, 'frontend')
-
-    def backend_logger(self):
-        """后端日志的统一接口"""
-        from backend.utils.logger import setup_logger
-        # 创建默认的logger实例
-        return setup_logger(self, 'backend')
 
 # 用于给工厂注册的导出变量
 ExportService = WindowsService
