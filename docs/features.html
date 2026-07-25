@@ -613,7 +613,7 @@
                             <i class="ri-calendar-line"></i> 2026年
                         </span>
                         <span class="article-meta-item">
-                            <i class="ri-code-line"></i> <a href="https://github.com/TangIsLearning/TodoList/releases" target="_blank"> v1.1.1 </a>
+                            <i class="ri-code-line"></i> <a href="https://github.com/TangIsLearning/TodoList/releases" target="_blank"> v1.1.2 </a>
                         </span>
                         <span class="article-meta-item">
                             <i class="ri-github-line"></i> <a href="https://github.com/TangIsLearning/TodoList" target="_blank">开源项目</a>
@@ -622,7 +622,7 @@
                 </header>
 
                 <div class="article-body">
-                    <p>TodoList，是一款极简待办软件，目前已正式推出 <strong><a href="https://github.com/TangIsLearning/TodoList/releases" target="_blank"> v1.1.1 </a></strong> 版本。参考借鉴了 Microsoft Todo，主打极简、无广告、无需登录、零门槛上手使用。数据全部存储本地，隐私无需担心。</p>
+                    <p>TodoList，是一款极简待办软件，目前已正式推出 <strong><a href="https://github.com/TangIsLearning/TodoList/releases" target="_blank"> v1.1.2 </a></strong> 版本。参考借鉴了 Microsoft Todo，主打极简、无广告、无需登录、零门槛上手使用。数据全部存储本地，隐私无需担心。</p>
 
                     <h2 id="add-todo">添加待办</h2>
 
@@ -775,6 +775,10 @@
                     <p>支持自定义存储路径，结合相关第三方云盘，如坚果云，将数据存储路径配置为云盘的本地文件夹目录，可以实现数据存储云端化。</p>
                     <img src="asset/电脑端-存储路径.png" alt="存储路径">
 
+                    <h3 id="data-sync">数据云同步</h3>
+                    <p>支持通过配置WebDav来实现数据云同步。默认支持配置坚果云同步，可参考<a href="#mobile-adapt">数据云同步</a>，另外在v1.1.2版本新增特性：允许用户自定义WebDav服务器地址。</p>
+                    <img src="asset/电脑端-数据云同步.png" alt="数据共享">
+
                     <h3 id="data-share">共享数据</h3>
                     <p>在涉及多端数据共享时，可以通过配置共享数据来实现多端数据传输：</p>
                     <ul>
@@ -795,7 +799,7 @@
                     <img src="asset/电脑端-窗口自适应.gif" alt="窗口自适应">
 
                     <h2 id="mobile-adapt">移动端适配</h2>
-                    <p>TodoList应用也支持Android端安装。除页面渲染效果不一样外，大部分功能使用和桌面端基本一致，这里仅介绍移动端特有的坚果云数据同步功能。配置同步后，就可以实现数据上云和多端数据共享。</p>
+                    <p>TodoList应用也支持Android端安装。除页面渲染效果不一样外，大部分功能使用和桌面端基本一致，这里仅介绍移动端<del>特有的</del>坚果云数据同步功能(v1.1.2版本桌面端也支持配置云同步功能)。配置同步后，就可以实现数据上云和多端数据共享。</p>
                     <blockquote>说明：有关坚果云的账号密码获取可以查看：<a href="https://help.jianguoyun.com/?p=2064" target="_blank">https://help.jianguoyun.com/?p=2064</a></blockquote>
                     <img src="asset/移动端-数据同步.jpg" alt="移动端适配">
 
@@ -899,6 +903,9 @@
                                 <a href="#storage-path" class="toc-link">存储路径</a>
                             </li>
                             <li class="toc-item level-2">
+                                <a href="#data-sync" class="toc-link">数据云同步</a>
+                            </li>
+                            <li class="toc-item level-2">
                                 <a href="#data-share" class="toc-link">共享数据</a>
                             </li>
                             <li class="toc-item level-2">
@@ -923,7 +930,7 @@
 
     <footer class="footer">
         <div class="footer-inner">
-            <p>© 2026 TodoList · 基于 <a href="https://github.com/TangIsLearning/TodoList" target="_blank">GitHub 开源项目</a> 构建 · 版本 v1.1.1</p>
+            <p>© 2026 TodoList · 基于 <a href="https://github.com/TangIsLearning/TodoList" target="_blank">GitHub 开源项目</a> 构建 · 版本 v1.1.2</p>
         </div>
     </footer>
 
