@@ -95,11 +95,33 @@ class WebDAVClient:
         
         try:
             # 尝试列出根目录内容来测试连接
-            self.client.list('/')
-            return {
-                "success": True,
-                "message": "连接成功"
-            }
+            path = '/'
+            has_directory = "/" in self.remote_path
+            if has_directory:
+                filename = os.path.basename(self.remote_path)
+                for item_path in self.remote_path.split('/'):
+                    client_list = self.client.list(path)
+                    item_path_exit = any(item_path in item for item in client_list)
+                    if item_path == filename:
+                        # 如果已经遍历到最后一层，则直接判断结果，不再进一步遍历
+                        file_exit = any(item_path == item for item in client_list)
+                        return {
+                            "success": file_exit,
+                            "message": "连接成功" if file_exit else "路径不存在"
+                        }
+                    if item_path_exit:
+                        path = path + '/' + item_path
+                    else:
+                        return {
+                            "success": False,
+                            "message": "路径不存在"
+                        }
+            else:
+                found = any(self.remote_path in item for item in self.client.list(path))
+                return {
+                    "success": found,
+                    "message": "连接成功" if found else "路径不存在"
+                }
         except Exception as e:
             self._get_logger().error(f"WebDAV连接测试失败: {e}")
             return {
