@@ -955,7 +955,7 @@ class SettingsUIManager {
                         }
                     },
                     onError: (error) => {
-                        Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
+                        Utils.showToast(`${window.languageManager.getText('settingsFailed', '设置失败')}: ${error.message}`, 'error');
                     }
                 });
             }

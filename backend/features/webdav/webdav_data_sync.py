@@ -261,6 +261,15 @@ class DataSyncManager:
 
     def set_webdav_config(self, config):
         """设置WebDAV配置"""
+        # 保存配置前，测试数据同步连接是否成功
+        url = config.get('url', '')
+        username = config.get('username', '')
+        password = config.get('password', '')
+        remote_path = config.get('remote_path', '')
+        test_result = self.test_webdav_connection(url, username, password, remote_path)
+        if test_result and not test_result.get('success'):
+            return test_result
+
         # 保存配置
         success = set_webdav_config(config)
 
