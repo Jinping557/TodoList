@@ -929,31 +929,33 @@ class SettingsUIManager {
             }
         }
 
+        const overwriteMsg = config.first_sync_mode === 'local_overwrite' ? 'settingsSyncModeLocalWarning' : 'settingsSyncModeRemoteWarning';
+        const warningMsg = config.enabled ? overwriteMsg : 'settingsSyncCloseWarning';
+
         const modal = document.getElementById('data-sync-modal');
         modal.style.display = 'none';
         modal.classList.remove('show');
-        // 强制同步 确认提示
+        // 确认提示
         Utils.confirmDialog(
-            config.first_sync_mode === 'local_overwrite' ?
-            window.languageManager.getText('settingsSyncModeLocalWarning', '注意：当前操作将直接触发一次本地数据强制覆盖远程文件数据。建议先备份重要数据。是否继续？') :
-            window.languageManager.getText('settingsSyncModeRemoteWarning', '注意：当前操作将直接触发一次远程数据强制覆盖本地文件数据。建议先备份重要数据。是否继续？'),
+            window.languageManager.getText(warningMsg),
             async () => {
                 await Utils.apiCall({
                     apiMethod: 'set_webdav_config',
                     apiArgs: [config],
                     onSuccess: (response) => {
                         Utils.showToast(window.languageManager.getText('settingsSaveSuccess', '保存成功'), 'success');
-                        // 根据首次同步模式执行不同的操作: 本地覆盖远程-上传本地数据到云端 or 远程覆盖本地-从云端下载数据
-                        Utils.apiCall({
-                            apiMethod: config.first_sync_mode === 'local_overwrite' ? 'sync_to_cloud' : 'sync_from_cloud',
-                            apiArgs: config.first_sync_mode === 'local_overwrite' ? [] : [true],
-                        });
-                        this.showWebDAVStatus(window.languageManager.getText('settingsSaveSuccess', '保存成功'), 'success');
-                        setTimeout(() => location.reload(), 1000);
+                        // 如果是开启同步功能，则额外进行一次数据同步
+                        if (config.enabled) {
+                            // 根据首次同步模式执行不同的操作: 本地覆盖远程-上传本地数据到云端 or 远程覆盖本地-从云端下载数据
+                            Utils.apiCall({
+                                apiMethod: config.first_sync_mode === 'local_overwrite' ? 'sync_to_cloud' : 'sync_from_cloud',
+                                apiArgs: config.first_sync_mode === 'local_overwrite' ? [] : [true],
+                            });
+                            setTimeout(() => location.reload(), 1000);
+                        }
                     },
                     onError: (error) => {
                         Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
-                        this.showWebDAVStatus(`${window.languageManager.getText('settingsFailed', '设置失败')}：${error.message}`, 'error');
                     }
                 });
             }
