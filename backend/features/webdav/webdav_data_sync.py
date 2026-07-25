@@ -10,8 +10,8 @@ import logging
 from typing import Optional, Callable
 from datetime import datetime
 
-from backend.platforms.impl.mobile.common.webdav.webdav_config import get_webdav_config, is_webdav_enabled, set_webdav_config
-from backend.platforms.impl.mobile.common.webdav.webdav_client import get_webdav_client
+from backend.features.webdav.webdav_config import get_webdav_config, is_webdav_enabled, set_webdav_config
+from backend.features.webdav.webdav_client import get_webdav_client
 
 class DataSyncManager:
     """数据同步管理器"""
@@ -102,7 +102,8 @@ class DataSyncManager:
             config = get_webdav_config()
             
             # 配置客户端
-            if not client.configure(config['username'], config['password'], config['remote_path']):
+            url = config.get('url', 'https://dav.jianguoyun.com/dav')
+            if not client.configure(config['username'], config['password'], config['remote_path'], url):
                 return {
                     "success": False,
                     "error": "WebDAV客户端配置失败"
@@ -172,7 +173,8 @@ class DataSyncManager:
             config = get_webdav_config()
             
             # 配置客户端
-            if not client.configure(config['username'], config['password'], config['remote_path']):
+            url = config.get('url', 'https://dav.jianguoyun.com/dav')
+            if not client.configure(config['username'], config['password'], config['remote_path'], url):
                 return {
                     "success": False,
                     "error": "WebDAV客户端配置失败"
@@ -280,11 +282,11 @@ class DataSyncManager:
                 'error': '配置保存失败'
             }
 
-    def test_webdav_connection(self, username, password, remote_path):
+    def test_webdav_connection(self, url, username, password, remote_path):
         """测试WebDAV连接"""
         # 创建临时客户端进行测试
         client = get_webdav_client(self.service)
-        if client.configure(username, password, remote_path):
+        if client.configure(username, password, remote_path, url):
             result = client.test_connection()
             return result
         else:

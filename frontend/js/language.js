@@ -672,10 +672,12 @@ class LanguageManager {
         const dataSyncPanel = document.getElementById('webdav-config-panel');
         const dataSyncDataLabel = dataSyncPanel.querySelectorAll('.data-label');
         if (dataSyncDataLabel.length >= 4) {
-            dataSyncDataLabel[0].textContent = lang.account;
-            dataSyncDataLabel[1].textContent = lang.password;
-            dataSyncDataLabel[2].textContent = lang.filepath;
-            dataSyncDataLabel[3].textContent = lang.firstSyncMode;
+            dataSyncDataLabel[0].textContent = lang.syncType;
+            dataSyncDataLabel[1].textContent = lang.url;
+            dataSyncDataLabel[2].textContent = lang.account;
+            dataSyncDataLabel[3].textContent = lang.password;
+            dataSyncDataLabel[4].textContent = lang.filepath;
+            dataSyncDataLabel[5].textContent = lang.firstSyncMode;
         }
         const firstSyncModeSelect = document.getElementById('webdav-first-sync-mode');
         const firstSyncModeOptions = firstSyncModeSelect.querySelectorAll('option');

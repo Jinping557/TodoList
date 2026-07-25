@@ -16,6 +16,8 @@ def get_webdav_config() -> Dict[str, Any]:
     config = get_config_manager(service).get(WEBDAV_CONFIG_KEY, {})
     return {
         'enabled': config.get('enabled', False),
+        'sync_type': config.get('sync_type', 'jianguoyun'),
+        'url': config.get('url', 'https://dav.jianguoyun.com/dav'),
         'username': config.get('username', ''),
         'password': config.get('password', ''),
         'remote_path': config.get('remote_path', ''),
@@ -34,15 +36,18 @@ def set_webdav_config(config: Dict[str, Any]) -> bool:
     # 验证必要字段
     enabled = config.get('enabled', False)
     if enabled:
+        url = config.get('url', '')
         username = config.get('username', '')
         password = config.get('password', '')
         remote_path = config.get('remote_path', '')
-        if not username or not password or not remote_path:
-            raise ValueError("启用WebDAV时，用户名、密码和远程文件路径不能为空")
+        if not url or not username or not password or not remote_path:
+            raise ValueError("启用WebDAV时，服务器地址、用户名、密码和远程文件路径不能为空")
 
     # 设置默认值
     webdav_config = {
         'enabled': bool(enabled),
+        'sync_type': str(config.get('sync_type', 'jianguoyun')),
+        'url': str(config.get('url', 'https://dav.jianguoyun.com/dav')),
         'username': str(config.get('username', '')),
         'password': str(config.get('password', '')),
         'remote_path': str(config.get('remote_path', '')),

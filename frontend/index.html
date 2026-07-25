@@ -770,7 +770,7 @@
                     </div>
                 </div>
                 <!-- 数据同步管理 -->
-                <div class="setting-item mobile-shown-item" id="data-sync-btn">
+                <div class="setting-item" id="data-sync-btn">
                     <div class="setting-label">
                         <span class="setting-icon">💾</span>
                         <span class="setting-text">同步数据</span>
@@ -904,7 +904,7 @@
                 <div class="setting-item">
                     <div class="setting-label">
                         <span class="setting-icon">☁️</span>
-                        <span class="setting-text">坚果云同步</span>
+                        <span class="setting-text">数据同步</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="webdav-enable-toggle">
@@ -914,6 +914,21 @@
 
                 <!-- WebDAV配置面板 -->
                 <div id="webdav-config-panel" class="webdav-config-panel" style="display: none;">
+                    <!-- 同步类型选择 -->
+                    <div class="config-item">
+                        <label class="data-label">同步类型</label>
+                        <select id="webdav-sync-type-selector" name="sync-type" class="webdav-select">
+                            <option value="jianguoyun">坚果云</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+
+                    <!-- URL输入框 -->
+                    <div class="config-item">
+                        <label class="data-label">地址*</label>
+                        <input type="text" id="webdav-url" class="webdav-input" placeholder="请输入WebDAV服务器地址">
+                    </div>
+
                     <div class="config-item">
                         <label class="data-label">账号*</label>
                         <input type="email" id="webdav-username" class="webdav-input" placeholder="请输入邮箱地址">

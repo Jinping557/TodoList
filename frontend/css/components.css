@@ -1020,6 +1020,11 @@
     color: var(--primary-color);
 }
 
+.webdav-input[disabled] {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 /* 小屏幕保持原有的卡片式布局 (480px及以下) */
 @media (max-width: 480px) {
     .app-header {

@@ -225,6 +225,7 @@ const Languages = {
         settingsStorageWarning: "注意：这将影响所有数据的读写操作，当前数据会被移动到新文件。建议先备份重要数据。是否继续？",
         settingsSyncModeLocalWarning: "注意：当前操作将直接触发一次本地数据强制覆盖远程文件数据。建议先备份重要数据。是否继续？",
         settingsSyncModeRemoteWarning: "注意：当前操作将直接触发一次远程数据强制覆盖本地文件数据。建议先备份重要数据。是否继续？",
+        settingsSyncCloseWarning: "注意：当前操作将导致无法同步云端数据，是否继续？",
 
         // 语言设置
         language: "语言切换",
@@ -278,7 +279,9 @@ const Languages = {
         cancelImport: "取消",
 
         // 数据同步
-        dataSync: "坚果云同步",
+        dataSync: "数据云同步",
+        syncType: "同步类型",
+        url: "地址*",
         account: "账号*",
         password: "密码*",
         filepath: "路径*",
@@ -287,7 +290,7 @@ const Languages = {
         firstSyncModeLocal: "本地覆盖远程",
         testConnection: "测试连接",
         saveConfiguration: "保存配置",
-        autoSyncNotice: "⚠️ 首次同步外的数据自动同步规则：存在数据更新的端点，15s内会自动同步数据到其他端点",
+        autoSyncNotice: "⚠️ 如云路径和本地数据存储路径存在映射关系，请勿开启云同步，避免重复更新数据；首次同步外的数据自动同步规则：存在数据更新的端点，15s内会自动同步数据到其他端点",
     },
     
     // 英文
@@ -511,6 +514,7 @@ const Languages = {
         settingsStorageWarning: "Note: This will affect all data read and write operations, and the current data will be moved to the new file. It is recommended to back up important data first. Continue?",
         settingsSyncModeLocalWarning: "Warning: The current operation will directly trigger a local data override of the remote file data. It is recommended to back up important data first. Continue anyway?",
         settingsSyncModeRemoteWarning: "Warning: The current operation will directly trigger a remote data override of the local file data. It is recommended to back up important data first. Continue anyway?",
+        settingsSyncCloseWarning: "Warning: This operation will disable cloud data synchronization. Do you wish to proceed?",
 
         // 语言设置
         language: "Chinese/English Switch",
@@ -564,7 +568,9 @@ const Languages = {
         cancelImport: "Cancel",
 
         // 数据同步
-        dataSync: "Jianguoyun Sync",
+        dataSync: "Data Sync",
+        syncType: "Data Sync Type",
+        url: "Server Url*",
         account: "Account*",
         password: "Password*",
         filepath: "Filepath*",
@@ -573,7 +579,7 @@ const Languages = {
         firstSyncModeLocal: "Local Overwrite Remote",
         testConnection: "Test Connection",
         saveConfiguration: "Save Configuration",
-        autoSyncNotice: "⚠️ Auto-sync rule for data updates after initial sync: If a device has updated data, it will be automatically synced to other devices within 15 seconds.",
+        autoSyncNotice: "⚠️ When there is a mapping relationship between the cloud path and the local data storage path, please do not enable cloud sync to avoid redundant data updates. For automatic sync rules after the initial sync: if there is a data update on any endpoint, the data will be automatically synced to other endpoints within 15 seconds.",
     }
 };
 

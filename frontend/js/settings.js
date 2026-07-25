@@ -19,6 +19,8 @@ class SettingsUIManager {
         // WebDAV相关元素
         this.webdavEnableToggle = null;
         this.webdavConfigPanel = null;
+        this.webdavSyncType = null;
+        this.webdavUrlInput = null;
         this.webdavUsernameInput = null;
         this.webdavPasswordInput = null;
         this.webdavRemotePathInput = null;
@@ -82,6 +84,8 @@ class SettingsUIManager {
         // WebDAV配置元素
         this.webdavEnableToggle = document.getElementById('webdav-enable-toggle');
         this.webdavConfigPanel = document.getElementById('webdav-config-panel');
+        this.webdavSyncType = document.getElementById('webdav-sync-type-selector');
+        this.webdavUrlInput = document.getElementById('webdav-url');
         this.webdavUsernameInput = document.getElementById('webdav-username');
         this.webdavPasswordInput = document.getElementById('webdav-password');
         this.webdavRemotePathInput = document.getElementById('webdav-remote-path');
@@ -179,6 +183,10 @@ class SettingsUIManager {
         if (this.webdavEnableToggle) {
             this.webdavEnableToggle.addEventListener('change', () => this.toggleWebDAV());
         }
+        
+        // 同步类型切换事件绑定
+        this.handleSyncTypeChange();
+        this.webdavSyncType.addEventListener('change', () => this.handleSyncTypeChange());
         
         if (this.webdavTestBtn) {
             this.webdavTestBtn.addEventListener('click', () => this.testWebDAVConnection());
@@ -832,14 +840,27 @@ class SettingsUIManager {
                 const config = response.config;
                 if (config) {
                     this.webdavEnableToggle.checked = config.enabled || false;
+                    this.webdavSyncType.value = config.sync_type;
+                    this.webdavUrlInput.value = config.url;
                     this.webdavUsernameInput.value = config.username || '';
                     this.webdavPasswordInput.value = config.password || '';
                     this.webdavRemotePathInput.value = config.remote_path || '';
                     this.webdavFirstSyncModeSelect.value = config.first_sync_mode || 'remote_overwrite';
                     this.toggleWebDAVPanel();
+                    this.handleSyncTypeChange();
                 }
             }
         });
+    }
+
+    handleSyncTypeChange() {
+        // 处理同步类型切换
+        if (this.webdavSyncType.value === 'jianguoyun') {
+            this.webdavUrlInput.value = 'https://dav.jianguoyun.com/dav';
+            this.webdavUrlInput.disabled = true;
+        } else {
+            this.webdavUrlInput.disabled = false;
+        }
     }
 
     async toggleWebDAV() {
@@ -864,17 +885,18 @@ class SettingsUIManager {
     async testWebDAVConnection() {
         // 测试WebDAV连接
         // 获取当前输入的配置
+        const url = this.webdavUrlInput.value.trim();
         const username = this.webdavUsernameInput.value.trim();
         const password = this.webdavPasswordInput.value;
         const remotePath = this.webdavRemotePathInput.value;
 
-        if (!username || !password || !remotePath) {
+        if (!url || !username || !password || !remotePath) {
             Utils.showToast(window.languageManager.getText('itemRequired', '请填写必填项！'), 'warning');
             return;
         }
         await Utils.apiCall({
             apiMethod: 'test_webdav_connection',
-            apiArgs: [username, password, remotePath],
+            apiArgs: [url, username, password, remotePath],
             onSuccess: (response) => {
                 this.showWebDAVStatus(`✅ ${window.languageManager.getText('settingsConnectSuccess', '连接成功！可以正常使用云端同步功能！')}`, 'success');
                 Utils.showToast(window.languageManager.getText('settingsConnectSuccess', '连接成功！可以正常使用云端同步功能！'), 'success');
@@ -890,6 +912,8 @@ class SettingsUIManager {
         // 保存WebDAV配置
         const config = {
             enabled: this.webdavEnableToggle.checked,
+            sync_type: this.webdavSyncType.value.trim(),
+            url: this.webdavUrlInput.value.trim(),
             username: this.webdavUsernameInput.value.trim(),
             password: this.webdavPasswordInput.value,
             remote_path : this.webdavRemotePathInput.value,

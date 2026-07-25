@@ -86,12 +86,8 @@ class AndroidService(PlatformService):
     def start_app(self):
         """启动应用的统一接口"""
         from backend import start
-        from backend.platforms.impl.mobile.common.webdav.webdav_data_sync import get_data_sync_manager
-        start.start_app(
-            True,
-            True, # 安卓端需要开启SSL，否则功能无法使用
-            None,
-            get_data_sync_manager(self))
+        # 安卓端需要开启SSL，否则功能无法使用
+        start.start_app(True, True, None)
 
     def frontend_logger(self):
         """前端日志的统一接口"""

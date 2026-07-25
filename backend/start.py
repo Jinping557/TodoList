@@ -46,7 +46,7 @@ chinese_localization = {
     'global.cancel': '取消'
 }
 
-def start_app(is_android = False, ssl_enable = True, start_keyboard = None, sync_manager = None):
+def start_app(is_android = False, ssl_enable = True, start_keyboard = None):
     """启动TodoList桌面应用"""
 
     def on_closing():
@@ -114,6 +114,8 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None, sync
         from backend.utils import utils
 
         # 创建API实例
+        from backend.features.webdav.webdav_data_sync import get_data_sync_manager
+        sync_manager = get_data_sync_manager(service)
         api = TodoApi(is_android, sync_manager)
         backend_logger.info("TodoApi 实例创建成功")
 

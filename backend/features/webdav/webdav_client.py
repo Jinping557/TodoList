@@ -29,6 +29,7 @@ class WebDAVClient:
     """坚果云WebDAV客户端"""
 
     def __init__(self, platform_service):
+        self.url = None
         self.client = None
         self.username = None
         self.password = None
@@ -41,14 +42,15 @@ class WebDAVClient:
         # 降级方案：使用标准 logging（避免 None 报错）
         return logging.getLogger(__name__)
 
-    def configure(self, username: str, password: str, remote_path: str) -> bool:
+    def configure(self, username: str, password: str, remote_path: str, url: str = 'https://dav.jianguoyun.com/dav') -> bool:
         """
         配置WebDAV连接参数
         
         Args:
-            username: 坚果云用户名
-            password: 坚果云应用密码
-            remote_path： 坚果云文件路径
+            username: WebDAV用户名
+            password: WebDAV密码
+            remote_path： 远程文件路径
+            url: WebDAV服务器地址，默认为坚果云地址
             
         Returns:
             bool: 配置是否成功
@@ -60,10 +62,11 @@ class WebDAVClient:
         self.username = username
         self.password = password
         self.remote_path = remote_path
+        self.url = url
 
         try:
             options = {
-                'webdav_hostname': 'https://dav.jianguoyun.com/dav',
+                'webdav_hostname': url,
                 'webdav_login': self.username,
                 'webdav_password': self.password,
                 'disable_check': True

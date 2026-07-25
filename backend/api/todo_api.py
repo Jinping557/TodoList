@@ -836,9 +836,9 @@ class TodoApi:
         """设置WebDAV配置"""
         return self._call_manager_method('set_webdav_config', config)
     
-    def test_webdav_connection(self, username, password, remote_path):
+    def test_webdav_connection(self, url, username, password, remote_path):
         """测试WebDAV连接"""
-        return self._call_manager_method('test_webdav_connection', username, password, remote_path)
+        return self._call_manager_method('test_webdav_connection', url, username, password, remote_path)
     
     def sync_from_cloud(self, is_overwrite = False):
         """从云端同步数据到本地"""
