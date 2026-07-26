@@ -64,55 +64,39 @@ class App {
     bindGlobalEvents() {
         // 设置中心按钮
         const settingsBtn = document.getElementById('settings-btn');
-        settingsBtn?.addEventListener('click', () => {
-            window.settingsManager?.openModal();
-        });
+        settingsBtn?.addEventListener('click', () => window.settingsManager?.openModal());
 
         // 移动端菜单按钮
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        mobileMenuBtn?.addEventListener('click', () => {
-            this.toggleMobileSidebar();
-        });
+        mobileMenuBtn?.addEventListener('click', () => this.toggleMobileSidebar());
 
         // 遮罩层点击关闭侧边栏
         const sidebarOverlay = document.getElementById('sidebar-overlay');
-        sidebarOverlay?.addEventListener('click', () => {
-            this.closeMobileSidebar();
-        });
+        sidebarOverlay?.addEventListener('click', () => this.closeMobileSidebar());
 
         // 窗口大小变化
-        window.addEventListener('resize', Utils.debounce(() => {
-            this.handleResize();
-        }, 250));
+        window.addEventListener('resize', Utils.debounce((() => this.handleResize()), 250));
         
         // 页面可见性变化
-        document.addEventListener('visibilitychange', () => {
-            this.handleVisibilityChange();
-        });
+        document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
         
         // 联系作者按钮事件
         const contactAuthorBtn = document.getElementById('contact-author-btn');
-        contactAuthorBtn?.addEventListener('click', () => {
-            this.showContactAuthorModal();
-        });
+        contactAuthorBtn?.addEventListener('click', () => this.showContactAuthorModal());
 
         // 小屏幕更多菜单按钮事件
         const moreMenuBtn = document.getElementById('more-menu-btn');
         const moreMenuModal = document.getElementById('more-menu-modal');
         const moreMenuClose = document.getElementById('more-menu-close');
         
-        moreMenuBtn?.addEventListener('click', () => {
-            this.showMoreMenu();
-        });
+        moreMenuBtn?.addEventListener('click', () => this.showMoreMenu());
 
         // 点击遮罩层关闭
         moreMenuModal?.addEventListener('click', (e) => {
             if (e.target === moreMenuModal) this.hideMoreMenu();
         });
 
-        moreMenuClose?.addEventListener('click', () => {
-            this.hideMoreMenu();
-        });
+        moreMenuClose?.addEventListener('click', () => this.hideMoreMenu());
 
         // 更多菜单项点击事件
         const moreMenuLinks = document.querySelectorAll('.more-menu-link');
@@ -128,9 +112,7 @@ class App {
         // 二维码弹窗关闭事件
         const qrCodeCloseBtn = document.getElementById('qr-code-close');
         const qrCodeModal = document.getElementById('qr-code-modal');
-        qrCodeCloseBtn?.addEventListener('click', () => {
-            this.hideContactAuthorModal();
-        });
+        qrCodeCloseBtn?.addEventListener('click', () => this.hideContactAuthorModal());
 
         // 点击遮罩层关闭
         qrCodeModal?.addEventListener('click', (e) => {
@@ -418,13 +400,8 @@ class App {
 // 创建应用实例
 const app = new App();
 
-// 页面加载完成后初始化应用
-document.addEventListener('DOMContentLoaded', () => {
-    // 延迟初始化，确保所有资源加载完成
-    setTimeout(() => {
-        app.init();
-    }, 100);
-});
+// 页面加载完成后初始化应用：延迟初始化，确保所有资源加载完成
+document.addEventListener('DOMContentLoaded', () => setTimeout((() => app.init()), 100));
 
 // 导出到全局
 window.App = app;

@@ -217,9 +217,7 @@ class DataTransfer {
         `).join('');
 
         this.deviceList.querySelectorAll('.device-item').forEach(item => {
-            item.addEventListener('click', () => {
-                this.receiveData(item.dataset.ip);
-            });
+            item.addEventListener('click', () => this.receiveData(item.dataset.ip));
         });
     }
 

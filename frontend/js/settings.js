@@ -161,9 +161,7 @@ class SettingsUIManager {
 
         // ESC键关闭
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.modal && this.modal.style.display === 'flex') {
-                this.closeModal();
-            }
+            if (e.key === 'Escape' && this.modal && this.modal.style.display === 'flex') this.closeModal();
         });
 
         // 绑定快捷按键事件

@@ -208,9 +208,7 @@ function confirmDialog(message, callback, onCancel = null, title = null, classNa
         setTimeout(() => {
             const radios = messageEl.querySelectorAll('input[type="radio"]');
             radios.forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    logger.info('单选框选择改变:', e.target.value);
-                });
+                radio.addEventListener('change', (e) => logger.info('单选框选择改变:', e.target.value));
             });
             
             // 为选项添加点击事件

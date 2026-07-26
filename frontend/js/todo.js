@@ -1228,9 +1228,7 @@ class TodoManager {
             <span class="task-title ${task.completed ? 'completed' : ''}">${Utils.escapeHtml(task.title)}</span>
         `;
         
-        item.addEventListener('click', () => {
-            this.selectParentTask(task);
-        });
+        item.addEventListener('click', () => this.selectParentTask(task));
         
         return item;
     }
