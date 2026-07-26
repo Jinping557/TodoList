@@ -54,9 +54,7 @@ class Logger {
      * @param {string} source - 日志来源
      */
     async sendToBackend(level, message, source = 'frontend') {
-        if (!window.pywebview || !window.pywebview.api) {
-            return;
-        }
+        if (!window.pywebview || !window.pywebview.api) return;
         const location = this.getCallerLocation();
         const fullMessage = `[${location}] ${message}`;
         try {

@@ -36,28 +36,18 @@ class CategoryManager {
 
         // 添加分类按钮
         const addCategoryBtn = document.getElementById('add-category-btn');
-        if (addCategoryBtn) {
-            addCategoryBtn.addEventListener('click', () => this.showAddCategoryModal());
-        }
-        
+        addCategoryBtn?.addEventListener('click', () => this.showAddCategoryModal());
+
         // 分类表单
         const categoryForm = document.getElementById('category-form');
-        if (categoryForm) {
-            categoryForm.addEventListener('submit', (e) => this.handleCategorySubmit(e));
-        }
-        
+        categoryForm?.addEventListener('submit', (e) => this.handleCategorySubmit(e));
+
         // 模态框关闭按钮
         const modalClose = document.getElementById('category-modal-close');
         const cancelBtn = document.getElementById('category-cancel-btn');
-        
-        if (modalClose) {
-            modalClose.addEventListener('click', () => Utils.ModalManager.hide('category-modal'));
-        }
-        
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => Utils.ModalManager.hide('category-modal'));
-        }
-        
+        modalClose?.addEventListener('click', () => Utils.ModalManager.hide('category-modal'));
+        cancelBtn?.addEventListener('click', () => Utils.ModalManager.hide('category-modal'));
+
         // 颜色预设按钮
         document.querySelectorAll('.color-presets button').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -250,9 +240,7 @@ class CategoryManager {
         });
         
         const activeItem = document.querySelector(`[data-category="${categoryId}"]`);
-        if (activeItem) {
-            activeItem.classList.add('active');
-        }
+        if (activeItem) activeItem.classList.add('active');
     }
     
     // 显示添加分类模态框
@@ -322,12 +310,10 @@ class CategoryManager {
                 this.loadCategories();
                 this.renderCategories();
 
-                if (window.todoManager) {
-                    // 重新加载任务列表以更新分类信息
-                    window.todoManager.loadTasks();
-                    // 触发云端同步上传
-                    window.todoManager.triggerCloudUpload();
-                }
+                // 重新加载任务列表以更新分类信息
+                window.todoManager?.loadTasks();
+                // 触发云端同步上传
+                window.todoManager?.triggerCloudUpload();
             },
             onError: (error) => Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error'),
             onFinally: () => Utils.setLoading(false)
@@ -386,12 +372,10 @@ class CategoryManager {
                     this.loadCategories();
                     this.renderCategories();
 
-                    if (window.todoManager) {
-                        // 重新加载任务列表
-                        window.todoManager.loadTasks();
-                        // 触发云端同步上传
-                        window.todoManager.triggerCloudUpload();
-                    }
+                    // 重新加载任务列表
+                    window.todoManager?.loadTasks();
+                    // 触发云端同步上传
+                    window.todoManager?.triggerCloudUpload();
                 },
                 onError: (error) => Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error'),
                 onFinally: () => Utils.setLoading(false)
@@ -432,17 +416,13 @@ class CategoryManager {
         
         // 更新"全部"分类的数量 - 如果有筛选任务则显示筛选后的数量，否则显示总数量
         const allCountEl = document.querySelector('[data-category="all"] .category-count');
-        if (allCountEl) {
-            allCountEl.textContent = taskCounts.all || 0;
-        }
-        
+        if (allCountEl) allCountEl.textContent = taskCounts.all || 0;
+
         // 更新各个分类的数量
         this.categories.forEach(category => {
             const count = taskCounts[category.id] || 0;
             const countEl = document.querySelector(`[data-category="${category.id}"] .category-count`);
-            if (countEl) {
-                countEl.textContent = count;
-            }
+            if (countEl) countEl.textContent = count;
         });
     }
     

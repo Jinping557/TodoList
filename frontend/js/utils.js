@@ -62,16 +62,12 @@ function showToast(message, type = 'info') {
     
     // 3秒后自动移除
     setTimeout(() => {
-        if (toast.parentNode) {
-            toast.parentNode.removeChild(toast);
-        }
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
     }, 3000);
     
     // 点击关闭
     toast.addEventListener('click', () => {
-        if (toast.parentNode) {
-            toast.parentNode.removeChild(toast);
-        }
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
     });
 }
 
@@ -150,15 +146,11 @@ const ModalManager = {
             
             // 聚焦第一个输入框
             const firstInput = modal.querySelector('input, textarea, select');
-            if (firstInput) {
-                setTimeout(() => firstInput.focus(), 100);
-            }
-            
+            if (firstInput) setTimeout(() => firstInput.focus(), 100);
+
             // 点击背景关闭
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.hide(modalId);
-                }
+                if (e.target === modal) this.hide(modalId);
             });
             
             // ESC键关闭
@@ -180,9 +172,7 @@ const ModalManager = {
             
             // 清空表单
             const form = modal.querySelector('form');
-            if (form) {
-                form.reset();
-            }
+            if (form) form.reset();
         }
     },
     
@@ -258,18 +248,14 @@ function confirmDialog(message, callback, onCancel = null, title = null, classNa
     const handleConfirm = () => {
         confirmModal.classList.remove('show');
         confirmModal.style.display = 'none';
-        if (callback) {
-            callback();
-        }
+        if (callback) callback();
         cleanup();
     };
     
     const handleCancel = () => {
         confirmModal.classList.remove('show');
         confirmModal.style.display = 'none';
-        if (onCancel) {
-            onCancel();
-        }
+        if (onCancel) onCancel();
         cleanup();
     };
     
@@ -312,9 +298,7 @@ function detectOS() {
 // 加载pywebview的api
 async function loadPywebviewApi(maxRetries = 20, interval = 300) {
     for (let i = 0; i < maxRetries; i++) {
-        if (typeof window.pywebview !== 'undefined' && window.pywebview.api) {
-            return true; // pywebview 已加载完成
-        }
+        if (typeof window.pywebview !== 'undefined' && window.pywebview.api) return true; // pywebview 已加载完成
 
         if (i < maxRetries - 1) {
             logger.info(`等待 pywebview 加载... (${i + 1}/${maxRetries})`);
@@ -337,30 +321,20 @@ async function apiCall({
     try {
         // 先等待 pywebview 加载完成
         const isLoaded = await loadPywebviewApi();
-        if (!isLoaded) {
-           throw new Error('后端请求调用失败！');
-        }
+        if (!isLoaded) throw new Error('后端请求调用失败！');
         const result = await window.pywebview.api[apiMethod](...apiArgs);
         // 使用自定义判断函数，默认可兼容无 success 字段的情况
         if (successCheck(result)) {
-            if (typeof onSuccess === 'function') {
-                onSuccess(result);
-            }
+            if (typeof onSuccess === 'function') onSuccess(result);
         } else {
             throw new Error(`failure status, result: '${JSON.stringify(result)}')`);
         }
     } catch (error) {
         logger.error(`API '${apiMethod}' error: '${error}'`);
-        if (typeof onError === 'function') {
-            onError(error);
-        }
-        if (throwOnError) {
-            throw error; // 允许上层继续处理
-        }
+        if (typeof onError === 'function') onError(error);
+        if (throwOnError) throw error; // 允许上层继续处理
     } finally {
-        if (typeof onFinally === 'function') {
-            onFinally();
-        }
+        if (typeof onFinally === 'function') onFinally();
     }
 }
 

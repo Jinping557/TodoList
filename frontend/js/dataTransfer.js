@@ -55,48 +55,28 @@ class DataTransfer {
 
     bindEvents() {
         // 关闭模态框
-        if (this.closeBtn) {
-            this.closeBtn.addEventListener('click', () => this.closeModal());
-        }
+        this.closeBtn?.addEventListener('click', () => this.closeModal());
 
         // 点击模态框外部关闭
-        if (this.modal) {
-            this.modal.addEventListener('click', (e) => {
-                if (e.target === this.modal) {
-                    this.closeModal();
-                }
-                if (window.App && document.querySelector('.sidebar')?.classList.contains('open')) {
-                    window.App.closeMobileSidebar();
-                }
-            });
-        }
+        this.modal?.addEventListener('click', (e) => {
+            if (e.target === this.modal) this.closeModal();
+            if (window.App && document.querySelector('.sidebar')?.classList.contains('open')) {
+                window.App.closeMobileSidebar();
+            }
+        });
 
         // 模式切换
-        if (this.shareModeBtn) {
-            this.shareModeBtn.addEventListener('click', () => this.switchMode('share'));
-        }
-        if (this.receiveModeBtn) {
-            this.receiveModeBtn.addEventListener('click', () => this.switchMode('receive'));
-        }
+        this.shareModeBtn?.addEventListener('click', () => this.switchMode('share'));
+        this.receiveModeBtn?.addEventListener('click', () => this.switchMode('receive'));
 
         // 共享操作
-        if (this.startShareBtn) {
-            this.startShareBtn.addEventListener('click', () => this.startSharing());
-        }
-        if (this.stopShareBtn) {
-            this.stopShareBtn.addEventListener('click', () => this.stopSharing());
-        }
+        this.startShareBtn?.addEventListener('click', () => this.startSharing());
+        this.stopShareBtn?.addEventListener('click', () => this.stopSharing());
 
         // 接收操作
-        if (this.scanDevicesBtn) {
-            this.scanDevicesBtn.addEventListener('click', () => this.scanDevices());
-        }
-        if (this.confirmImportBtn) {
-            this.confirmImportBtn.addEventListener('click', () => this.confirmImport());
-        }
-        if (this.cancelImportBtn) {
-            this.cancelImportBtn.addEventListener('click', () => this.cancelImport());
-        }
+        this.scanDevicesBtn?.addEventListener('click', () => this.scanDevices());
+        this.confirmImportBtn?.addEventListener('click', () => this.confirmImport());
+        this.cancelImportBtn?.addEventListener('click', () => this.cancelImport());
     }
 
     openModal() {

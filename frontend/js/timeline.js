@@ -53,10 +53,7 @@ class TimelineManager {
     convertTasks(tasks) {
         return tasks.map(task => {
             const dueDate = task.dueDate;
-            if (!dueDate) {
-              // 若没有 dueDate，可跳过或返回占位
-              return null;
-            }
+            if (!dueDate) return null; // 若没有 dueDate，可跳过或返回占位
 
             // 分离日期和时间
             const [date, time] = dueDate.split('T');
@@ -94,19 +91,19 @@ class TimelineManager {
     }
 
     bindEvents() {
-        document.getElementById('prevWeekBtn').addEventListener('click', () => this.shiftStartDate(-1));
-        document.getElementById('nextWeekBtn').addEventListener('click', () => this.shiftStartDate(1));
-        document.getElementById('weekMinusBtn').addEventListener('click', () => this.changeWeekCount(-1));
-        document.getElementById('weekPlusBtn').addEventListener('click', () => this.changeWeekCount(1));
-        document.getElementById('priority-filter').addEventListener('change', async (e) => {
+        document.getElementById('prevWeekBtn')?.addEventListener('click', () => this.shiftStartDate(-1));
+        document.getElementById('nextWeekBtn')?.addEventListener('click', () => this.shiftStartDate(1));
+        document.getElementById('weekMinusBtn')?.addEventListener('click', () => this.changeWeekCount(-1));
+        document.getElementById('weekPlusBtn')?.addEventListener('click', () => this.changeWeekCount(1));
+        document.getElementById('priority-filter')?.addEventListener('change', async (e) => {
                 this.priorityFilter = e.target.value;
                 this.renderTimeline();
             });
-        document.getElementById('status-filter').addEventListener('change', async (e) => {
+        document.getElementById('status-filter')?.addEventListener('change', async (e) => {
                 this.statusFilter = e.target.value;
                 this.renderTimeline();
             });
-        document.getElementById('due-date-filter').addEventListener('change', async (e) => {
+        document.getElementById('due-date-filter')?.addEventListener('change', async (e) => {
                 this.dueDateFilter = e.target.value;
                 this.renderTimeline();
             });
@@ -379,9 +376,7 @@ class TimelineManager {
     async handleDelete(e) {
         e.stopPropagation();
         const taskId = e.currentTarget.getAttribute('data-task-id');
-        if (taskId) {
-            await window.todoManager.deleteTask(taskId);
-        }
+        if (taskId) await window.todoManager.deleteTask(taskId);
     }
 
     async changeWeekCount(delta) {

@@ -114,93 +114,51 @@ class SettingsUIManager {
     
     bindEvents() {
         // 打开设置中心
-        if (this.settingsBtn) {
-            this.settingsBtn.addEventListener('click', () => this.openModal());
-        }
-        
-        // 关闭设置中心
-        if (this.closeBtn) {
-            this.closeBtn.addEventListener('click', () => this.closeModal());
-        }
-        
-        // 点击模态框外部关闭
-        if (this.modal) {
-            this.modal.addEventListener('click', (e) => {
-                if (e.target === this.modal) {
-                    this.closeModal();
-                }
-            });
-        }
-        
-        // 窗口置顶开关
-        if (this.windowTopToggle) {
-            this.windowTopToggle.addEventListener('change', () => this.toggleWindowOnTop());
-        }
+        this.settingsBtn?.addEventListener('click', () => this.openModal());
 
-        if (this.themeDarkToggle) {
-            this.themeDarkToggle.addEventListener('change', () => this.toggleThemeDark());
-        }
-        
+        // 关闭设置中心
+        this.closeBtn?.addEventListener('click', () => this.closeModal());
+
+        // 点击模态框外部关闭
+        this.modal?.addEventListener('click', (e) => {
+            if (e.target === this.modal) this.closeModal();
+        });
+
+        // 窗口置顶开关
+        this.windowTopToggle?.addEventListener('change', () => this.toggleWindowOnTop());
+
+        this.themeDarkToggle?.addEventListener('change', () => this.toggleThemeDark());
+
         // 语言切换
         const languageToggle = document.getElementById('language-toggle');
-        if (languageToggle) {
-            languageToggle.addEventListener('change', (e) => this.handleLanguageToggle(e));
-        }
-        
+        languageToggle?.addEventListener('change', (e) => this.handleLanguageToggle(e));
+
         // 数据共享按钮
-        if (this.dataShareBtn) {
-            this.dataShareBtn.addEventListener('click', () => this.openDataTransfer('share'));
-        }
+        this.dataShareBtn?.addEventListener('click', () => this.openDataTransfer('share'));
 
         // 数据同步按钮
-        if (this.dataSyncBtn) {
-            this.dataSyncBtn.addEventListener('click', () => this.openDataSync());
-        }
+        this.dataSyncBtn?.addEventListener('click', () => this.openDataSync());
 
         // 导出任务按钮
-        if (this.exportTasksBtn) {
-            this.exportTasksBtn.addEventListener('click', () => this.openExportModal());
-        }
-        
+        this.exportTasksBtn?.addEventListener('click', () => this.openExportModal());
+
         // 数据文件配置事件绑定
-        if (this.dataDirBtn) {
-            this.dataDirBtn.addEventListener('click', () => this.browseFile());
-        }
-        
-        if (this.applyDirBtn) {
-            this.applyDirBtn.addEventListener('click', () => this.applyDataFile());
-        }
-        
-        if (this.dataDirBtn) {
-            this.dataDirBtn.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.applyDataDirectory();
-                }
-            });
-        }
-        
+        this.dataDirBtn?.addEventListener('click', () => this.browseFile());
+        this.applyDirBtn?.addEventListener('click', () => this.applyDataFile());
+        this.dataDirBtn?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.applyDataDirectory();
+        });
+
         // WebDAV事件绑定
-        if (this.webdavEnableToggle) {
-            this.webdavEnableToggle.addEventListener('change', () => this.toggleWebDAV());
-        }
-        
-        // 同步类型切换事件绑定
         this.handleSyncTypeChange();
-        this.webdavSyncType.addEventListener('change', () => this.handleSyncTypeChange());
-        
-        if (this.webdavTestBtn) {
-            this.webdavTestBtn.addEventListener('click', () => this.testWebDAVConnection());
-        }
-        
-        if (this.webdavSaveBtn) {
-            this.webdavSaveBtn.addEventListener('click', () => this.saveWebDAVConfig());
-        }
-        
+        this.webdavEnableToggle?.addEventListener('change', () => this.toggleWebDAV());
+        this.webdavSyncType?.addEventListener('change', () => this.handleSyncTypeChange());
+        this.webdavTestBtn?.addEventListener('click', () => this.testWebDAVConnection());
+        this.webdavSaveBtn?.addEventListener('click', () => this.saveWebDAVConfig());
+
         // 开机自启动事件绑定
-        if (this.autoStartToggle) {
-            this.autoStartToggle.addEventListener('change', () => this.toggleAutoStart());
-        }
-        
+        this.autoStartToggle?.addEventListener('change', () => this.toggleAutoStart());
+
         // ESC键关闭
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.modal && this.modal.style.display === 'flex') {
@@ -216,27 +174,23 @@ class SettingsUIManager {
             this.smartKeyShow.addEventListener('keydown', (e) => this.handleKeyDown(e));
             this.smartKeyShow.addEventListener('keyup', (e) => this.handleKeyUp(e));
         }
-        if (this.smartKeyApply) {
-            this.smartKeyApply.addEventListener('click', async () => {
-                this.currentButtonKey = this.smartKeyShow.textContent;
-                this.resetModifiers();
-                await Utils.apiCall({
-                    apiMethod: 'set_shortcut_config',
-                    apiArgs: [this.currentButtonKey],
-                    successCheck: (response) => true,
-                    onSuccess: (response) => {
-                        localStorage.setItem('todolist_shortcut', this.currentButtonKey);
-                        Utils.showToast(`${window.languageManager.getText('settingsShortcutAs', '已设置为')}: ${this.currentButtonKey},
-                            ${window.languageManager.getText('settingsShortcutNeedRestart', '请重启应用后尝试')}`, 'success');
-                    },
-                });
+        this.smartKeyApply?.addEventListener('click', async () => {
+            this.currentButtonKey = this.smartKeyShow.textContent;
+            this.resetModifiers();
+            await Utils.apiCall({
+                apiMethod: 'set_shortcut_config',
+                apiArgs: [this.currentButtonKey],
+                successCheck: (response) => true,
+                onSuccess: (response) => {
+                    localStorage.setItem('todolist_shortcut', this.currentButtonKey);
+                    Utils.showToast(`${window.languageManager.getText('settingsShortcutAs', '已设置为')}: ${this.currentButtonKey},
+                        ${window.languageManager.getText('settingsShortcutNeedRestart', '请重启应用后尝试')}`, 'success');
+                },
             });
-        }
+        });
 
         // 快捷操作开关事件绑定
-        if (this.shortcutToggle) {
-            this.shortcutToggle.addEventListener('change', () => this.toggleShortcut());
-        }
+        this.shortcutToggle?.addEventListener('change', () => this.toggleShortcut());
     }
     
     async openModal() {
@@ -348,10 +302,8 @@ class SettingsUIManager {
         const indicator = document.getElementById('language-indicator');
         const switchElement = document.querySelector('.language-switch');
         
-        if (indicator) {
-            indicator.textContent = text;
-        }
-        
+        if (indicator) indicator.textContent = text;
+
         if (switchElement) {
             if (isChecked) {
                 switchElement.classList.add('checked');
@@ -387,10 +339,8 @@ class SettingsUIManager {
     
     // 切换开机启动状态
     async toggleAutoStart() {
-        if (!this.autoStartToggle) {
-            return;
-        }
-        
+        if (!this.autoStartToggle) return;
+
         const enabled = this.autoStartToggle.checked;
 
         this.autoStartToggle.disabled = true;
@@ -413,73 +363,55 @@ class SettingsUIManager {
     
     // 更新设置中心的语言文本
     updateSettingsLanguage() {
-        if (!window.languageManager) {
-            return;
-        }
-        
+        if (!window.languageManager) return;
+
         const lang = window.languageManager.getText;
         const langCode = window.languageManager.getCurrentLanguage();
         
         // 更新设置标题
         const settingsTitle = document.querySelector('#settings-modal h2');
-        if (settingsTitle) {
-            settingsTitle.textContent = window.languageManager.getText('settings', '设置');
-        }
-        
+        if (settingsTitle) settingsTitle.textContent = window.languageManager.getText('settings', '设置');
+
         // 更新各部分标题
         const sectionTitles = document.querySelectorAll('.setting-section h3');
         const titleKeys = ['settingsWindow', 'settingsData'];
         sectionTitles.forEach((title, index) => {
-            if (titleKeys[index]) {
-                title.textContent = window.languageManager.getText(titleKeys[index], title.textContent);
-            }
+            if (titleKeys[index]) title.textContent = window.languageManager.getText(titleKeys[index], title.textContent);
         });
         
         // 更新窗口置顶标签
         const windowTopCheckbox = document.getElementById('window-top-toggle');
         const windowTopSettingItem = windowTopCheckbox.closest('.setting-item');
         const windowTopLabel = windowTopSettingItem.querySelector('.setting-text');
-        if (windowTopLabel) {
-            windowTopLabel.textContent = window.languageManager.getText('settingsWindowTop', '窗口置顶');
-        }
-        
+        if (windowTopLabel) windowTopLabel.textContent = window.languageManager.getText('settingsWindowTop', '窗口置顶');
+
         // 更新主题标签
         const darkModeCheckbox = document.getElementById('theme-dark-toggle');
         const darkModeSettingItem = darkModeCheckbox.closest('.setting-item');
         const themeLabel = darkModeSettingItem.querySelector('.setting-text');
-        if (themeLabel) {
-            themeLabel.textContent = window.languageManager.getText('settingsDarkTheme', '深色模式');
-        }
+        if (themeLabel) themeLabel.textContent = window.languageManager.getText('settingsDarkTheme', '深色模式');
 
         // 语言切换标签
         const languageCheckbox = document.getElementById('language-toggle');
         const languageSettingItem = languageCheckbox.closest('.setting-item');
         const languageLabel = languageSettingItem.querySelector('.setting-text');
-        if (languageLabel) {
-            languageLabel.textContent = window.languageManager.getText('language', '语言切换');
-        }
+        if (languageLabel) languageLabel.textContent = window.languageManager.getText('language', '语言切换');
 
         // 开机启动标签
         const autoStartCheckbox = document.getElementById('auto-start-toggle');
         const autoStartSettingItem = autoStartCheckbox.closest('.setting-item');
         const autoStartLabel = autoStartSettingItem.querySelector('.setting-text');
-        if (autoStartLabel) {
-            autoStartLabel.textContent = window.languageManager.getText('settingsAutoStart', '开机启动');
-        }
+        if (autoStartLabel) autoStartLabel.textContent = window.languageManager.getText('settingsAutoStart', '开机启动');
 
         // 快捷键标签
         const shortcutSettingConfig = document.querySelector('.shortcut');
         const shortcutLabel = shortcutSettingConfig.querySelector('.data-label');
-        if (shortcutLabel) {
-            shortcutLabel.textContent = window.languageManager.getText('settingsShortcut', '快捷操作');
-        }
+        if (shortcutLabel) shortcutLabel.textContent = window.languageManager.getText('settingsShortcut', '快捷操作');
 
         // 更新数据存储标签
         const dataStorageSettingConfig = document.querySelector('.data-storage');
         const dataStorageLabel = dataStorageSettingConfig.querySelector('.data-label');
-        if (dataStorageLabel) {
-            dataStorageLabel.textContent = window.languageManager.getText('dataStoragePath', '存储路径');
-        }
+        if (dataStorageLabel) dataStorageLabel.textContent = window.languageManager.getText('dataStoragePath', '存储路径');
 
         // 更新应用标签
         const applyLabels = document.querySelectorAll('.setting-config-btn');
@@ -490,22 +422,16 @@ class SettingsUIManager {
         // 更新数据管理标签
         const dataShareSettingItem = document.getElementById('data-share-btn');
         const dataShareLabel = dataShareSettingItem.querySelector('.setting-text');
-        if (dataShareLabel) {
-            dataShareLabel.textContent = window.languageManager.getText('settingsDataShare', '共享数据');
-        }
+        if (dataShareLabel) dataShareLabel.textContent = window.languageManager.getText('settingsDataShare', '共享数据');
 
         const dataSyncSettingItem = document.getElementById('data-sync-btn');
         const dataSyncLabel = dataSyncSettingItem.querySelector('.setting-text');
-        if (dataSyncLabel) {
-            dataSyncLabel.textContent = window.languageManager.getText('settingsDataSync', '同步数据');
-        }
+        if (dataSyncLabel) dataSyncLabel.textContent = window.languageManager.getText('settingsDataSync', '同步数据');
     }
     
     // 更新开机启动状态
     async updateAutoStartState() {
-        if (!this.autoStartToggle) {
-            return;
-        }
+        if (!this.autoStartToggle) return;
 
         let autoStart = localStorage.getItem('todolist_auto_start');
         if (autoStart) {
@@ -532,9 +458,7 @@ class SettingsUIManager {
 
     // 更新窗口置顶状态
     async updateWindowOnTopState() {
-        if (!this.windowTopToggle) {
-            return;
-        }
+        if (!this.windowTopToggle) return;
 
         let onTop = localStorage.getItem('todolist_windowOnTop');
         if (onTop) {
@@ -558,9 +482,7 @@ class SettingsUIManager {
 
     // 更新快捷键配置
     async updateShortcutConfig() {
-        if (!this.smartKeyShow) {
-            return;
-        }
+        if (!this.smartKeyShow) return;
 
         let shortcut = localStorage.getItem('todolist_shortcut');
         if (shortcut) {
@@ -582,9 +504,7 @@ class SettingsUIManager {
 
     // 更新快捷操作开关状态
     async updateShortcutToggleState() {
-        if (!this.shortcutToggle) {
-            return;
-        }
+        if (!this.shortcutToggle) return;
 
         let enabled = localStorage.getItem('todolist_shortcut_enabled');
         if (!enabled) {
@@ -615,9 +535,7 @@ class SettingsUIManager {
 
     // 切换快捷操作开关
     async toggleShortcut() {
-        if (!this.shortcutToggle) {
-            return;
-        }
+        if (!this.shortcutToggle) return;
 
         const enabled = this.shortcutToggle.checked;
 
@@ -684,12 +602,10 @@ class SettingsUIManager {
 
         // 添加关闭按钮点击事件
         const closeBtn = document.getElementById('data-sync-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                modal.style.display = 'none';
-                modal.classList.remove('show');
-            });
-        }
+        closeBtn?.addEventListener('click', () => {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+        });
 
         // 点击模态框外部关闭
         modal.addEventListener('click', (e) => {
@@ -811,15 +727,11 @@ class SettingsUIManager {
         // 设置目录配置按钮的禁用状态
         const buttons = [this.applyDirBtn, this.dataDirBtn];
         buttons.forEach(btn => {
-            if (btn) {
-            btn.disabled = disabled;
-            }
+            if (btn) btn.disabled = disabled;
         });
         
         // 更新输入框状态
-        if (this.dataDirBtn) {
-            this.dataDirBtn.disabled = disabled;
-        }
+        if (this.dataDirBtn) this.dataDirBtn.disabled = disabled;
     }
     
     async saveSettings() {
@@ -869,17 +781,13 @@ class SettingsUIManager {
         this.toggleWebDAVPanel();
 
         // 如果禁用，直接保存配置
-        if (!isEnabled) {
-            await this.saveWebDAVConfig();
-        }
+        if (!isEnabled) await this.saveWebDAVConfig();
     }
 
     toggleWebDAVPanel() {
         // 切换WebDAV配置面板显示
         const isEnabled = this.webdavEnableToggle.checked;
-        if (this.webdavConfigPanel) {
-            this.webdavConfigPanel.style.display = isEnabled ? 'block' : 'none';
-        }
+        if (this.webdavConfigPanel) this.webdavConfigPanel.style.display = isEnabled ? 'block' : 'none';
     }
 
     async testWebDAVConnection() {
@@ -1007,9 +915,7 @@ class SettingsUIManager {
         const modifiers = this.getActiveModifiers();
         const mainDisplay = this.getKeyDisplayName(mainKey);
 
-        if (modifiers.length === 0) {
-            return mainDisplay;
-        }
+        if (modifiers.length === 0) return mainDisplay;
         return [...modifiers, mainDisplay].join('+');
     }
 
@@ -1140,18 +1046,9 @@ class SettingsUIManager {
         const closeBtn = document.getElementById('export-modal-close');
         const cancelBtn = document.getElementById('export-cancel-btn');
         const confirmBtn = document.getElementById('export-confirm-btn');
-
-        if (closeBtn) {
-            closeBtn.onclick = () => this.closeExportModal();
-        }
-
-        if (cancelBtn) {
-            cancelBtn.onclick = () => this.closeExportModal();
-        }
-
-        if (confirmBtn) {
-            confirmBtn.onclick = () => this.executeExport();
-        }
+        if (closeBtn) closeBtn.onclick = () => this.closeExportModal();
+        if (cancelBtn) cancelBtn.onclick = () => this.closeExportModal();
+        if (confirmBtn) confirmBtn.onclick = () => this.executeExport();
     }
 
     async executeExport() {
@@ -1197,9 +1094,7 @@ class SettingsUIManager {
         e.preventDefault();
 
         // 如果是单纯的修饰键本身，不作为主键录入
-        if (['Control', 'Alt', 'Shift', 'Meta'].includes(key)) {
-            return;
-        }
+        if (['Control', 'Alt', 'Shift', 'Meta'].includes(key)) return;
 
         // 2. 【Mac 修复核心】：如果是字母或数字键，使用 e.code 提取干净的物理键名
         let mainKey = key;
@@ -1233,17 +1128,13 @@ let settingsManager = null;
 document.addEventListener('DOMContentLoaded', () => {
     // 延迟初始化，确保所有脚本都加载完成
     setTimeout(() => {
-        if (!settingsManager) {
-            settingsManager = new SettingsUIManager();
-        }
+        if (!settingsManager) settingsManager = new SettingsUIManager();
     }, 500);
 });
 
 // window加载后再次尝试
 window.addEventListener('load', () => {
-    if (!settingsManager) {
-        settingsManager = new SettingsUIManager();
-    }
+    if (!settingsManager) settingsManager = new SettingsUIManager();
 });
 
 // 导出到全局

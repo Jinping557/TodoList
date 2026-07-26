@@ -10,10 +10,8 @@ class App {
     async init() {
         try {
             // 检查环境
-            if (!this.checkEnvironment()) {
-                return;
-            }
-            
+            if (!this.checkEnvironment()) return;
+
             // 初始化主题
             await BusinessUtils.ThemeManager.init();
             
@@ -25,10 +23,8 @@ class App {
             
             // 设置初始焦点
             const searchInput = document.getElementById('search-input');
-            if (searchInput) {
-                setTimeout(() => searchInput.focus(), 100);
-            }
-            
+            if (searchInput) setTimeout(() => searchInput.focus(), 100);
+
             this.isInitialized = true;
             logger.info('TodoList App initialized successfully');
         } catch (error) {
@@ -40,9 +36,7 @@ class App {
             
             // 隐藏骨架屏
             const skeletonScreen = document.getElementById('skeleton-screen');
-            if (skeletonScreen) {
-                skeletonScreen.style.display = 'none';
-            }
+            if (skeletonScreen) skeletonScreen.style.display = 'none';
         }
     }
     
@@ -70,29 +64,21 @@ class App {
     bindGlobalEvents() {
         // 设置中心按钮
         const settingsBtn = document.getElementById('settings-btn');
-        if (settingsBtn) {
-            settingsBtn.addEventListener('click', () => {
-                if (window.settingsManager) {
-                    window.settingsManager.openModal();
-                }
-            });
-        }
+        settingsBtn?.addEventListener('click', () => {
+            window.settingsManager?.openModal();
+        });
 
         // 移动端菜单按钮
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', () => {
-                this.toggleMobileSidebar();
-            });
-        }
-        
+        mobileMenuBtn?.addEventListener('click', () => {
+            this.toggleMobileSidebar();
+        });
+
         // 遮罩层点击关闭侧边栏
         const sidebarOverlay = document.getElementById('sidebar-overlay');
-        if (sidebarOverlay) {
-            sidebarOverlay.addEventListener('click', () => {
-                this.closeMobileSidebar();
-            });
-        }
+        sidebarOverlay?.addEventListener('click', () => {
+            this.closeMobileSidebar();
+        });
 
         // 窗口大小变化
         window.addEventListener('resize', Utils.debounce(() => {
@@ -106,36 +92,28 @@ class App {
         
         // 联系作者按钮事件
         const contactAuthorBtn = document.getElementById('contact-author-btn');
-        if (contactAuthorBtn) {
-            contactAuthorBtn.addEventListener('click', () => {
-                this.showContactAuthorModal();
-            });
-        }
-        
+        contactAuthorBtn?.addEventListener('click', () => {
+            this.showContactAuthorModal();
+        });
+
         // 小屏幕更多菜单按钮事件
         const moreMenuBtn = document.getElementById('more-menu-btn');
         const moreMenuModal = document.getElementById('more-menu-modal');
         const moreMenuClose = document.getElementById('more-menu-close');
         
-        if (moreMenuBtn && moreMenuModal) {
-            moreMenuBtn.addEventListener('click', () => {
-                this.showMoreMenu();
-            });
-            
-            // 点击遮罩层关闭
-            moreMenuModal.addEventListener('click', (e) => {
-                if (e.target === moreMenuModal) {
-                    this.hideMoreMenu();
-                }
-            });
-        }
-        
-        if (moreMenuClose) {
-            moreMenuClose.addEventListener('click', () => {
-                this.hideMoreMenu();
-            });
-        }
-        
+        moreMenuBtn?.addEventListener('click', () => {
+            this.showMoreMenu();
+        });
+
+        // 点击遮罩层关闭
+        moreMenuModal?.addEventListener('click', (e) => {
+            if (e.target === moreMenuModal) this.hideMoreMenu();
+        });
+
+        moreMenuClose?.addEventListener('click', () => {
+            this.hideMoreMenu();
+        });
+
         // 更多菜单项点击事件
         const moreMenuLinks = document.querySelectorAll('.more-menu-link');
         moreMenuLinks.forEach(link => {
@@ -150,18 +128,14 @@ class App {
         // 二维码弹窗关闭事件
         const qrCodeCloseBtn = document.getElementById('qr-code-close');
         const qrCodeModal = document.getElementById('qr-code-modal');
-        if (qrCodeCloseBtn && qrCodeModal) {
-            qrCodeCloseBtn.addEventListener('click', () => {
-                this.hideContactAuthorModal();
-            });
-            
-            // 点击遮罩层关闭
-            qrCodeModal.addEventListener('click', (e) => {
-                if (e.target === qrCodeModal) {
-                    this.hideContactAuthorModal();
-                }
-            });
-        }
+        qrCodeCloseBtn?.addEventListener('click', () => {
+            this.hideContactAuthorModal();
+        });
+
+        // 点击遮罩层关闭
+        qrCodeModal?.addEventListener('click', (e) => {
+            if (e.target === qrCodeModal) this.hideContactAuthorModal();
+        });
 
         // 站外链接点击跳转事件
         const externalLinks = document.querySelectorAll('.external-link');
@@ -203,10 +177,7 @@ class App {
     
     // 处理页面可见性变化
     handleVisibilityChange() {
-        if (!document.hidden && this.isInitialized) {
-            // 页面显示时刷新数据
-            this.refreshData();
-        }
+        if (!document.hidden && this.isInitialized) this.refreshData(); // 页面显示时刷新数据
     }
     
     // 初始化模块
@@ -295,10 +266,8 @@ class App {
             }
             
             // 重置分类选择
-            if (window.categoryManager) {
-                window.categoryManager.filterByCategory('all');
-            }
-            
+            window.categoryManager?.filterByCategory('all');
+
             // 刷新数据
             this.refreshData();
             

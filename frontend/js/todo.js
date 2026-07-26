@@ -165,121 +165,88 @@ class TodoManager {
             searchInput.addEventListener('change', () => this.updateSearchClearButton());
         }
         
-        if (searchBtn) {
-            searchBtn.addEventListener('click', async () => {
-                this.searchQuery = searchInput.value.trim();
-                this.currentPage = 1;
-                this.customDateFilter = null; // 清除自定义日期筛选
-                this.resetInfiniteScroll(); // 重置无限下拉状态
-                await this.loadTasks();
-            });
-        }
-        
+        searchBtn?.addEventListener('click', async () => {
+            this.searchQuery = searchInput.value.trim();
+            this.currentPage = 1;
+            this.customDateFilter = null; // 清除自定义日期筛选
+            this.resetInfiniteScroll(); // 重置无限下拉状态
+            await this.loadTasks();
+        });
+
         // 清空搜索按钮
-        if (searchClearBtn) {
-            searchClearBtn.addEventListener('click', () => this.clearSearch());
-        }
-        
+        searchClearBtn?.addEventListener('click', () => this.clearSearch());
+
         // 筛选器
         const priorityFilter = document.getElementById('priority-filter');
         const statusFilter = document.getElementById('status-filter');
         const dueDateFilter = document.getElementById('due-date-filter');
         
-        if (priorityFilter) {
-            priorityFilter.addEventListener('change', async (e) => {
-                this.priorityFilter = e.target.value;
-                this.currentPage = 1;
-                this.customDateFilter = null; // 清除自定义日期筛选
-                this.resetInfiniteScroll(); // 重置无限下拉状态
-                await this.loadTasks();
-            });
-        }
-        
-        if (statusFilter) {
-            statusFilter.addEventListener('change', async (e) => {
-                this.statusFilter = e.target.value;
-                this.currentPage = 1;
-                this.customDateFilter = null; // 清除自定义日期筛选
-                this.resetInfiniteScroll(); // 重置无限下拉状态
-                await this.loadTasks();
-            });
-        }
-        
-        if (dueDateFilter) {
-            dueDateFilter.addEventListener('change', async (e) => {
-                this.dueDateFilter = e.target.value;
-                this.currentPage = 1;
-                this.customDateFilter = null; // 清除自定义日期筛选
-                this.resetInfiniteScroll(); // 重置无限下拉状态
-                await this.loadTasks();
-            });
-        }
-        
+        priorityFilter?.addEventListener('change', async (e) => {
+            this.priorityFilter = e.target.value;
+            this.currentPage = 1;
+            this.customDateFilter = null; // 清除自定义日期筛选
+            this.resetInfiniteScroll(); // 重置无限下拉状态
+            await this.loadTasks();
+        });
+
+        statusFilter?.addEventListener('change', async (e) => {
+            this.statusFilter = e.target.value;
+            this.currentPage = 1;
+            this.customDateFilter = null; // 清除自定义日期筛选
+            this.resetInfiniteScroll(); // 重置无限下拉状态
+            await this.loadTasks();
+        });
+
+        dueDateFilter?.addEventListener('change', async (e) => {
+            this.dueDateFilter = e.target.value;
+            this.currentPage = 1;
+            this.customDateFilter = null; // 清除自定义日期筛选
+            this.resetInfiniteScroll(); // 重置无限下拉状态
+            await this.loadTasks();
+        });
+
         // 添加任务按钮(桌面端)
         const addTaskBtn = document.getElementById('add-task-btn');
-        if (addTaskBtn) {
-            addTaskBtn.addEventListener('click', () => this.showAddTaskModal());
-        }
+        addTaskBtn?.addEventListener('click', () => this.showAddTaskModal());
 
         // 添加任务悬浮按钮(移动端)
         const addTaskFab = document.getElementById('add-task-fab');
-        if (addTaskFab) {
-            addTaskFab.addEventListener('click', () => this.showAddTaskModal());
-        }
-        
+        addTaskFab?.addEventListener('click', () => this.showAddTaskModal());
+
         // 任务表单
         const taskForm = document.getElementById('task-form');
-        if (taskForm) {
-            taskForm.addEventListener('submit', (e) => this.handleTaskSubmit(e));
-        }
-        
+        taskForm?.addEventListener('submit', (e) => this.handleTaskSubmit(e));
+
         // 模态框关闭按钮
         const modalClose = document.getElementById('modal-close');
         const cancelBtn = document.getElementById('cancel-btn');
-        
-        if (modalClose) {
-            modalClose.addEventListener('click', () => Utils.ModalManager.hide('task-modal'));
-        }
-        
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => Utils.ModalManager.hide('task-modal'));
-        }
-        
+        modalClose?.addEventListener('click', () => Utils.ModalManager.hide('task-modal'));
+        cancelBtn?.addEventListener('click', () => Utils.ModalManager.hide('task-modal'));
+
         // 更多选项展开/收起按钮
         const moreOptionsToggle = document.getElementById('more-options-toggle');
-        if (moreOptionsToggle) {
-            moreOptionsToggle.addEventListener('click', () => this.toggleMoreOptions());
-        }
-        
+        moreOptionsToggle?.addEventListener('click', () => this.toggleMoreOptions());
+
         // 周期性任务复选框
         const isRecurringCheckbox = document.getElementById('is-recurring');
-        if (isRecurringCheckbox) {
-            isRecurringCheckbox.addEventListener('change', (e) => this.toggleRecurringOptions());
-        }
-        
+        isRecurringCheckbox?.addEventListener('change', (e) => this.toggleRecurringOptions());
+
         // 日期时间清空按钮
         const clearDateBtn = document.querySelector('.clear-date');
         const clearTimeBtn = document.querySelector('.clear-time');
-        
-        if (clearDateBtn) {
-            clearDateBtn.addEventListener('click', () => {
-                this.clearDateInput();
-                this.addInputValueListeners();
-            });
-        }
-        
-        if (clearTimeBtn) {
-            clearTimeBtn.addEventListener('click', () => {
-                this.clearTimeInput();
-                this.addInputValueListeners();
-            });
-        }
+        clearDateBtn?.addEventListener('click', () => {
+            this.clearDateInput();
+            this.addInputValueListeners();
+        });
+
+        clearTimeBtn?.addEventListener('click', () => {
+            this.clearTimeInput();
+            this.addInputValueListeners();
+        });
 
         // 展示更多/更少标签
         const showMoreTags = document.getElementById('show-tags');
-        if (showMoreTags) {
-            showMoreTags.addEventListener('click', () => this.toggleMoreTags());
-        }
+        showMoreTags?.addEventListener('click', () => this.toggleMoreTags());
     }
     
     // 展开/收起更多选项
@@ -356,9 +323,7 @@ class TodoManager {
     // 移除编辑模式提示
     removeRecurringEditNotice() {
         const notice = document.querySelector('.edit-notice');
-        if (notice) {
-            notice.remove();
-        }
+        if (notice) notice.remove();
     }
     
     // 展开/收起周期性任务选项
@@ -371,16 +336,11 @@ class TodoManager {
         if (isRecurringCheckbox.checked) {
             recurringOptions.style.display = 'block';
             // 勾选周期性任务时，设置循环次数为必填
-            if (recurrenceCount) {
-                recurrenceCount.required = true;
-
-            }
+            if (recurrenceCount) recurrenceCount.required = true;
         } else {
             recurringOptions.style.display = 'none';
             // 取消勾选时，移除必填限制
-            if (recurrenceCount) {
-                recurrenceCount.required = false;
-            }
+            if (recurrenceCount) recurrenceCount.required = false;
         }
         recurrenceCount.placeholder = window.languageManager.getText('recurrenceCountRequired', '循环次数不能为空');
     }
@@ -394,9 +354,7 @@ class TodoManager {
             datePicker.value = '';
             
             // 更新清空按钮状态
-            if (clearBtn) {
-                clearBtn.classList.remove('visible');
-            }
+            if (clearBtn) clearBtn.classList.remove('visible');
         }
     }
     
@@ -409,9 +367,7 @@ class TodoManager {
             timeInput.value = '';
             
             // 更新清空按钮状态
-            if (clearBtn) {
-                clearBtn.classList.remove('visible');
-            }
+            if (clearBtn) clearBtn.classList.remove('visible');
         }
     }
     
@@ -436,9 +392,7 @@ class TodoManager {
                 errorContainer = document.createElement('div');
                 errorContainer.className = 'datetime-error';
                 const datetimeGroup = document.querySelector('.datetime-group');
-                if (datetimeGroup) {
-                    datetimeGroup.appendChild(errorContainer);
-                }
+                if (datetimeGroup) datetimeGroup.appendChild(errorContainer);
             }
             
             // 显示或隐藏错误消息
@@ -554,14 +508,10 @@ class TodoManager {
                 this.updateCategoryCounts();
 
                 // 更新日历视图数据
-                if (window.calendarManager) {
-                    window.calendarManager.updateTasks(this.tasks);
-                }
+                if (window.calendarManager) window.calendarManager.updateTasks(this.tasks);
 
                 // 同步分类筛选状态
-                if (window.categoryManager) {
-                    window.categoryManager.setActiveCategory(this.currentFilter);
-                }
+                if (window.categoryManager) window.categoryManager.setActiveCategory(this.currentFilter);
             },
             onError: (error) => Utils.showToast(window.languageManager.getText('loadingTaskFailed', '加载任务失败'), 'error'),
             onFinally: () => Utils.setLoading(false)
@@ -581,17 +531,13 @@ class TodoManager {
         const filteredTasks = this.tasks;
 
         // 更新日历视图数据
-        if (window.calendarManager) {
-            window.calendarManager.updateTasks(this.tasks);
-        }
+        if (window.calendarManager) window.calendarManager.updateTasks(this.tasks);
 
         if (filteredTasks.length === 0) {
             tasksList.style.setProperty('display', 'none', 'important');
             emptyState.style.display = 'block';
             // 隐藏分页
-            if (pagination) {
-                pagination.style.display = 'none';
-            }
+            if (pagination) pagination.style.display = 'none';
             return;
         }
 
@@ -778,9 +724,7 @@ class TodoManager {
                 item.removeEventListener('touchend', item._dragEndHandler);
                 item.removeEventListener('touchcancel', item._dragEndHandler);
             }
-            if (item._clickHandler) {
-                item.removeEventListener('click', item._clickHandler);
-            }
+            if (item._clickHandler) item.removeEventListener('click', item._clickHandler);
         });
 
         // 清空实例数组
@@ -811,17 +755,13 @@ class TodoManager {
 
             // 获取客户端X坐标的统一函数
             const getClientX = (e) => {
-                if (e.type.startsWith('touch')) {
-                    return e.touches[0] ? e.touches[0].clientX : 0;
-                }
+                if (e.type.startsWith('touch')) return e.touches[0] ? e.touches[0].clientX : 0;
                 return e.clientX;
             };
 
             // 阻止默认行为的统一函数
             const preventDefault = (e) => {
-                if (e.cancelable) {
-                    e.preventDefault();
-                }
+                if (e.cancelable) e.preventDefault();
             };
 
             // 创建事件处理函数
@@ -838,9 +778,7 @@ class TodoManager {
 
                     // 从实例数组中移除
                     const index = this.instances.indexOf(content);
-                    if (index > -1) {
-                        this.instances.splice(index, 1);
-                    }
+                    if (index > -1) this.instances.splice(index, 1);
 
                     preventDefault(e);
                     e.stopPropagation();
@@ -916,9 +854,7 @@ class TodoManager {
 
                     // 从实例数组中移除
                     const index = this.instances.indexOf(content);
-                    if (index > -1) {
-                        this.instances.splice(index, 1);
-                    }
+                    if (index > -1) this.instances.splice(index, 1);
                 }
 
                 // 重置拖拽状态
@@ -931,9 +867,7 @@ class TodoManager {
             // 点击处理函数
             const clickHandler = (e) => {
                 // 如果点击的是操作按钮区域或复选框，不处理
-                if (e.target.closest('.task-actions') || e.target.closest('.task-checkbox')) {
-                    return;
-                }
+                if (e.target.closest('.task-actions') || e.target.closest('.task-checkbox')) return;
 
                 // 如果当前是打开状态，阻止点击事件
                 if (content._isOpen) {
@@ -1180,9 +1114,7 @@ class TodoManager {
             
             // 如果没有内容，加载初始数据
             const results = dropdown.querySelector('.combobox-results');
-            if (results.children.length === 0 && !this.parentTaskState.isLoading) {
-                await this.loadParentTasks(false);
-            }
+            if (results.children.length === 0 && !this.parentTaskState.isLoading) await this.loadParentTasks(false);
         });
         
         // 输入搜索
@@ -1208,9 +1140,7 @@ class TodoManager {
         
         // 点击其他地方关闭
         document.addEventListener('click', (e) => {
-            if (!combobox.contains(e.target)) {
-                this.closeParentTaskDropdown();
-            }
+            if (!combobox.contains(e.target)) this.closeParentTaskDropdown();
         });
         
         // 加载更多
@@ -1257,9 +1187,7 @@ class TodoManager {
                     tasks = tasks.filter(t => t.id !== this.parentTaskState.editingTaskId);
                 }
 
-                if (isNewSearch) {
-                    results.innerHTML = '';
-                }
+                if (isNewSearch) results.innerHTML = '';
 
                 // 渲染任务列表
                 if (tasks.length > 0) {
@@ -1332,9 +1260,7 @@ class TodoManager {
         this.parentTaskState.currentPage = 1;
         this.parentTaskState.hasMore = false;
         
-        if (results) {
-            results.innerHTML = '';
-        }
+        if (results) results.innerHTML = '';
     }
     
     // 初始化父任务选择器（编辑模式）
@@ -1376,9 +1302,7 @@ class TodoManager {
                         const countEl = document.querySelector(`.subtask-count[data-task-id="${taskId}"]`);
                         if (countEl) {
                             const countSpan = countEl.querySelector('.count');
-                            if (countSpan) {
-                                countSpan.textContent = response.children.length;
-                            }
+                            if (countSpan) countSpan.textContent = response.children.length;
                             countEl.style.display = 'inline';
                         }
                     }
@@ -1699,10 +1623,8 @@ class TodoManager {
         }
         
         // 隐藏周期性选项区域
-        if (recurringOptions) {
-            recurringOptions.style.display = 'none';
-        }
-        
+        if (recurringOptions) recurringOptions.style.display = 'none';
+
         // 重置相关字段
         if (recurrenceType) {
             recurrenceType.value = '';
@@ -1732,19 +1654,12 @@ class TodoManager {
         }
         
         // 启用其他字段
-        if (recurrenceType) {
-            recurrenceType.disabled = false;
-        }
-        
-        if (recurrenceCount) {
-            recurrenceCount.disabled = false;
-        }
-        
+        if (recurrenceType) recurrenceType.disabled = false;
+        if (recurrenceCount) recurrenceCount.disabled = false;
+
         // 确保周期性选项区域是隐藏的（默认状态）
         const recurringOptions = document.getElementById('recurring-options');
-        if (recurringOptions) {
-            recurringOptions.style.display = 'none';
-        }
+        if (recurringOptions) recurringOptions.style.display = 'none';
     }
     
     // 加载分类选项
@@ -1787,9 +1702,7 @@ class TodoManager {
         }
         
         let isoDateStr = null;
-        if (dateStr && timeStr) {
-            isoDateStr = `${dateStr}T${timeStr}`;
-        }
+        if (dateStr && timeStr) isoDateStr = `${dateStr}T${timeStr}`;
 
         const parentTaskId = document.getElementById('task-parent').value || null;
 
@@ -1885,9 +1798,7 @@ class TodoManager {
                 Utils.ModalManager.hide('task-modal');
 
                 // 移动端调整：如果当前页不是第一页，重置到第一页
-                if (this.isMobileDevice()) {
-                    this.resetInfiniteScroll(); // 重置无限下拉状态
-                }
+                if (this.isMobileDevice()) this.resetInfiniteScroll(); // 重置无限下拉状态
                 this.loadTasks();
                 window.timelineManager.renderTimeline();
 
@@ -2147,18 +2058,14 @@ class TodoManager {
 
     // 跳转到指定页
     async goToPage(page) {
-        if (page < 1 || page > this.totalPages || page === this.currentPage) {
-            return;
-        }
-        
+        if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+
         this.currentPage = page;
         await this.loadTasks();
         
         // 滚动到任务列表顶部
         const tasksContainer = document.getElementById('tasks-view');
-        if (tasksContainer) {
-            tasksContainer.scrollTop = 0;
-        }
+        if (tasksContainer) tasksContainer.scrollTop = 0;
     }
 
     // 更改每页显示数量
@@ -2283,27 +2190,11 @@ class TodoManager {
         const lastBtn = document.getElementById('pagination-last');
         const pageSizeSelect = document.getElementById('page-size-select');
         
-        if (firstBtn) {
-            firstBtn.addEventListener('click', () => this.goToPage(1));
-        }
-        
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => this.goToPage(this.currentPage - 1));
-        }
-        
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => this.goToPage(this.currentPage + 1));
-        }
-        
-        if (lastBtn) {
-            lastBtn.addEventListener('click', () => this.goToPage(this.totalPages));
-        }
-        
-        if (pageSizeSelect) {
-            pageSizeSelect.addEventListener('change', (e) => {
-                this.changePageSize(e.target.value);
-            });
-        }
+        firstBtn?.addEventListener('click', () => this.goToPage(1));
+        prevBtn?.addEventListener('click', () => this.goToPage(this.currentPage - 1));
+        nextBtn?.addEventListener('click', () => this.goToPage(this.currentPage + 1));
+        lastBtn?.addEventListener('click', () => this.goToPage(this.totalPages));
+        pageSizeSelect?.addEventListener('change', (e) => this.changePageSize(e.target.value));
     }
 
     // 判断是否为移动端或小屏幕
@@ -2317,26 +2208,20 @@ class TodoManager {
         this.removeInfiniteScroll();
 
         // 只在移动端启用无限下拉
-        if (!this.isMobileDevice()) {
-            return;
-        }
+        if (!this.isMobileDevice()) return;
 
         const tasksContainer = document.getElementById('tasks-view');
         if (!tasksContainer) return;
 
         // 添加滚动监听器
         this.scrollListener = async () => {
-            if (this.isLoadingMore || !this.hasMoreTasks) {
-                return;
-            }
+            if (this.isLoadingMore || !this.hasMoreTasks) return;
 
             const scrollPosition = tasksContainer.scrollTop + tasksContainer.clientHeight;
             const scrollHeight = tasksContainer.scrollHeight;
 
             // 当滚动位置距离底部小于阈值时，加载更多
-            if (scrollPosition >= scrollHeight - this.scrollThreshold) {
-                await this.loadMoreTasks();
-            }
+            if (scrollPosition >= scrollHeight - this.scrollThreshold) await this.loadMoreTasks();
         };
 
         tasksContainer.addEventListener('scroll', this.scrollListener, { passive: true });
@@ -2348,9 +2233,7 @@ class TodoManager {
 
     // 检查是否需要自动加载更多任务
     checkAndLoadMoreIfNeeded() {
-        if (!this.isMobileDevice() || this.isLoadingMore || !this.hasMoreTasks) {
-            return;
-        }
+        if (!this.isMobileDevice() || this.isLoadingMore || !this.hasMoreTasks) return;
 
         const tasksContainer = document.getElementById('tasks-view');
         if (!tasksContainer) return;
@@ -2375,18 +2258,14 @@ class TodoManager {
     removeInfiniteScroll() {
         if (this.scrollListener) {
             const tasksContainer = document.getElementById('tasks-view');
-            if (tasksContainer) {
-                tasksContainer.removeEventListener('scroll', this.scrollListener);
-            }
+            if (tasksContainer) tasksContainer.removeEventListener('scroll', this.scrollListener);
             this.scrollListener = null;
         }
     }
 
     // 加载更多任务（无限下拉）
     async loadMoreTasks() {
-        if (this.isLoadingMore || !this.hasMoreTasks) {
-            return;
-        }
+        if (this.isLoadingMore || !this.hasMoreTasks) return;
 
         // 如果已经是最后一页，不再加载
         if (this.currentPage >= this.totalPages) {
@@ -2422,9 +2301,7 @@ class TodoManager {
                     // 检查是否还有更多任务
                     this.hasMoreTasks = this.currentPage < this.totalPages;
                     // 如果是最后一页，显示到底提示
-                    if (!this.hasMoreTasks) {
-                        this.showNoMoreTasks();
-                    }
+                    if (!this.hasMoreTasks) this.showNoMoreTasks();
                 } else {
                     this.hasMoreTasks = false;
                     this.showNoMoreTasks();
@@ -2474,9 +2351,7 @@ class TodoManager {
     // 隐藏"加载更多"指示器
     hideLoadingMore() {
         const loadingMoreEl = document.getElementById('loading-more');
-        if (loadingMoreEl) {
-            loadingMoreEl.remove();
-        }
+        if (loadingMoreEl) loadingMoreEl.remove();
     }
 
     // 显示"已经到底了"提示
@@ -2499,9 +2374,7 @@ class TodoManager {
     // 隐藏"已经到底了"提示
     hideNoMoreTasks() {
         const noMoreEl = document.getElementById('no-more-tasks');
-        if (noMoreEl) {
-            noMoreEl.remove();
-        }
+        if (noMoreEl) noMoreEl.remove();
     }
 
     // 重置无限下拉状态
@@ -2525,17 +2398,13 @@ class TodoManager {
             logger.info('Switching to large screen mode');
 
             // 设置列表为表格布局
-            if (tasksList) {
-                tasksList.style.display = 'table';
-            }
+            if (tasksList) tasksList.style.display = 'table';
 
             // 移除无限下拉
             this.removeInfiniteScroll();
 
             // 显示分页
-            if (pagination) {
-                pagination.style.display = 'flex';
-            }
+            if (pagination) pagination.style.display = 'flex';
 
             // 如果当前页不是第一页，重置到第一页
             if (this.currentPage > 1) {
@@ -2550,9 +2419,7 @@ class TodoManager {
             logger.info('Switching to small screen mode');
 
             // 设置列表为flex布局
-            if (tasksList) {
-                tasksList.style.display = 'flex';
-            }
+            if (tasksList) tasksList.style.display = 'flex';
 
             if (this.currentPage > 1) {
                 this.currentPage = 1;
@@ -2562,9 +2429,7 @@ class TodoManager {
             }
 
             // 隐藏分页
-            if (pagination) {
-                pagination.style.display = 'none';
-            }
+            if (pagination) pagination.style.display = 'none';
 
             // 初始化无限下拉
             this.initInfiniteScroll();
@@ -2660,9 +2525,7 @@ class TodoManager {
 
         // 新增标签按钮点击事件
         const addBtn = document.getElementById('add-tag-btn');
-        if (addBtn) {
-            addBtn.onclick = () => this.showAddTagInput();
-        }
+        if (addBtn) addBtn.onclick = () => this.showAddTagInput();
     }
 
     // 切换标签选择状态
@@ -2688,9 +2551,7 @@ class TodoManager {
                         Utils.showToast(window.languageManager.getText('taskTagDeleted', '标签删除成功'), 'success');
                         // 从已选标签中移除
                         const index = this.selectedTags.indexOf(tagId);
-                        if (index !== -1) {
-                            this.selectedTags.splice(index, 1);
-                        }
+                        if (index !== -1) this.selectedTags.splice(index, 1);
                         // 重新加载标签
                         this.loadTagsSelector();
                         this.loadTagsModule();
@@ -2704,8 +2565,8 @@ class TodoManager {
     }
 
     generateRandomId() {
-      // 时间戳确保唯一性，随机数增加安全性
-      return `new-tag-input-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        // 时间戳确保唯一性，随机数增加安全性
+        return `new-tag-input-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
 
     // 显示新增标签输入框
@@ -2745,9 +2606,7 @@ class TodoManager {
             }
         });
 
-        if (cancelBtn) {
-            cancelBtn.onclick = () => this.renderTagsSelector();
-        }
+        if (cancelBtn) cancelBtn.onclick = () => this.renderTagsSelector();
     }
 
     // 添加新标签
@@ -2851,9 +2710,7 @@ class TodoManager {
                 </span>
             `;
 
-            if (isSelected) {
-                selectedTags.push('#'+tag.name);
-            }
+            if (isSelected) selectedTags.push('#'+tag.name);
         });
 
         tagsList.innerHTML = html;

@@ -20,18 +20,9 @@ class CalendarManager {
         const nextMonthBtn = document.getElementById('next-month');
         this.currentMonth = document.getElementById('calendar-background-month');
         this.currentMonth.textContent = this.currentDate.getMonth() + 1;
-
-        if (viewToggleSelect) {
-            viewToggleSelect.addEventListener('change', (e) => this.toggleView(e));
-        }
-
-        if (prevMonthBtn) {
-            prevMonthBtn.addEventListener('click', () => this.previousMonth());
-        }
-
-        if (nextMonthBtn) {
-            nextMonthBtn.addEventListener('click', () => this.nextMonth());
-        }
+        viewToggleSelect?.addEventListener('change', (e) => this.toggleView(e));
+        prevMonthBtn?.addEventListener('click', () => this.previousMonth());
+        nextMonthBtn?.addEventListener('click', () => this.nextMonth());
     }
 
     // 切换视图

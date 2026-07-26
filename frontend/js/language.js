@@ -300,53 +300,45 @@ class LanguageManager {
     updateFilterOptions(lang) {
         // 视图
         const viewSelect = document.getElementById('view-toggle-select');
-        if (viewSelect) {
-            const options = viewSelect.querySelectorAll('option');
-            if (options.length >= 3) {
-                options[0].textContent = `📋 ${lang.listView}`;
-                options[1].textContent = `📅 ${lang.calendarView}`;
-                options[2].textContent = `⌛ ${lang.timelineView}`;
-            }
+        const viewOptions = viewSelect?.querySelectorAll('option');
+        if (viewOptions.length >= 3) {
+            viewOptions[0].textContent = `📋 ${lang.listView}`;
+            viewOptions[1].textContent = `📅 ${lang.calendarView}`;
+            viewOptions[2].textContent = `⌛ ${lang.timelineView}`;
         }
 
         // 优先级筛选器
         const priorityFilter = document.getElementById('priority-filter');
-        if (priorityFilter) {
-            const options = priorityFilter.querySelectorAll('option');
-            if (options.length >= 5) {
-                options[0].textContent = lang.filterPriority;
-                options[1].textContent = `🔴 ${lang.priorityHigh}`;
-                options[2].textContent = `🟡 ${lang.priorityMedium}`;
-                options[3].textContent = `🟢 ${lang.priorityLow}`;
-                options[4].textContent = `⚪ ${lang.priorityNone}`;
-            }
+        const priorityOptions = priorityFilter?.querySelectorAll('option');
+        if (priorityOptions.length >= 5) {
+            priorityOptions[0].textContent = lang.filterPriority;
+            priorityOptions[1].textContent = `🔴 ${lang.priorityHigh}`;
+            priorityOptions[2].textContent = `🟡 ${lang.priorityMedium}`;
+            priorityOptions[3].textContent = `🟢 ${lang.priorityLow}`;
+            priorityOptions[4].textContent = `⚪ ${lang.priorityNone}`;
         }
-        
+
         // 状态筛选器
         const statusFilter = document.getElementById('status-filter');
-        if (statusFilter) {
-            const options = statusFilter.querySelectorAll('option');
-            if (options.length >= 5) {
-                options[0].textContent = lang.filterStatus;
-                options[1].textContent = lang.statusCompleted;
-                options[2].textContent = lang.statusUncompleted;
-                options[3].textContent = lang.statusPending;
-                options[4].textContent = lang.statusOverdue;
-            }
+        const statusOptions = statusFilter?.querySelectorAll('option');
+        if (statusOptions.length >= 5) {
+            statusOptions[0].textContent = lang.filterStatus;
+            statusOptions[1].textContent = lang.statusCompleted;
+            statusOptions[2].textContent = lang.statusUncompleted;
+            statusOptions[3].textContent = lang.statusPending;
+            statusOptions[4].textContent = lang.statusOverdue;
         }
-        
+
         // 截止日期筛选器
         const dueDateFilter = document.getElementById('due-date-filter');
-        if (dueDateFilter) {
-            const options = dueDateFilter.querySelectorAll('option');
-            if (options.length >= 6) {
-                options[0].textContent = lang.dueDateAll;
-                options[1].textContent = lang.dueDateToday;
-                options[2].textContent = lang.dueDateTomorrow;
-                options[3].textContent = lang.dueDateWeek;
-                options[4].textContent = lang.dueDateMonth;
-                options[5].textContent = lang.dueDateNoDueDate;
-            }
+        const dueDateOptions = dueDateFilter?.querySelectorAll('option');
+        if (dueDateOptions.length >= 6) {
+            dueDateOptions[0].textContent = lang.dueDateAll;
+            dueDateOptions[1].textContent = lang.dueDateToday;
+            dueDateOptions[2].textContent = lang.dueDateTomorrow;
+            dueDateOptions[3].textContent = lang.dueDateWeek;
+            dueDateOptions[4].textContent = lang.dueDateMonth;
+            dueDateOptions[5].textContent = lang.dueDateNoDueDate;
         }
     }
     
@@ -376,13 +368,11 @@ class LanguageManager {
         
         // 每页显示数量选择器
         const pageSizeSelect = document.getElementById('page-size-select');
-        if (pageSizeSelect) {
-            const options = pageSizeSelect.querySelectorAll('option');
-            options.forEach(option => {
-                const value = option.value;
-                option.textContent = `${value} ${lang.paginationItems}/${lang.paginationPage}`;
-            });
-        }
+        const options = pageSizeSelect?.querySelectorAll('option');
+        options.forEach(option => {
+            const value = option.value;
+            option.textContent = `${value} ${lang.paginationItems}/${lang.paginationPage}`;
+        });
     }
     
     // 更新模态框文本
@@ -416,16 +406,12 @@ class LanguageManager {
         
         // 标签选择器标签
         const tagsLabel = document.querySelector('.form-group label[for="tags-selector"]');
-        if (tagsLabel) {
-            tagsLabel.innerHTML = `${lang.taskTags} <span style="color: #999; font-size: 12px;">${lang.optional}</span>`;
-        }
+        if (tagsLabel) tagsLabel.innerHTML = `${lang.taskTags} <span style="color: #999; font-size: 12px;">${lang.optional}</span>`;
         
         // 截止日期标签
         const dueDateLabel = document.querySelector('.datetime-group label');
-        if (dueDateLabel) {
-            dueDateLabel.innerHTML = `${lang.taskDueDate} <span style="color: #666; font-size: 12px;">${lang.optional}</span>`;
-        }
-        
+        if (dueDateLabel) dueDateLabel.innerHTML = `${lang.taskDueDate} <span style="color: #666; font-size: 12px;">${lang.optional}</span>`;
+
         // 优先级选项
         const priorityOptions = document.querySelectorAll('#task-priority option');
         if (priorityOptions.length >= 4) {
@@ -437,11 +423,9 @@ class LanguageManager {
         
         // 分类选项
         const categorySelect = document.getElementById('task-category');
-        if (categorySelect) {
-            const firstOption = categorySelect.options[0];
-            if (firstOption) firstOption.text = lang.uncategorized;
-        }
-        
+        const firstOption = categorySelect?.options[0];
+        if (firstOption) firstOption.text = lang.uncategorized;
+
         // 更多选项按钮
         const moreOptionsToggle = document.getElementById('more-options-toggle');
         if (moreOptionsToggle) {
@@ -454,20 +438,14 @@ class LanguageManager {
         
         // 周期性任务选项
         const recurrenceToggle = document.getElementById('recurrence-toggle');
-        if (recurrenceToggle) {
-            recurrenceToggle.textContent = lang.createRecurringTask;
-        }
-        
+        if (recurrenceToggle) recurrenceToggle.textContent = lang.createRecurringTask;
+
         const recurrenceTypeLabel = document.querySelector('label[for="recurrence-type"]');
-        if (recurrenceTypeLabel) {
-            recurrenceTypeLabel.textContent = lang.recurrenceType;
-        }
-        
+        if (recurrenceTypeLabel) recurrenceTypeLabel.textContent = lang.recurrenceType;
+
         const recurrenceCountLabel = document.querySelector('label[for="recurrence-count"]');
-        if (recurrenceCountLabel) {
-            recurrenceCountLabel.textContent = lang.recurrenceCount;
-        }
-        
+        if (recurrenceCountLabel) recurrenceCountLabel.textContent = lang.recurrenceCount;
+
         const recurrenceTypeOptions = document.querySelectorAll('#recurrence-type option');
         if (recurrenceTypeOptions.length >= 5) {
             recurrenceTypeOptions[0].textContent = lang.recurrenceChoose;
@@ -478,10 +456,8 @@ class LanguageManager {
         }
         
         const recurrenceCountInput = document.getElementById('recurrence-count');
-        if (recurrenceCountInput) {
-            recurrenceCountInput.placeholder = lang.recurrenceCountRequired;
-        }
-        
+        if (recurrenceCountInput) recurrenceCountInput.placeholder = lang.recurrenceCountRequired;
+
         // 模态框按钮
         const cancelBtn = document.getElementById('cancel-btn');
         const saveBtn = document.getElementById('save-btn');
@@ -498,10 +474,8 @@ class LanguageManager {
     // 更新分类模态框
     updateCategoryModal(lang) {
         const categoryModalTitle = document.getElementById('category-modal-title');
-        if (categoryModalTitle) {
-            categoryModalTitle.textContent = lang.addCategory;
-        }
-        
+        if (categoryModalTitle) categoryModalTitle.textContent = lang.addCategory;
+
         const categoryLabels = document.querySelectorAll('.category-form label');
         categoryLabels.forEach(label => {
             const forAttr = label.getAttribute('for');
@@ -524,10 +498,8 @@ class LanguageManager {
     // 更新确认对话框
     updateConfirmDialog(lang) {
         const confirmTitle = document.querySelector('#confirm-dialog h2');
-        if (confirmTitle && confirmTitle.textContent === '确认操作') {
-            confirmTitle.textContent = lang.confirm;
-        }
-        
+        if (confirmTitle && confirmTitle.textContent === '确认操作') confirmTitle.textContent = lang.confirm;
+
         const confirmCancelBtn = document.getElementById('confirm-cancel');
         const confirmOkBtn = document.getElementById('confirm-ok');
         if (confirmCancelBtn) confirmCancelBtn.textContent = lang.cancel;
@@ -591,15 +563,11 @@ class LanguageManager {
         if (dataTransferTitle) dataTransferTitle.textContent = lang.settingsDataShare;
         const dataShareSettingItem = document.getElementById('data-share-btn');
         const dataShareLabel = dataShareSettingItem.querySelector('.setting-text');
-        if (dataShareLabel) {
-            dataShareLabel.textContent = lang.settingsDataShare;
-        }
+        if (dataShareLabel) dataShareLabel.textContent = lang.settingsDataShare;
 
         const dataSyncSettingItem = document.getElementById('data-sync-btn');
         const dataSyncLabel = dataSyncSettingItem.querySelector('.setting-text');
-        if (dataSyncLabel) {
-            dataSyncLabel.textContent = lang.settingsDataSync;
-        }
+        if (dataSyncLabel) dataSyncLabel.textContent = lang.settingsDataSync;
         const shareModeText = document.querySelector('#share-mode-btn .mode-text');
         if (shareModeText) shareModeText.textContent = lang.shareMode;
         const receiveModeText = document.querySelector('#receive-mode-btn .mode-text');
@@ -651,9 +619,7 @@ class LanguageManager {
         // 数据存储
         const dataStorageSettingConfig = document.querySelector('.data-storage');
         const dataStorageLabel = dataStorageSettingConfig.querySelector('.data-label');
-        if (dataStorageLabel) {
-            dataStorageLabel.textContent = lang.dataStoragePath;
-        }
+        if (dataStorageLabel) dataStorageLabel.textContent = lang.dataStoragePath;
 
         // 更新应用标签
         const applyLabels = document.querySelectorAll('.setting-config-btn');
@@ -738,10 +704,8 @@ class LanguageManager {
     
     // 获取翻译文本
     getText(key, defaultValue = '') {
-        if (!window.Languages || !window.Languages[this.currentLanguage]) {
-            return defaultValue;
-        }
-        
+        if (!window.Languages || !window.Languages[this.currentLanguage]) return defaultValue;
+
         // 支持嵌套键，如 'statsTimeDimension.all'
         const keys = key.split('.');
         let value = window.Languages[this.currentLanguage];
@@ -759,17 +723,13 @@ class LanguageManager {
     
     // 添加观察者
     addObserver(observer) {
-        if (typeof observer === 'function') {
-            this.observers.push(observer);
-        }
+        if (typeof observer === 'function') this.observers.push(observer);
     }
     
     // 移除观察者
     removeObserver(observer) {
         const index = this.observers.indexOf(observer);
-        if (index > -1) {
-            this.observers.splice(index, 1);
-        }
+        if (index > -1) this.observers.splice(index, 1);
     }
     
     // 通知观察者

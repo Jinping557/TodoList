@@ -2,9 +2,7 @@
 const DateTimeValidator = {
     // 校验截止时间的有效性（不能早于当前时间）
     validateDueDateTime(dateStr, timeStr) {
-        if (!dateStr || !timeStr) {
-            return { valid: true, message: '' }; // 如果不全选，由另一个校验处理
-        }
+        if (!dateStr || !timeStr) return { valid: true, message: '' }; // 如果不全选，由另一个校验处理
 
         const dueDate = new Date(`${dateStr}T${timeStr}`);
         const now = new Date();
@@ -40,9 +38,7 @@ const DateTimeValidator = {
     validateDateTime(dateStr, timeStr) {
         // 先校验完整性
         const completenessResult = this.validateDateTimeCompleteness(dateStr, timeStr);
-        if (!completenessResult.valid) {
-            return completenessResult;
-        }
+        if (!completenessResult.valid) return completenessResult;
 
         // 再校验有效性
         return this.validateDueDateTime(dateStr, timeStr);
@@ -72,13 +68,9 @@ const ThemeManager = {
     updateToggleButton(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         const toggleBtn = document.getElementById('theme-toggle');
-        if (toggleBtn) {
-            toggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
-        }
+        if (toggleBtn) toggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
         const themeDarkToggle = document.getElementById('theme-dark-toggle');
-        if (themeDarkToggle) {
-            themeDarkToggle.checked = theme === 'dark';
-        }
+        if (themeDarkToggle) themeDarkToggle.checked = theme === 'dark';
     }
 };
 
