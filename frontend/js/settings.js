@@ -923,7 +923,7 @@ class SettingsUIManager {
 
         // 验证启用时必需的字段
         if (config.enabled) {
-            if (!config.username || !config.password || !config.remote_path) {
+            if (!config.url || !config.username || !config.password || !config.remote_path) {
                 Utils.showToast(window.languageManager.getText('itemRequired', '请填写必填项！'), 'warning');
                 return;
             }
