@@ -2397,7 +2397,7 @@ class TodoManager {
 
         this.isLoadingMore = true;
         this.showLoadingMore();
-
+        const nextPage = this.currentPage + 1;
         await Utils.apiCall({
             apiMethod: 'get_todos',
             apiArgs: [
