@@ -42,6 +42,11 @@ class TodoManager {
         this.statsDimension = 'all'; // all, year, month, week, day
         // 日期范围缓存
         this.currentDateRange = null;
+        // 统计数据更新防抖
+        this._statsDebounceTimer = null;
+        this._pendingFromZero = false;
+        this._statsTagDebounceTimer = null;
+        this._tagPendingFromZero = false;
         // 设置日期组件
         this.pikaday = new Pikaday({
             field: document.getElementById('task-due-date-picker'),
@@ -106,7 +111,7 @@ class TodoManager {
         this.initInfiniteScroll();
 
         // 初始化标签管理模块
-        await this.loadTagsModule();
+        await this.loadTagsModule(true);
     }
     
     // 触发云端同步上传
@@ -459,7 +464,7 @@ class TodoManager {
     }
     
     // 加载任务
-    async loadTasks() {
+    async loadTasks(fromZero = false) {
         Utils.setLoading(true, '加载任务...');
         const isLoadSubtasks = this.searchQuery && this.searchQuery.startsWith('>') && this.searchQuery.substring(1).trim();
         let apiMethod;
@@ -504,8 +509,8 @@ class TodoManager {
                     this.initInfiniteScroll();
                 }
 
-                this.updateStats();
-                this.updateCategoryCounts();
+                this.updateStats(fromZero);
+                this.updateCategoryCounts(fromZero);
 
                 // 更新日历视图数据
                 if (window.calendarManager) window.calendarManager.updateTasks(this.tasks);
@@ -1035,8 +1040,8 @@ class TodoManager {
                     task.completed = response.task.completed;
                     task.updatedAt = response.task.updatedAt;
                     this.renderTasks();
-                    this.updateStats();
-                    this.updateCategoryCounts();
+                    this.updateStats(true);
+                    this.updateCategoryCounts(true);
 
                     // 不需要调用 renderCategories()，updateCategoryCounts() 已经更新了分类统计
                     Utils.showToast(task.completed ?
@@ -1797,7 +1802,7 @@ class TodoManager {
 
                 // 移动端调整：如果当前页不是第一页，重置到第一页
                 if (this.isMobileDevice()) this.resetInfiniteScroll(); // 重置无限下拉状态
-                this.loadTasks();
+                this.loadTasks(true);
                 window.timelineManager.renderTimeline();
 
                 // loadTasks() 内部已经调用了 updateCategoryCounts()，不需要再调用 renderCategories()
@@ -1805,7 +1810,7 @@ class TodoManager {
 
                 // 触发云端同步上传
                 this.triggerCloudUpload();
-                this.loadTagsModule();
+                this.loadTagsModule(true);
             },
             onError: (error) => Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error'),
             onFinally: () => Utils.setLoading(false)
@@ -1925,7 +1930,7 @@ class TodoManager {
 
                 // 触发云端同步上传
                 this.triggerCloudUpload();
-                this.loadTagsModule();
+                this.loadTagsModule(true);
             },
             onError: (error) => {
                 Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
@@ -1933,13 +1938,13 @@ class TodoManager {
             onFinally: () => {
                 Utils.setLoading(false);
                 // 重新加载任务以确保数据一致性
-                this.loadTasks();
+                this.loadTasks(true);
             }
         });
     }
     
     // 更新分类任务数量：当前保持分类数量更新变化不受搜索条件影响，因而设置大部分入参为null
-    async updateCategoryCounts() {
+    async updateCategoryCounts(fromZero = false) {
         if (window.categoryManager) {
             // 获取当前筛选条件下的所有任务（不分页）
             await Utils.apiCall({
@@ -1957,11 +1962,11 @@ class TodoManager {
                     null   // custom-date
                 ],
                 onSuccess: (response) => {
-                    window.categoryManager.updateCategoryCounts(response.tasks);
+                    window.categoryManager.updateCategoryCounts(response.tasks, fromZero);
                 },
                 onError: (error) => {
                     // 如果获取失败，使用当前页的任务
-                    window.categoryManager.updateCategoryCounts(this.tasks);
+                    window.categoryManager.updateCategoryCounts(this.tasks, fromZero);
                 }
             });
         }
@@ -2077,16 +2082,27 @@ class TodoManager {
     }
     
     // 更新统计信息
-    async updateStats() {
-        this.updateStatsDateRange();
-        await Utils.apiCall({
-            apiMethod: 'get_stats',
-            apiArgs: [this.statsDimension],
-            onSuccess: (response) => {
-                const totalTasksEl = document.getElementById('total-tasks');
-                const completedTasksEl = document.getElementById('completed-tasks');
-                const completionRateEl = document.getElementById('completion-rate');
-                const noDueDateEl = document.getElementById('no-due-date-tasks');
+    async updateStats(fromZero = false) {
+        if (fromZero) this._pendingFromZero = true;
+
+        if (this._statsDebounceTimer) {
+            clearTimeout(this._statsDebounceTimer);
+        }
+
+        this._statsDebounceTimer = setTimeout(() => {
+            const shouldFromZero = this._pendingFromZero;
+            this._pendingFromZero = false;
+            this._statsDebounceTimer = null;
+
+            this.updateStatsDateRange();
+            Utils.apiCall({
+                apiMethod: 'get_stats',
+                apiArgs: [this.statsDimension],
+                onSuccess: (response) => {
+                    const totalTasksEl = document.getElementById('total-tasks');
+                    const completedTasksEl = document.getElementById('completed-tasks');
+                    const completionRateEl = document.getElementById('completion-rate');
+                    const noDueDateEl = document.getElementById('no-due-date-tasks');
 
                 if (!totalTasksEl || !completedTasksEl || !completionRateEl || !noDueDateEl) return;
 
@@ -2095,12 +2111,13 @@ class TodoManager {
                 const rate = response.stats.completion_rate;
                 const noDueDate = response.stats.no_due_date || 0;
 
-                totalTasksEl.textContent = total;
-                completedTasksEl.textContent = completed;
-                completionRateEl.textContent = rate + '%';
-                noDueDateEl.textContent = noDueDate;
-            }
-        });
+                    Utils.animateNumber(totalTasksEl, total, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
+                    Utils.animateNumber(completedTasksEl, completed, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
+                    Utils.animateNumber(completionRateEl, rate, { duration: 600, suffix: '%', decimals: 1, easing: 'easeOutCubic', fromZero: shouldFromZero });
+                    Utils.animateNumber(noDueDateEl, noDueDate, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
+                }
+            });
+        }, 200);
     }
 
     // 更新统计日期范围显示
@@ -2552,7 +2569,7 @@ class TodoManager {
                         if (index !== -1) this.selectedTags.splice(index, 1);
                         // 重新加载标签
                         this.loadTagsSelector();
-                        this.loadTagsModule();
+                        this.loadTagsModule(true);
                     },
                     onError: (error) => {
                         Utils.showToast(window.languageManager.getText('operationFailed', '操作失败'), 'error');
@@ -2641,7 +2658,7 @@ class TodoManager {
     }
 
     // 加载标签管理模块数据
-    async loadTagsModule() {
+    async loadTagsModule(fromZero = false) {
         await Utils.apiCall({
             apiMethod: 'get_all_tags',
             onSuccess: (response) => {
@@ -2663,13 +2680,13 @@ class TodoManager {
                     showLessTags.style.pointerEvents = 'auto';
                     showLessTags.style.cursor = 'pointer';
                 }
-                this.renderTagsModule([]);
+                this.renderTagsModule([], fromZero);
             }
         });
     }
 
     // 渲染标签管理模块
-    renderTagsModule(selectedTagIds) {
+    renderTagsModule(selectedTagIds, fromZero = false) {
         const tagsSection = document.getElementById('tags-section');
         if (this.availableTags.length <= 0) {
             tagsSection.style.display = 'none';
@@ -2704,7 +2721,7 @@ class TodoManager {
                       data-tag-id="${tag.id}"
                       style="background-color: ${tag.color};">
                     #${Utils.escapeHtml(tag.name)}
-                    <span class="tag-count">${count}</span>
+                    <span id="${tag.id}" class="tag-count">${count}</span>
                 </span>
             `;
 
@@ -2722,6 +2739,26 @@ class TodoManager {
             this.loadTasks();
         }
         this.bindTagModuleEvents(tagsList, selectedTagIds);
+
+        if (fromZero) this._tagPendingFromZero = true;
+
+        if (this._statsTagDebounceTimer) {
+            clearTimeout(this._statsTagDebounceTimer);
+        }
+
+        this._statsTagDebounceTimer = setTimeout(async () => {
+            const shouldFromZero = this._tagPendingFromZero;
+            this._tagPendingFromZero = false;
+            this._statsTagDebounceTimer = null;
+
+            this.availableTags.forEach((tag, index) => {
+                const countEl = document.getElementById(tag.id);
+                const count = tag.taskCount || 0;
+                if (countEl) {
+                    Utils.animateNumber(countEl, count, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
+                }
+            });
+        }, 200);
     }
 
     // 标签管理模块绑定事件
@@ -2740,7 +2777,7 @@ class TodoManager {
         });
     }
 
-    toggleMoreTags(){
+    toggleMoreTags(fromZero = false){
         const showMoreTags = document.getElementById('show-more-tags');
         const showLessTags = document.getElementById('show-less-tags');
         if (this.showMoreTags) {
@@ -2752,7 +2789,7 @@ class TodoManager {
             showMoreTags.style.display = 'none';
             showLessTags.style.display = 'block';
         }
-        this.loadTagsModule();
+        this.loadTagsModule(fromZero);
     }
 }
 

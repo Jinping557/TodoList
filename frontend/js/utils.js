@@ -336,6 +336,81 @@ async function apiCall({
     }
 }
 
+const animationStateMap = new Map();
+
+function animateNumber(element, targetValue, options = {}) {
+    if (!element) return;
+
+    const {
+        duration = 600,
+        prefix = '',
+        suffix = '',
+        decimals = 0,
+        easing = 'easeOutCubic',
+        fromZero = false
+    } = options;
+
+    const state = animationStateMap.get(element);
+    if (state && state.rafId) {
+        cancelAnimationFrame(state.rafId);
+    }
+
+    let fromValue;
+    if (fromZero) {
+        fromValue = 0;
+    } else {
+        const currentText = element.textContent || '0';
+        fromValue = parseFloat(currentText.replace(/[^0-9.\-]/g, '')) || 0;
+    }
+    const toValue = targetValue;
+
+    if (fromValue === toValue) {
+        element.textContent = prefix + formatNumber(toValue, decimals) + suffix;
+        return;
+    }
+
+    const startTime = performance.now();
+    
+    const easeFunctions = {
+        easeOutCubic: t => 1 - Math.pow(1 - t, 3),
+        easeOutQuad: t => 1 - (1 - t) * (1 - t),
+        easeOutBack: t => {
+            const c1 = 1.70158;
+            const c3 = c1 + 1;
+            return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+        }
+    };
+
+    const easeFn = easeFunctions[easing] || easeFunctions.easeOutCubic;
+
+    function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeFn(progress);
+
+        const currentValue = fromValue + (toValue - fromValue) * easedProgress;
+        element.textContent = prefix + formatNumber(currentValue, decimals) + suffix;
+
+        if (progress < 1) {
+            const rafId = requestAnimationFrame(animate);
+            animationStateMap.set(element, { rafId });
+        } else {
+            element.textContent = prefix + formatNumber(toValue, decimals) + suffix;
+            animationStateMap.delete(element);
+        }
+    }
+
+    const rafId = requestAnimationFrame(animate);
+    animationStateMap.set(element, { rafId });
+}
+
+function formatNumber(value, decimals) {
+    if (decimals > 0) {
+        return Number(value).toFixed(decimals);
+    }
+    return Math.round(value).toString();
+}
+
 // 导出工具函数到全局
 window.Utils = {
     formatDate,
@@ -354,5 +429,6 @@ window.Utils = {
     confirmDialog,
     detectOS,
     loadPywebviewApi,
-    apiCall
+    apiCall,
+    animateNumber
 };

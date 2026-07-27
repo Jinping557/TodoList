@@ -5,6 +5,8 @@ class CategoryManager {
         this.categories = [];
         this.currentCategory = 'all';
         this.defaultShowCategories = 3; // 默认只展示4个分类项，超出则隐藏
+        this._statsDebounceTimer = null;
+        this._pendingFromZero = false;
     }
     
     // 初始化
@@ -411,19 +413,36 @@ class CategoryManager {
     }
     
     // 更新分类任务数量
-    async updateCategoryCounts(filteredTasks = null) {
-        const taskCounts = await this.getTaskCounts(true, filteredTasks);
-        
-        // 更新"全部"分类的数量 - 如果有筛选任务则显示筛选后的数量，否则显示总数量
-        const allCountEl = document.querySelector('[data-category="all"] .category-count');
-        if (allCountEl) allCountEl.textContent = taskCounts.all || 0;
+    async updateCategoryCounts(filteredTasks = null, fromZero = false) {
+        if (fromZero) this._pendingFromZero = true;
 
-        // 更新各个分类的数量
-        this.categories.forEach(category => {
-            const count = taskCounts[category.id] || 0;
-            const countEl = document.querySelector(`[data-category="${category.id}"] .category-count`);
-            if (countEl) countEl.textContent = count;
-        });
+        if (this._statsDebounceTimer) {
+            clearTimeout(this._statsDebounceTimer);
+        }
+
+        this._statsDebounceTimer = setTimeout(async () => {
+            const shouldFromZero = this._pendingFromZero;
+            this._pendingFromZero = false;
+            this._statsDebounceTimer = null;
+
+            const taskCounts = await this.getTaskCounts(true, filteredTasks);
+
+            // 更新"全部"分类的数量 - 如果有筛选任务则显示筛选后的数量，否则显示总数量
+            const allCountEl = document.querySelector('[data-category="all"] .category-count');
+            if (allCountEl) {
+                const allCount = taskCounts.all || 0;
+                Utils.animateNumber(allCountEl, allCount, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
+            }
+
+            // 更新各个分类的数量
+            this.categories.forEach(category => {
+                const count = taskCounts[category.id] || 0;
+                const countEl = document.querySelector(`[data-category="${category.id}"] .category-count`);
+                if (countEl) {
+                    Utils.animateNumber(countEl, count, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
+                }
+            });
+        }, 200);
     }
     
     // 重新加载数据
