@@ -202,7 +202,7 @@ class TodoApi:
                 if task.get('dueDate') and self.is_android:
                     target_time = datetime.fromisoformat(task['dueDate']).timestamp() * 1000
                     service.add_task_reminder_to_calendar(task['title'], task['description'], target_time)
-            return {'success': True, 'tasks': result}
+            return {'success': True, 'task': result}
         except Exception as e:
             return {'success': False, 'error': str(e)}
     
