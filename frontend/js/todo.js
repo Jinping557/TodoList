@@ -1183,7 +1183,7 @@ class TodoManager {
         const pageSize = this.parentTaskState.pageSize;
         await Utils.apiCall({
             apiMethod: 'get_todos',
-            apiArgs: [page, pageSize, null, null, null, null, null, null, searchQuery || null],
+            apiArgs: [page, pageSize, null, 'uncompleted', null, null, null, null, searchQuery || null],
             onSuccess: (response) => {
                 let tasks = response.tasks.filter(t => !t.isRecurring && !t.parentTaskId);
 
