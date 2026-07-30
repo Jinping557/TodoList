@@ -75,7 +75,10 @@ class App {
         sidebarOverlay?.addEventListener('click', () => this.closeMobileSidebar());
 
         // 窗口大小变化
-        window.addEventListener('resize', Utils.debounce((() => this.handleResize()), 250));
+        window.addEventListener('resize', () => {
+            this.closeMobileSidebar();
+            Utils.debounce((() => this.handleResize()), 250);
+        });
         
         // 页面可见性变化
         document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
