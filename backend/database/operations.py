@@ -660,8 +660,22 @@ class TodoDatabase:
 
         conn.commit()
         conn.close()
+
+        # 在标签未关联任何任务时，同步删除标签
+        self.check_delete_tag()
         
         return {'success': True, 'deleted_id': task_id}
+
+    def check_delete_tag(self):
+        """在标签未关联任何任务时，删除标签"""
+        conn = sqlite3.connect(self.db_path)
+        conn.cursor()
+        tags = self.get_all_tags()
+        for tag in tags:
+            if tag.get('taskCount') == 0:
+                self.delete_tag(tag.get('id'))
+        conn.commit()
+        conn.close()
     
     # 分类相关操作
     def add_category(self, category_data):
