@@ -454,6 +454,7 @@ class TodoDatabase:
             FROM tasks 
             WHERE {where_sql}
             ORDER BY 
+                completed ASC,
                 CASE 
                     WHEN due_date IS NOT NULL THEN 1 
                     ELSE 2 
