@@ -910,7 +910,19 @@ class TodoApi:
             }
         except Exception as e:
             return {'success': False, 'error': str(e)}
-    
+
+    def search_tasks_with_subtasks(self, keyword='', limit=5):
+        """搜索具有子任务的父任务（按标题模糊匹配），返回前 limit 条。
+
+        供前端在搜索框输入 ">" 时调用，下拉展示有子任务的父任务建议。
+        返回: {'success': True, 'tasks': [{id, title, priority, dueDate, completed, subtaskCount}, ...]}
+        """
+        try:
+            tasks = self.db.search_tasks_with_subtasks(keyword=keyword or '', limit=limit)
+            return {'success': True, 'tasks': tasks}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
     # ==================== WebDAV同步相关API ====================
 
     def _call_manager_method(self, method_name, *args, **kwargs):
