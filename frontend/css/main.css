@@ -1376,6 +1376,65 @@ svg {
     color: var(--text-primary);
 }
 
+/* 子任务搜索建议下拉（输入 ">" 触发，挂载于 .search-input-wrapper 内） */
+.subtask-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    max-height: 280px;
+    overflow-y: auto;
+    display: none;
+}
+
+.subtask-suggestions.visible {
+    display: block;
+}
+
+.subtask-suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.subtask-suggestion-item:hover,
+.subtask-suggestion-item.active {
+    background: var(--bg-tertiary);
+}
+
+.subtask-suggestion-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-primary);
+}
+
+.subtask-suggestion-count {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    background: var(--bg-tertiary);
+    padding: 1px 8px;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.subtask-suggestion-empty {
+    padding: 12px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
 .action-buttons {
     display: flex;
     gap: var(--spacing-md);

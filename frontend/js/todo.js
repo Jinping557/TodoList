@@ -41,6 +41,10 @@ class TodoManager {
         // 搜索标签 chips：{ type: 'tag'|'text', value, tagId?, color? }
         this.searchChips = [];
         this._searchDebounceTimer = null;
+        // 子任务搜索建议下拉（输入 ">" 触发）
+        this._subtaskSuggestTimer = null;
+        this._subtaskSuggestItems = [];
+        this._subtaskSuggestIndex = -1;
         // 统计维度
         this.statsDimension = 'all'; // all, year, month, week, day
         // 日期范围缓存
@@ -2180,11 +2184,22 @@ class TodoManager {
         searchInput.addEventListener('keydown', (e) => this.handleSearchKeydown(e));
 
         // 输入变化：实时更新清空按钮，并防抖触发搜索（自由文本搜索）
+        // 当输入以 ">" 开头（且无 chip）时，进入子任务建议模式：仅刷新下拉，不重载主列表
         searchInput.addEventListener('input', () => {
             this.updateSearchClearButton();
-            this.scheduleSearch(300);
+            if (this.isSubtaskSuggestMode(searchInput.value)) {
+                this.scheduleSubtaskSuggestions(250);
+            } else {
+                this.hideSubtaskSuggestions();
+                this.scheduleSearch(300);
+            }
         });
         searchInput.addEventListener('change', () => this.updateSearchClearButton());
+
+        // 失焦时延时关闭下拉（延时以允许点击命中建议项）
+        searchInput.addEventListener('blur', () => {
+            setTimeout(() => this.hideSubtaskSuggestions(), 150);
+        });
 
         // 点击 wrapper 空白区域时聚焦输入框
         if (wrapper) {
@@ -2204,6 +2219,35 @@ class TodoManager {
         const searchInput = e.target;
         const val = searchInput.value;
         const tagPattern = /^#[\u4e00-\u9fa5a-zA-Z0-9_]+$/;
+
+        // 子任务建议下拉的键盘交互（仅当处于 ">" 模式且下拉有项时）
+        if (this.isSubtaskSuggestMode(val) && this._subtaskSuggestItems.length > 0) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                this._subtaskSuggestIndex = (this._subtaskSuggestIndex + 1) % this._subtaskSuggestItems.length;
+                this._highlightSubtaskSuggestion();
+                return;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                this._subtaskSuggestIndex = (this._subtaskSuggestIndex - 1 + this._subtaskSuggestItems.length) % this._subtaskSuggestItems.length;
+                this._highlightSubtaskSuggestion();
+                return;
+            }
+            if (e.key === 'Enter' && this._subtaskSuggestIndex >= 0) {
+                const item = this._subtaskSuggestItems[this._subtaskSuggestIndex];
+                if (item) {
+                    e.preventDefault();
+                    this.selectSubtaskSuggestion(item.title);
+                    return;
+                }
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                this.hideSubtaskSuggestions();
+                return;
+            }
+        }
 
         // 空格：若当前输入是一个完整的 #标签，则提交为 chip
         if ((e.key === ' ' || e.code === 'Space') && tagPattern.test(val)) {
@@ -2229,6 +2273,7 @@ class TodoManager {
                 this.addSearchChip({ type: 'tag', value: val.substring(1) });
                 searchInput.value = '';
             }
+            this.hideSubtaskSuggestions();
             this.syncSearchQuery(0);
             return;
         }
@@ -2365,6 +2410,128 @@ class TodoManager {
         }, delay);
     }
 
+    // ===== 子任务搜索建议下拉（输入 ">" 触发） =====
+    // 判断当前是否处于子任务建议模式：无 chip 且输入以 ">" 开头
+    // 与 buildSearchQuery 的 ">" 透传条件保持一致
+    isSubtaskSuggestMode(value) {
+        const v = (value || '').trim();
+        return this.searchChips.length === 0 && v.startsWith('>');
+    }
+
+    // 防抖拉取「有子任务的父任务」建议
+    // 调用后端前，自动将搜索内容 ">" 转换为后端支持的关键字（剥离 ">" 前缀并 trim）
+    scheduleSubtaskSuggestions(delay = 250) {
+        if (this._subtaskSuggestTimer) clearTimeout(this._subtaskSuggestTimer);
+        this._subtaskSuggestTimer = setTimeout(async () => {
+            this._subtaskSuggestTimer = null;
+            const searchInput = document.getElementById('search-input');
+            if (!searchInput) return;
+            // 防抖期间状态可能变化，再次确认仍处于 ">" 模式
+            if (!this.isSubtaskSuggestMode(searchInput.value)) {
+                this.hideSubtaskSuggestions();
+                return;
+            }
+            // 转换：剥离 ">" 前缀并 trim，得到后端支持的关键字
+            const keyword = searchInput.value.trim().substring(1).trim();
+            await Utils.apiCall({
+                apiMethod: 'search_tasks_with_subtasks',
+                apiArgs: [keyword, 5],
+                onSuccess: (response) => this.renderSubtaskSuggestions(response.tasks || []),
+                onError: () => this.hideSubtaskSuggestions()
+            });
+        }, delay);
+    }
+
+    // 渲染建议下拉（至多 5 条）
+    renderSubtaskSuggestions(tasks) {
+        const wrapper = document.getElementById('search-tag-wrapper');
+        if (!wrapper) return;
+        let dropdown = document.getElementById('subtask-suggestions');
+        if (!dropdown) {
+            dropdown = document.createElement('div');
+            dropdown.id = 'subtask-suggestions';
+            dropdown.className = 'subtask-suggestions';
+            wrapper.appendChild(dropdown);
+        }
+        dropdown.innerHTML = '';
+        this._subtaskSuggestItems = (tasks || []).slice(0, 5);
+        this._subtaskSuggestIndex = -1;
+
+        if (this._subtaskSuggestItems.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'subtask-suggestion-empty';
+            empty.textContent = window.languageManager
+                ? window.languageManager.getText('subtaskSuggestEmpty', '无匹配的父任务')
+                : '无匹配的父任务';
+            dropdown.appendChild(empty);
+            dropdown.classList.add('visible');
+            return;
+        }
+
+        const priorityEmoji = { high: '🔴', medium: '🟡', low: '🟢', none: '⚪' };
+        const unitText = window.languageManager
+            ? window.languageManager.getText('subtaskUnit', '子任务')
+            : '子任务';
+        this._subtaskSuggestItems.forEach((task, idx) => {
+            const item = document.createElement('div');
+            item.className = 'subtask-suggestion-item';
+            item.dataset.index = String(idx);
+
+            const titleEl = document.createElement('span');
+            titleEl.className = 'subtask-suggestion-title';
+            const emoji = priorityEmoji[task.priority] || '⚪';
+            titleEl.textContent = `${emoji} ${task.title}`;
+
+            const countEl = document.createElement('span');
+            countEl.className = 'subtask-suggestion-count';
+            countEl.textContent = `${task.subtaskCount} ${unitText}`;
+
+            // mousedown 阻止默认行为，防止输入框失焦导致下拉先被关闭
+            item.addEventListener('mousedown', (e) => e.preventDefault());
+            item.addEventListener('click', () => this.selectSubtaskSuggestion(task.title));
+
+            item.appendChild(titleEl);
+            item.appendChild(countEl);
+            dropdown.appendChild(item);
+        });
+        dropdown.classList.add('visible');
+    }
+
+    // 高亮当前选中的建议项并滚动到可见
+    _highlightSubtaskSuggestion() {
+        const dropdown = document.getElementById('subtask-suggestions');
+        if (!dropdown) return;
+        const items = dropdown.querySelectorAll('.subtask-suggestion-item');
+        items.forEach((el, i) => el.classList.toggle('active', i === this._subtaskSuggestIndex));
+        const active = dropdown.querySelector('.subtask-suggestion-item.active');
+        if (active) active.scrollIntoView({ block: 'nearest' });
+    }
+
+    // 选中某条建议：填充 ">+精确标题" 并触发现有子任务搜索流程
+    selectSubtaskSuggestion(title) {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.value = '>' + title;
+        }
+        this.hideSubtaskSuggestions();
+        this.syncSearchQuery(0);
+    }
+
+    // 隐藏建议下拉并清理状态
+    hideSubtaskSuggestions() {
+        if (this._subtaskSuggestTimer) {
+            clearTimeout(this._subtaskSuggestTimer);
+            this._subtaskSuggestTimer = null;
+        }
+        const dropdown = document.getElementById('subtask-suggestions');
+        if (dropdown) {
+            dropdown.classList.remove('visible');
+            dropdown.innerHTML = '';
+        }
+        this._subtaskSuggestItems = [];
+        this._subtaskSuggestIndex = -1;
+    }
+
     // 根据当前 chips 刷新左侧标签模块的选中态（仅切换 selected 类，不整体重渲染）
     refreshTagModuleSelection() {
         const selectedIds = this.searchChips
@@ -2382,6 +2549,7 @@ class TodoManager {
             clearTimeout(this._searchDebounceTimer);
             this._searchDebounceTimer = null;
         }
+        this.hideSubtaskSuggestions();
         this.searchChips = [];
         this.renderSearchChips();
         const searchInput = document.getElementById('search-input');
