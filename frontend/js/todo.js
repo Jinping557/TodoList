@@ -453,20 +453,34 @@ class TodoManager {
     async loadTasks(fromZero = false) {
         Utils.setLoading(true, '加载任务...');
         const isLoadSubtasks = this.searchQuery && this.searchQuery.startsWith('>') && this.searchQuery.substring(1).trim();
+        const categoryIdArg = this.currentFilter === 'all' ? null : this.currentFilter;
+        const statusArg = this.statusFilter === 'all' ? null : this.statusFilter;
+        const priorityArg = this.priorityFilter === 'all' ? null : this.priorityFilter;
+        const dueDateArg = this.dueDateFilter === 'all' ? null : this.dueDateFilter;
         let apiMethod;
         let apiArgs;
         if (isLoadSubtasks) {
             apiMethod = 'search_subtasks_by_parent_name';
-            apiArgs = [this.searchQuery.substring(1).trim(), this.currentPage, this.pageSize];
+            // 参数顺序需与后端 TodoApi.search_subtasks_by_parent_name 签名对齐：
+            // (parent_name, page, page_size, category_id, status, priority, due_date_filter)
+            apiArgs = [
+                this.searchQuery.substring(1).trim(),
+                this.currentPage,
+                this.pageSize,
+                categoryIdArg,
+                statusArg,
+                priorityArg,
+                dueDateArg
+            ];
         } else {
             apiMethod = 'get_todos';
             apiArgs = [
                 this.currentPage,
                 this.pageSize,
-                this.currentFilter === 'all' ? null : this.currentFilter,
-                this.statusFilter === 'all' ? null : this.statusFilter,
-                this.priorityFilter === 'all' ? null : this.priorityFilter,
-                this.dueDateFilter === 'all' ? null : this.dueDateFilter,
+                categoryIdArg,
+                statusArg,
+                priorityArg,
+                dueDateArg,
                 null,  // year
                 null,  // month
                 this.searchQuery || null,

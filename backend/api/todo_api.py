@@ -786,8 +786,18 @@ class TodoApi:
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
-    def search_subtasks_by_parent_name(self, parent_name, page=1, page_size=10):
-        """通过父任务名称搜索其子任务（要求父任务名称完全匹配）"""
+    def search_subtasks_by_parent_name(self, parent_name, page=1, page_size=10,
+                                       category_id=None, status=None, priority=None,
+                                       due_date_filter=None):
+        """通过父任务名称搜索其子任务（要求父任务名称完全匹配），并按当前筛选条件过滤。
+
+        筛选参数与 get_todos 语义一致（参考 operations.get_tasks_paginated）：
+        - category_id: 'all'|'uncategorized'|<具体分类ID>|None
+        - status: all|completed|uncompleted|pending|overdue
+        - priority: all|high|medium|low|none
+        - due_date_filter: all|today|tomorrow|week|month|no-due-date
+        """
+        from datetime import datetime, timedelta
         try:
             # 先查找父任务
             parent_task = self.db.find_task_by_title_exact(parent_name)
@@ -796,14 +806,99 @@ class TodoApi:
             
             # 获取该父任务的子任务
             children = self.db.get_children(parent_task['id'])
-            
+
+            # 应用筛选条件（与 get_tasks_paginated 语义对齐）
+            def _iso_date(val):
+                if not val:
+                    return None
+                try:
+                    return datetime.fromisoformat(str(val)).date()
+                except Exception:
+                    return None
+
+            today = datetime.now().date()
+            def _pending_overdue(task):
+                d = _iso_date(task.get('dueDate'))
+                if task.get('completed'):
+                    return {'pending': False, 'overdue': False}
+                return {
+                    'pending': d is None or d >= today,
+                    'overdue': d is not None and d < today,
+                }
+
+            # 计算日期区间
+            def _tomorrow():
+                if today.day < 28:
+                    return today.replace(day=today.day + 1)
+                if today.month < 12:
+                    return today.replace(day=1, month=today.month + 1)
+                return today.replace(year=today.year + 1, month=1, day=1)
+            week_start = today - timedelta(days=today.weekday())
+            week_end_candidate = week_start + timedelta(days=7)
+            week_end = week_end_candidate if today.day <= 21 else today.replace(day=28)
+            month_start = today.replace(month=today.month, day=1)
+            if today.month == 12:
+                next_month = today.replace(year=today.year + 1, month=1, day=1)
+            else:
+                next_month = month_start.replace(month=month_start.month + 1)
+            month_end = next_month - timedelta(days=1)
+
+            norm_status = status if status not in (None, 'all', '') else None
+            norm_priority = priority if priority not in (None, 'all', '') else None
+            norm_cat = category_id if category_id not in (None, 'all', '') else None
+            norm_dd = due_date_filter if due_date_filter not in (None, 'all', '') else None
+
+            filtered = []
+            for t in children:
+                # 状态筛选
+                if norm_status:
+                    if norm_status == 'completed' and not t.get('completed'):
+                        continue
+                    if norm_status == 'uncompleted' and t.get('completed'):
+                        continue
+                    po = _pending_overdue(t)
+                    if norm_status == 'pending' and not po['pending']:
+                        continue
+                    if norm_status == 'overdue' and not po['overdue']:
+                        continue
+                # 优先级筛选
+                if norm_priority and (t.get('priority') or 'none') != norm_priority:
+                    continue
+                # 分类筛选
+                if norm_cat:
+                    cid = t.get('categoryId')
+                    if norm_cat == 'uncategorized':
+                        if cid not in (None, ''):
+                            continue
+                    elif cid != norm_cat:
+                        continue
+                # 日期筛选
+                if norm_dd:
+                    d = _iso_date(t.get('dueDate'))
+                    if norm_dd == 'today':
+                        if d != today:
+                            continue
+                    elif norm_dd == 'tomorrow':
+                        if d != _tomorrow():
+                            continue
+                    elif norm_dd == 'week':
+                        if d is None or not (week_start <= d < week_end):
+                            continue
+                    elif norm_dd == 'month':
+                        if d is None or not (month_start <= d <= month_end):
+                            continue
+                    elif norm_dd == 'no-due-date':
+                        if d is not None:
+                            continue
+                filtered.append(t)
+
             # 分页处理
-            total = len(children)
+            total = len(filtered)
             total_pages = (total + page_size - 1) // page_size if total > 0 else 0
             start_idx = (page - 1) * page_size
             end_idx = start_idx + page_size
-            paginated_children = children[start_idx:end_idx]
-            
+            paginated_children = filtered[start_idx:end_idx]
+
             return {
                 'success': True,
                 'tasks': paginated_children,
