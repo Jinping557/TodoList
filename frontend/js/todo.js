@@ -38,6 +38,9 @@ class TodoManager {
         this.selectedTags = [];
         this.showMoreTags = false;
         this.defaultShowTags = 5;
+        // 搜索标签 chips：{ type: 'tag'|'text', value, tagId?, color? }
+        this.searchChips = [];
+        this._searchDebounceTimer = null;
         // 统计维度
         this.statsDimension = 'all'; // all, year, month, week, day
         // 日期范围缓存
@@ -149,33 +152,16 @@ class TodoManager {
             }, 300);
         });
 
-        // 搜索
-        const searchInput = document.getElementById('search-input');
+        // 搜索（标签 chips 输入模式）
+        this.initSearchTagInput();
+
         const searchBtn = document.getElementById('search-btn');
         const searchClearBtn = document.getElementById('search-clear-btn');
-        
-        if (searchInput) {
-            searchInput.addEventListener('input', Utils.debounce(async () => {
-                this.searchQuery = searchInput.value.trim();
-                this.currentPage = 1; // 重置到第一页
-                this.customDateFilter = null; // 清除自定义日期筛选
-                this.resetInfiniteScroll(); // 重置无限下拉状态
-                await this.loadTasks();
-                // 更新清空按钮显示状态
-                this.updateSearchClearButton();
-            }, 300));
-            
-            // 监听输入值变化，实时更新清空按钮
-            searchInput.addEventListener('input', () => this.updateSearchClearButton());
-            searchInput.addEventListener('change', () => this.updateSearchClearButton());
-        }
-        
-        searchBtn?.addEventListener('click', async () => {
-            this.searchQuery = searchInput.value.trim();
-            this.currentPage = 1;
-            this.customDateFilter = null; // 清除自定义日期筛选
-            this.resetInfiniteScroll(); // 重置无限下拉状态
-            await this.loadTasks();
+
+        searchBtn?.addEventListener('click', () => {
+            // 若输入框中是完整的 #标签，先提交为 chip
+            this.commitInputAsChipIfTag();
+            this.syncSearchQuery(0);
         });
 
         // 清空搜索按钮
@@ -1326,13 +1312,12 @@ class TodoManager {
                 if (countValue > 0) {
                     const taskTitle = el.dataset.taskTitle;
                     if (taskTitle) {
+                        // 进入子任务搜索模式：清空 chips 并透传 ">父任务名"
+                        this.searchChips = [];
+                        this.renderSearchChips();
                         const searchInput = document.getElementById('search-input');
-                        if (searchInput) {
-                            searchInput.value = `>${taskTitle}`;
-                            this.searchQuery = `>${taskTitle}`;
-                            this.currentPage = 1;
-                            this.loadTasks();
-                        }
+                        if (searchInput) searchInput.value = `>${taskTitle}`;
+                        this.syncSearchQuery(0);
                     }
                 }
             });
@@ -2169,31 +2154,248 @@ class TodoManager {
 
         dateRangeEl.innerHTML = `<span class="date-range-text">${dateRangeText}</span>`;
     }
-    
-    // 清空搜索
-    async clearSearch() {
+
+    // ===== 搜索标签 chips 相关 =====
+    // 初始化搜索标签输入框
+    initSearchTagInput() {
         const searchInput = document.getElementById('search-input');
-        if (searchInput) {
-            searchInput.value = '';
-            this.searchQuery = '';
-            this.currentPage = 1;
-            this.resetInfiniteScroll(); // 重置无限下拉状态
-            await this.loadTasks();
+        const wrapper = document.getElementById('search-tag-wrapper');
+        if (!searchInput) return;
+
+        // 键盘交互：空格提交 #标签、退格删除最后一个 chip、回车提交/搜索
+        searchInput.addEventListener('keydown', (e) => this.handleSearchKeydown(e));
+
+        // 输入变化：实时更新清空按钮，并防抖触发搜索（自由文本搜索）
+        searchInput.addEventListener('input', () => {
             this.updateSearchClearButton();
+            this.scheduleSearch(300);
+        });
+        searchInput.addEventListener('change', () => this.updateSearchClearButton());
+
+        // 点击 wrapper 空白区域时聚焦输入框
+        if (wrapper) {
+            wrapper.addEventListener('click', (e) => {
+                if (e.target === searchInput) return;
+                if (e.target.classList && e.target.classList.contains('search-chip-remove')) return;
+                searchInput.focus();
+            });
+        }
+
+        // 初始渲染（空）
+        this.renderSearchChips();
+    }
+
+    // 处理搜索输入框的键盘事件
+    handleSearchKeydown(e) {
+        const searchInput = e.target;
+        const val = searchInput.value;
+        const tagPattern = /^#[\u4e00-\u9fa5a-zA-Z0-9_]+$/;
+
+        // 空格：若当前输入是一个完整的 #标签，则提交为 chip
+        if ((e.key === ' ' || e.code === 'Space') && tagPattern.test(val)) {
+            e.preventDefault();
+            this.addSearchChip({ type: 'tag', value: val.substring(1) });
+            searchInput.value = '';
+            this.syncSearchQuery(0);
+            return;
+        }
+
+        // 退格：输入框为空时删除最后一个 chip
+        if (e.key === 'Backspace' && val === '' && this.searchChips.length > 0) {
+            e.preventDefault();
+            this.removeSearchChip(this.searchChips.length - 1);
+            this.syncSearchQuery(0);
+            return;
+        }
+
+        // 回车：提交 #标签（若是），并触发搜索
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (tagPattern.test(val)) {
+                this.addSearchChip({ type: 'tag', value: val.substring(1) });
+                searchInput.value = '';
+            }
+            this.syncSearchQuery(0);
+            return;
         }
     }
-    
+
+    // 若输入框内容是完整的 #标签，提交为 chip（用于搜索按钮点击）
+    commitInputAsChipIfTag() {
+        const searchInput = document.getElementById('search-input');
+        if (!searchInput) return;
+        const val = searchInput.value.trim();
+        if (/^#[\u4e00-\u9fa5a-zA-Z0-9_]+$/.test(val)) {
+            this.addSearchChip({ type: 'tag', value: val.substring(1) });
+            searchInput.value = '';
+        }
+    }
+
+    // 创建一个 chip DOM 元素
+    createChipElement(chip) {
+        const el = document.createElement('span');
+        el.className = 'search-chip';
+        const label = chip.type === 'tag' ? '#' + chip.value : chip.value;
+        el.innerHTML = `
+            <span class="search-chip-label"></span>
+            <span class="search-chip-remove" title="移除">×</span>
+        `;
+        el.querySelector('.search-chip-label').textContent = label;
+        el.querySelector('.search-chip-remove').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const idx = this.searchChips.indexOf(chip);
+            if (idx !== -1) {
+                this.removeSearchChip(idx);
+                this.syncSearchQuery(0);
+            }
+        });
+        return el;
+    }
+
+    // 渲染所有 chips（插入到输入框之前）
+    renderSearchChips() {
+        const wrapper = document.getElementById('search-tag-wrapper');
+        const input = document.getElementById('search-input');
+        if (!wrapper || !input) return;
+        // 清除旧 chips
+        wrapper.querySelectorAll('.search-chip').forEach(el => el.remove());
+        // 在输入框前依次插入
+        this.searchChips.forEach(chip => {
+            wrapper.insertBefore(this.createChipElement(chip), input);
+        });
+    }
+
+    // 添加一个 chip（自动按名称匹配已有标签以补全 tagId/color，去重）
+    addSearchChip(chip) {
+        if (!chip || !chip.value) return false;
+        // 标签类型：若没有 tagId，尝试按名称匹配已加载的标签
+        if (chip.type === 'tag' && !chip.tagId) {
+            const match = this.availableTags.find(t => t.name.toLowerCase() === chip.value.toLowerCase());
+            if (match) {
+                chip.tagId = match.id;
+                chip.color = chip.color || match.color;
+            }
+        }
+        // 去重（按类型 + 值，忽略大小写）
+        const exists = this.searchChips.some(c =>
+            c.type === chip.type && c.value.toLowerCase() === chip.value.toLowerCase());
+        if (exists) return false;
+        this.searchChips.push(chip);
+        this.renderSearchChips();
+        return true;
+    }
+
+    // 移除指定索引的 chip
+    removeSearchChip(index) {
+        if (index < 0 || index >= this.searchChips.length) return false;
+        this.searchChips.splice(index, 1);
+        this.renderSearchChips();
+        return true;
+    }
+
+    // 按 tagId 移除 chip（用于标签模块取消选择）
+    removeSearchChipByTagId(tagId) {
+        const idx = this.searchChips.findIndex(c => c.type === 'tag' && c.tagId === tagId);
+        if (idx !== -1) {
+            this.removeSearchChip(idx);
+            return true;
+        }
+        return false;
+    }
+
+    // 切换左侧标签的 chip 选择状态
+    toggleTagChip(tagId) {
+        const tag = this.availableTags.find(t => t.id === tagId);
+        if (!tag) return;
+        const existing = this.searchChips.findIndex(c => c.type === 'tag' && c.tagId === tagId);
+        if (existing !== -1) {
+            this.removeSearchChip(existing);
+        } else {
+            this.addSearchChip({ type: 'tag', value: tag.name, tagId: tag.id, color: tag.color });
+        }
+        this.syncSearchQuery(0);
+    }
+
+    // 将 chips + 输入框文本转换为后端支持的搜索字符串
+    // 后端约定：关键词以 ";" 分隔；#前缀表示标签搜索，其余为普通文本搜索；
+    // 特殊：当无 chip 且输入以 ">" 开头时，按子任务搜索原样透传。
+    buildSearchQuery() {
+        const input = document.getElementById('search-input');
+        const text = input ? input.value.trim() : '';
+        if (this.searchChips.length === 0 && text.startsWith('>')) {
+            return text;
+        }
+        const parts = this.searchChips.map(c => c.type === 'tag' ? '#' + c.value : c.value);
+        if (text) parts.push(text);
+        return parts.join(';');
+    }
+
+    // 同步 searchQuery、清空按钮、标签模块选中态，并触发搜索
+    syncSearchQuery(delay = 0) {
+        this.searchQuery = this.buildSearchQuery();
+        this.updateSearchClearButton();
+        this.refreshTagModuleSelection();
+        this.scheduleSearch(delay);
+    }
+
+    // 防抖触发搜索任务加载
+    scheduleSearch(delay = 300) {
+        if (this._searchDebounceTimer) clearTimeout(this._searchDebounceTimer);
+        this._searchDebounceTimer = setTimeout(async () => {
+            this._searchDebounceTimer = null;
+            this.searchQuery = this.buildSearchQuery();
+            this.currentPage = 1;
+            this.customDateFilter = null; // 清除自定义日期筛选
+            this.resetInfiniteScroll(); // 重置无限下拉状态
+            await this.loadTasks();
+        }, delay);
+    }
+
+    // 根据当前 chips 刷新左侧标签模块的选中态（仅切换 selected 类，不整体重渲染）
+    refreshTagModuleSelection() {
+        const selectedIds = this.searchChips
+            .filter(c => c.type === 'tag' && c.tagId)
+            .map(c => c.tagId);
+        document.querySelectorAll('.tag-module-item').forEach(item => {
+            const id = item.dataset.tagId;
+            item.classList.toggle('selected', selectedIds.includes(id));
+        });
+    }
+
+    // 清空搜索
+    async clearSearch() {
+        if (this._searchDebounceTimer) {
+            clearTimeout(this._searchDebounceTimer);
+            this._searchDebounceTimer = null;
+        }
+        this.searchChips = [];
+        this.renderSearchChips();
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) searchInput.value = '';
+        this.searchQuery = '';
+        this.currentPage = 1;
+        this.customDateFilter = null;
+        this.resetInfiniteScroll(); // 重置无限下拉状态
+        this.refreshTagModuleSelection();
+        await this.loadTasks();
+        this.updateSearchClearButton();
+    }
+
     // 更新搜索清空按钮状态
     updateSearchClearButton() {
         const searchInput = document.getElementById('search-input');
         const searchClearBtn = document.getElementById('search-clear-btn');
-        
-        if (searchInput && searchClearBtn) {
-            if (searchInput.value.trim()) {
-                searchClearBtn.classList.add('visible');
-            } else {
-                searchClearBtn.classList.remove('visible');
-            }
+
+        if (!searchInput || !searchClearBtn) {
+            return;
+        }
+
+        const hasText = searchInput.value.trim().length > 0;
+        const hasChips = this.searchChips.length > 0;
+        if (hasText || hasChips) {
+            searchClearBtn.classList.add('visible');
+        } else {
+            searchClearBtn.classList.remove('visible');
         }
     }
 
@@ -2680,13 +2882,14 @@ class TodoManager {
                     showLessTags.style.pointerEvents = 'auto';
                     showLessTags.style.cursor = 'pointer';
                 }
-                this.renderTagsModule([], fromZero);
+                this.renderTagsModule(fromZero);
             }
         });
     }
 
     // 渲染标签管理模块
-    renderTagsModule(selectedTagIds, fromZero = false) {
+    // 选中态以搜索 chips 为唯一数据源（type 为 'tag' 的 chip）
+    renderTagsModule(fromZero = false) {
         const tagsSection = document.getElementById('tags-section');
         if (this.availableTags.length <= 0) {
             tagsSection.style.display = 'none';
@@ -2697,9 +2900,11 @@ class TodoManager {
         const tagsList = document.getElementById('tags-list');
         if (!tagsList) return;
 
-        let html = '';
+        const selectedTagIds = this.searchChips
+            .filter(c => c.type === 'tag' && c.tagId)
+            .map(c => c.tagId);
 
-        let selectedTags = [];
+        let html = '';
 
         // 渲染现有标签
         this.availableTags.forEach((tag, index) => {
@@ -2724,21 +2929,12 @@ class TodoManager {
                     <span id="${tag.id}" class="tag-count">${count}</span>
                 </span>
             `;
-
-            if (isSelected) selectedTags.push('#'+tag.name);
         });
 
         tagsList.innerHTML = html;
 
-        if (selectedTags) {
-            const searchInput = document.getElementById('search-input');
-            searchInput.value = selectedTags.join(';');
-            this.searchQuery = selectedTags.join(';');
-            this.currentPage = 1; // 重置到第一页
-            this.resetInfiniteScroll(); // 重置无限下拉状态
-            this.loadTasks();
-        }
-        this.bindTagModuleEvents(tagsList, selectedTagIds);
+        // 搜索内容的变更由 chips 相关方法负责，这里只负责渲染标签列表与事件绑定
+        this.bindTagModuleEvents(tagsList);
 
         if (fromZero) this._tagPendingFromZero = true;
 
@@ -2761,18 +2957,12 @@ class TodoManager {
         }, 200);
     }
 
-    // 标签管理模块绑定事件
-    bindTagModuleEvents(tagsList, selectedTagIds) {
+    // 标签管理模块绑定事件：点击切换对应的搜索 chip
+    bindTagModuleEvents(tagsList) {
         tagsList.querySelectorAll('.tag-module-item').forEach(item => {
             item.onclick = (e) => {
                 const tagId = item.dataset.tagId;
-                const index = selectedTagIds.indexOf(tagId);
-                if (index === -1) {
-                    selectedTagIds.push(tagId);
-                } else {
-                    selectedTagIds.splice(index, 1);
-                }
-                this.renderTagsModule(selectedTagIds);
+                this.toggleTagChip(tagId);
             };
         });
     }

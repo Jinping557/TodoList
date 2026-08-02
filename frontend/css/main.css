@@ -1297,6 +1297,85 @@ svg {
     background-color: var(--border-color);
 }
 
+/* 标签搜索输入框（chips 模式） */
+.search-tag-wrapper {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 28px 3px 6px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
+    background-color: var(--bg-primary);
+    cursor: text;
+    transition: border-color var(--transition-fast);
+}
+
+.search-tag-wrapper:focus-within {
+    border-color: var(--primary-color);
+}
+
+.search-tag-wrapper .search-input {
+    flex: 1;
+    min-width: 60px;
+    padding: 4px 6px;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+}
+
+.search-tag-wrapper .search-input:focus {
+    outline: none;
+    border-color: transparent;
+}
+
+.search-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 4px 2px 8px;
+    border-radius: 11px;
+    border: 1px solid;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-primary);
+    border-color: var(--primary-color);
+    user-select: none;
+    max-width: 220px;
+}
+
+.search-chip-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--primary-color);
+}
+
+.search-chip-remove {
+    width: 8px;
+    height: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.15s, background-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+
+.search-chip:hover .search-chip-remove {
+    opacity: 0.85;
+}
+
+.search-chip-remove:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.12);
+    color: var(--text-primary);
+}
+
 .action-buttons {
     display: flex;
     gap: var(--spacing-md);

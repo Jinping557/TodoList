@@ -242,7 +242,13 @@ class App {
                 if (searchInput) {
                     searchInput.value = '';
                 }
-                
+                // 清空搜索标签 chips 并同步左侧标签选中态
+                if (window.todoManager) {
+                    window.todoManager.searchChips = [];
+                    window.todoManager.renderSearchChips();
+                    window.todoManager.refreshTagModuleSelection();
+                }
+
                 // 重置筛选器
                 const priorityFilter = document.getElementById('priority-filter');
                 const statusFilter = document.getElementById('status-filter');
@@ -377,6 +383,13 @@ class App {
     //  筛选任务
     async filterTasks(statusValue, dueDateValue, tagValue, toastMsg) {
         if (window.todoManager) {
+            // 快捷筛选会重置搜索标签 chips，避免残留 chip 与新筛选条件冲突
+            if (window.todoManager) {
+                window.todoManager.searchChips = [];
+                window.todoManager.renderSearchChips();
+                window.todoManager.refreshTagModuleSelection();
+            }
+
             window.todoManager.statusFilter = statusValue;
             window.todoManager.dueDateFilter = dueDateValue;
             window.todoManager.searchQuery = tagValue;
