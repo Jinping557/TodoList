@@ -38,7 +38,6 @@ class CalendarManager {
         const timelineView = document.getElementById('timeline-view');
         const moreMenuIcon = document.getElementById('more-menu-view-icon');
         const moreMenuText = document.getElementById('more-menu-view-text');
-        const addTaskFab = document.getElementById('add-task-fab');
         let filterPageSize;
 
         switch (viewToggleSelect) {
@@ -56,7 +55,6 @@ class CalendarManager {
                 groupDividerFilter.style.display = 'block';
                 moreMenuIcon.textContent = '📅';
                 moreMenuText.textContent = '切换日历视图';
-                addTaskFab.style.display = 'none';
                 this.currentView = 'calendar';
                 filterPageSize = 9999; // 假定单月任务最多9999个任务
                 // 通知TodoManager进行筛选
@@ -80,7 +78,6 @@ class CalendarManager {
                 groupDividerFilter.style.display = 'block';
                 moreMenuIcon.textContent = '⌛';
                 moreMenuText.textContent = '切换时间轴视图';
-                addTaskFab.style.display = 'none';
                 this.currentView = 'calendar';
                 filterPageSize = 9999; // 假定单月任务最多9999个任务
                 // 通知TimelineManager进行筛选
@@ -101,7 +98,6 @@ class CalendarManager {
                 groupDividerFilter.style.display = 'none';
                 moreMenuIcon.textContent = '📋';
                 moreMenuText.textContent = '切换列表视图';
-                addTaskFab.style.display = 'none';
                 this.currentView = 'list';
                 filterPageSize = 10;
                 // 通知TodoManager进行筛选
