@@ -172,12 +172,6 @@
     min-height: 0;
 }
 
-.modal-footer {
-    padding: var(--spacing-lg);
-    border-top: 1px solid var(--border-color);
-    flex-shrink: 0;
-}
-
 .modal-header h2 {
     margin: 0;
     color: var(--text-primary);
@@ -402,7 +396,7 @@
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    padding: var(--spacing-sm) 0;
+    padding: var(--spacing-xs) 0;
     font-size: var(--font-size-sm);
     transition: var(--transition-fast);
 }
@@ -419,6 +413,7 @@
     display: inline-block;
     width: 16px;
     height: 16px;
+    font-size: 12px;
     text-align: center;
     line-height: 16px;
     font-weight: bold;
@@ -583,13 +578,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--spacing-md);
-}
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-sm);
 }
 
 .modal-footer {
@@ -1131,11 +1119,6 @@
     margin-top: var(--spacing-md);
 }
 
-.recurring-options .form-row {
-    gap: var(--spacing-md);
-    align-items: end;
-}
-
 .recurring-options label {
     display: block;
     margin-bottom: var(--spacing-xs);
@@ -1199,70 +1182,14 @@
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
 }
-    
-.form-row {
-    gap: var(--spacing-xs);
-}
-
-.datetime-group .datetime-inputs {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-sm);
-}
-
-.clear-btn {
-    width: 20px;
-    height: 20px;
-    font-size: 14px;
-    right: 2px;
-}
-
-.input-wrapper input {
-    padding-right: var(--spacing-lg);
-}
-
-.more-options-section {
-    margin-top: 2px;
-    padding-top: 2px;
-}
 
 .datetime-inputs .picker-input,
 .datetime-inputs .time-input {
     width: 100%;
 }
 
-.form-actions {
-    flex-direction: column;
-    gap: 2px;
-    margin-top: var(--spacing-xs);
-}
-
-.form-actions button {
-    width: 100%;
-}
-
-.modal-footer {
-    gap: var(--spacing-md);
-    padding: var(--spacing-lg);
-}
-
 .modal-footer button {
     width: 100%;
-}
-
-.more-options-toggle {
-    padding: 2px 0;
-    font-size: var(--font-size-xs);
-}
-
-.recurrence-toggle {
-    padding: 2px 0;
-    font-size: var(--font-size-xs);
-}
-
-.toggle-icon {
-    width: 12px;
-    height: 12px;
-    font-size: 12px;
 }
 
 /* 导出模态框样式 */
