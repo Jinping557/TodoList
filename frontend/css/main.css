@@ -1,24 +1,3 @@
-/* 主题切换按钮 */
-.theme-toggle-btn {
-    position: relative;
-    overflow: hidden;
-}
-
-.theme-toggle-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s ease;
-}
-
-.theme-toggle-btn:hover::before {
-    left: 100%;
-}
-
 /* 针对 Firefox 的额外调整（Firefox 对 select 的 padding 处理稍不同） */
 @-moz-document url-prefix() {
     select {
@@ -63,43 +42,10 @@
     align-items: center;
 }
 
-.pin-top-btn {
-    background: none;
-    border: none;
-    font-size: var(--font-size-lg);
-    cursor: pointer;
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition-fast);
-}
-
-.pin-top-btn:hover {
-    background-color: var(--bg-tertiary);
-}
-
-.pin-top-btn.active {
-    color: var(--primary-color);
-    background-color: rgba(0, 123, 255, 0.1);
-}
-
 .app-title {
     font-size: var(--font-size-xl);
     font-weight: 600;
     color: var(--primary-color);
-}
-
-.theme-toggle-btn {
-    background: none;
-    border: none;
-    font-size: var(--font-size-lg);
-    cursor: pointer;
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition-fast);
-}
-
-.theme-toggle-btn:hover {
-    background-color: var(--bg-tertiary);
 }
 
 /* 设置按钮 */
