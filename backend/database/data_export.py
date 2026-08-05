@@ -119,7 +119,7 @@ class DataExportManager:
 
             conn.close()
 
-            self._get_logger().info("导出数据无异常", str(Path(self.db_path).stat().st_mtime))
+            self._get_logger().info("导出数据无异常")
 
             return {
                 'version': '1.0',
