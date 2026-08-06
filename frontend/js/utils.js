@@ -325,7 +325,7 @@ async function apiCall({
         if (successCheck(result)) {
             if (typeof onSuccess === 'function') onSuccess(result);
         } else {
-            throw new Error(`failure status, result: '${JSON.stringify(result)}')`);
+            throw new Error(`${JSON.stringify(result?.error)}`);
         }
     } catch (error) {
         logger.error(`API '${apiMethod}' error: '${error}'`);
