@@ -298,6 +298,10 @@ class LanguageManager {
         // 联系作者
         const contactAuthor = document.querySelector('.contact-text');
         if (contactAuthor) contactAuthor.textContent = lang.contactAuthor;
+
+        // 标签按钮
+        const tags = document.getElementById('tags-text');
+        if (tags) tags.textContent = lang.taskTags;
     }
     
     // 更新筛选器选项
