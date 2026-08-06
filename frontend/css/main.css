@@ -961,6 +961,7 @@ input:checked + .slider:before {
     font-size: var(--font-size-sm);
 }
 
+.view-filter,
 .priority-filter,
 .status-filter,
 .due-date-filter {
@@ -973,6 +974,7 @@ input:checked + .slider:before {
     transition: var(--transition-fast);
 }
 
+.view-filter:hover,
 .priority-filter:hover,
 .status-filter:hover,
 .due-date-filter:hover {

@@ -419,6 +419,7 @@
     }
 
     /* 筛选器样式优化 */
+    .view-filter,
     .priority-filter,
     .status-filter,
     .due-date-filter {
@@ -435,6 +436,7 @@
     }
 
     /* 筛选器hover效果优化 */
+    .view-filter:hover,
     .priority-filter:hover,
     .status-filter:hover,
     .due-date-filter:hover {
@@ -734,6 +736,7 @@
     }
 
     /* 中等屏幕筛选器优化 */
+    .view-filter,
     .priority-filter,
     .status-filter,
     .due-date-filter {
