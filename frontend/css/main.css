@@ -751,8 +751,6 @@ input:checked + .slider:before {
 .search-container {
     display: flex;
     flex: 1;
-    min-width: 200px;
-    max-width: 500px;
 }
 
 .search-input-wrapper {
