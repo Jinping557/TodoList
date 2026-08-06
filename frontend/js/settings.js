@@ -710,7 +710,10 @@ class SettingsUIManager {
                     apiArgs: [newFile],
                     onSuccess: (response) => {
                         this.updateDataFileConfig();
-                        setTimeout(() => location.reload(), 1000);
+                        setTimeout(() => {
+                            location.reload();
+                            localStorage.clear();
+                        }, 1000);
                     },
                     onError: (error) => {
                         Utils.showToast(window.languageManager.getText('settingsFailed', '设置失败'), 'error');
@@ -857,7 +860,10 @@ class SettingsUIManager {
                                 apiMethod: config.first_sync_mode === 'local_overwrite' ? 'sync_to_cloud' : 'sync_from_cloud',
                                 apiArgs: config.first_sync_mode === 'local_overwrite' ? [] : [true],
                             });
-                            setTimeout(() => location.reload(), 1000);
+                            setTimeout(() => {
+                                location.reload();
+                                localStorage.clear();
+                            }, 1000);
                         }
                     },
                     onError: (error) => {

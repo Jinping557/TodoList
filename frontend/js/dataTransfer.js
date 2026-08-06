@@ -282,7 +282,10 @@ class DataTransfer {
                                 onSuccess: (response) => {
                                     Utils.showToast(window.languageManager.getText('dataImportedSuccess', '数据导入成功'), 'success');
                                     this.closeModal();
-                                    setTimeout(() => location.reload(), 1000);
+                                    setTimeout(() => {
+                                        location.reload();
+                                        localStorage.clear();
+                                    }, 1000);
                                 }
                             });
                         }
