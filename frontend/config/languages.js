@@ -82,6 +82,7 @@ const Languages = {
         categoryName: "分类名称",
         categoryColor: "颜色",
         uncategorized: "未分类",
+        showMoreCategories: "展示更多",
 
         // 联系作者
         contactAuthor: "联系作者",
@@ -371,6 +372,7 @@ const Languages = {
         categoryName: "Category Name",
         categoryColor: "Color",
         uncategorized: "Uncategorized",
+        showMoreCategories: "More",
 
         // 联系作者
         contactAuthor: "Contact Author",

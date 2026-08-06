@@ -213,6 +213,10 @@ class LanguageManager {
         // 添加分类按钮
         const addCategoryBtn = document.getElementById('add-category-btn');
         if (addCategoryBtn) addCategoryBtn.textContent = lang.addCategory;
+
+        // 展示更多按钮
+        const moreCategories = document.getElementById('categories-more');
+        if (moreCategories) moreCategories.textContent = lang.showMoreCategories;
         
         // 搜索框占位符
         const searchInput = document.getElementById('search-input');
