@@ -523,9 +523,12 @@
 }
 
 /* 日期时间输入框特殊样式 */
+.form-group select,
 .form-group input[type="datetime-local"],
+.form-group input[type="number"],
+.form-group input[type="text"],
 .form-group input[type="time"] {
-    min-height: 40px;
+    height: 40px;
 }
 
 .form-group input[type="datetime-local"]:invalid:not(:focus):placeholder-shown,
