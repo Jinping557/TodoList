@@ -92,13 +92,22 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None):
 
     # 创建窗口：首先加载内存中的 loading 页面（零磁盘 I/O，瞬间弹出）
     backend_logger.info("创建应用窗口并展示加载动画...")
+
+    # 获取主屏幕尺寸
+    target_screen = webview.screens[0]
+    screen_width = target_screen.width
+    screen_height = target_screen.height
+
     import backend.globals
     backend.globals.window = webview.create_window(
         'TodoList',
         html=loading_html,  # 【关键】改用 html= 启动，不传递文件路径
         js_api=None,  # 此时先不绑定 API，等全加载完后再载入
-        width=1400,
-        height=900,
+        # 控制屏幕位置和大小：居中，占比80%
+        x=screen_width * 0.1,
+        y=screen_height * 0.1,
+        width=screen_width * 0.8,
+        height=screen_height * 0.8,
         text_select=True,
         resizable=True
     )
