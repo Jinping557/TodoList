@@ -609,7 +609,7 @@ class TodoManager {
                             <div class="task-checkbox ${task.completed ? 'checked' : ''}"
                                  data-task-id="${task.id}"></div>
                             <div class="task-content">
-                                <h3 class="task-title">
+                                <h3 class="task-title" title="${task.title}">
                                     ${Utils.escapeHtml(task.title)}
                                     ${task.isRecurring ? `<span class="recurring-badge">${window.languageManager.getText('recurrenceType', '周期性')}</span>` : ''}
                                     ${task.parentTaskId ? `<span class="recurring-badge">${window.languageManager.getText('recurringTask', '周期任务')}</span>` : ''}
