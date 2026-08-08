@@ -177,27 +177,12 @@ class LanguageManager {
         // 统计信息标签
         const statLabels = document.querySelectorAll('.stat-label');
         if (statLabels.length >= 4) {
-            statLabels[0].textContent = lang.statsTotalTasks;
-            statLabels[1].textContent = lang.statsCompletedTasks;
+            statLabels[0].textContent = lang.statsUnCompletedTasks;
+            statLabels[1].textContent = lang.statsTodayCompletedTasks;
             statLabels[2].textContent = lang.statsCompletionRate;
-            statLabels[3].textContent = lang.statsNoDueDateTasks;
+            statLabels[3].textContent = lang.statsOverDueDateTasks;
         }
-        
-        // 统计维度按钮
-        const dimensionBtns = document.querySelectorAll('.dimension-btn');
-        dimensionBtns.forEach(btn => {
-            const dimension = btn.dataset.dimension;
-            if (dimension && lang.statsTimeDimension[dimension]) {
-                btn.textContent = lang.statsTimeDimension[dimension];
-                btn.title = lang.statsTimeDimension[dimension];
-            }
 
-        });
-        const activeDimensionBtn = document.querySelector('.dimension-btn.active');
-        if (activeDimensionBtn.dataset.dimension === 'all') {
-            document.querySelector('.date-range-text').textContent = lang.statsTimeDimension['all'];
-        }
-        
         // 分类标题
         const categoriesTitle = document.querySelector('.categories-section .categories-section-title');
         if (categoriesTitle) categoriesTitle.textContent = lang.categories;

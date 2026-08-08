@@ -66,14 +66,9 @@ const Languages = {
         statsCompletionRate: "完成率",
         statsNoDueDateTasks: "无截止日期",
         statsLastUpdateTime: "最后更新",
+        statsTodayCompletedTasks: "今日已完成",
+        statsOverDueDateTasks: "已逾期",
         statsCategories: "分类数",
-        statsTimeDimension: {
-            all: "全部",
-            year: "今年",
-            month: "本月", 
-            week: "本周",
-            day: "今天"
-        },
         
         // 分类管理
         categories: "分类",
@@ -356,14 +351,9 @@ const Languages = {
         statsCompletionRate: "Completion Rate",
         statsNoDueDateTasks: "No Due Date",
         statsLastUpdateTime: "Last Updated Time",
+        statsTodayCompletedTasks: "Today Completed",
+        statsOverDueDateTasks: "Over Due Date",
         statsCategories: "Total Categories",
-        statsTimeDimension: {
-            all: "All Time",
-            year: "This Year",
-            month: "This Month",
-            week: "This Week",
-            day: "Today"
-        },
         
         // 分类管理
         categories: "Categories",

@@ -45,8 +45,6 @@ class TodoManager {
         this._subtaskSuggestTimer = null;
         this._subtaskSuggestItems = [];
         this._subtaskSuggestIndex = -1;
-        // 统计维度
-        this.statsDimension = 'all'; // all, year, month, week, day
         // 日期范围缓存
         this.currentDateRange = null;
         // 统计数据更新防抖
@@ -131,22 +129,6 @@ class TodoManager {
 
     // 绑定事件
     bindEvents() {
-        // 统计维度切换
-        const dimensionBtns = document.querySelectorAll('.dimension-btn');
-        dimensionBtns.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                // 更新选中状态
-                dimensionBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                // 更新当前维度
-                this.statsDimension = btn.dataset.dimension;
-
-                // 重新加载统计数据
-                await this.updateStats();
-            });
-        });
-
         // 监听窗口大小变化，切换分页/无限下拉模式
         let resizeTimeout;
         window.addEventListener('resize', () => {
@@ -2100,24 +2082,25 @@ class TodoManager {
             this.updateStatsDateRange();
             Utils.apiCall({
                 apiMethod: 'get_stats',
-                apiArgs: [this.statsDimension],
                 onSuccess: (response) => {
-                    const totalTasksEl = document.getElementById('total-tasks');
-                    const completedTasksEl = document.getElementById('completed-tasks');
+                    const totalUncompletedTasksEl = document.getElementById('total-uncompleted-tasks');
+                    const todayCompletedTasksEl = document.getElementById('today-completed-tasks');
                     const completionRateEl = document.getElementById('completion-rate');
-                    const noDueDateEl = document.getElementById('no-due-date-tasks');
+                    const overDueDateEl = document.getElementById('over-due-date-tasks');
 
-                if (!totalTasksEl || !completedTasksEl || !completionRateEl || !noDueDateEl) return;
+                    if (!totalUncompletedTasksEl || !todayCompletedTasksEl || !completionRateEl || !overDueDateEl) return;
 
-                const total = response.stats.total;
-                const completed = response.stats.completed;
-                const rate = response.stats.completion_rate;
-                const noDueDate = response.stats.no_due_date || 0;
+                    const totalUncompleted = response.stats.uncompleted;
+                    const todayCompleted = response.stats.today_completed;
+                    const rate = response.stats.completion_rate;
+                    const overDueDate = response.stats.over_due || 0;
 
-                    Utils.animateNumber(totalTasksEl, total, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
-                    Utils.animateNumber(completedTasksEl, completed, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
+                    overDueDateEl.style.color = overDueDate == 0 ? 'var(--text-primary)' : 'red';
+
+                    Utils.animateNumber(totalUncompletedTasksEl, totalUncompleted, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
+                    Utils.animateNumber(todayCompletedTasksEl, todayCompleted, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
                     Utils.animateNumber(completionRateEl, rate, { duration: 600, suffix: '%', decimals: 1, easing: 'easeOutCubic', fromZero: shouldFromZero });
-                    Utils.animateNumber(noDueDateEl, noDueDate, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
+                    Utils.animateNumber(overDueDateEl, overDueDate, { duration: 600, easing: 'easeOutCubic', fromZero: shouldFromZero });
                 }
             });
         }, 200);
@@ -2132,43 +2115,8 @@ class TodoManager {
         const year = now.getFullYear();
         const month = now.getMonth() + 1;
         const day = now.getDate();
-        const weekDay = now.getDay(); // 0-6, 0 is Sunday
 
-        let dateRangeText = '';
-
-        switch (this.statsDimension) {
-            case 'all':
-                dateRangeText = `${window.languageManager.getText('statsTimeDimension.all', '全部')}`;
-                break;
-            case 'year':
-                dateRangeText = `${year}`;
-                break;
-            case 'month':
-                dateRangeText = `${year}-${month}`;
-                break;
-            case 'week':
-                // 计算本周的周一和周日
-                const monday = new Date(now);
-                monday.setDate(now.getDate() - (weekDay === 0 ? 6 : weekDay - 1));
-                const sunday = new Date(monday);
-                sunday.setDate(monday.getDate() + 6);
-
-                const mondayMonth = monday.getMonth() + 1;
-                const mondayDay = monday.getDate();
-                const sundayMonth = sunday.getMonth() + 1;
-                const sundayDay = sunday.getDate();
-
-                // 如果跨月，显示月份
-                if (mondayMonth === sundayMonth) {
-                    dateRangeText = `${mondayMonth}/${mondayDay} - ${mondayMonth}/${sundayDay}`;
-                } else {
-                    dateRangeText = `${mondayMonth}/${mondayDay} - ${sundayMonth}/${sundayDay}`;
-                }
-                break;
-            case 'day':
-                dateRangeText = `${year}-${month}-${day}`;
-                break;
-        }
+        let dateRangeText = `${year}-${month}-${day}`;
 
         dateRangeEl.innerHTML = `<span class="date-range-text">${dateRangeText}</span>`;
     }
