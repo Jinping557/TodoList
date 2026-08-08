@@ -128,12 +128,8 @@ function isOverdue(dueDate) {
     
     const taskDate = new Date(dueDate);
     const now = new Date();
-    
-    // 只比较日期部分，忽略时间
-    const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
-    const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    return taskDateOnly < nowDateOnly;
+
+    return taskDate < now;
 }
 
 // 模态框管理
