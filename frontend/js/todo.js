@@ -1637,7 +1637,7 @@ class TodoManager {
             isRecurringCheckbox.disabled = false;
             isRecurringCheckbox.checked = false;
             isRecurringCheckbox.title = '';
-            recurrenceToggle.style.display = 'block';
+            recurrenceToggle.style.display = 'flex';
             isRecurringCheckbox.style.display = 'block';
         }
         

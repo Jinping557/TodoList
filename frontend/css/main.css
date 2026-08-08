@@ -18,6 +18,7 @@
 
 /* 侧边栏 */
 .sidebar {
+    height: 100%;
     width: 280px;
     background-color: var(--bg-secondary);
     border-right: 1px solid var(--border-color);
@@ -28,6 +29,7 @@
 }
 
 .sidebar-header {
+    flex-shrink: 0;
     padding: var(--spacing-lg);
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -61,11 +63,6 @@
 
 .settings-btn:hover {
     background-color: var(--bg-tertiary);
-}
-
-/* 设置中心模态框 */
-.settings-modal-content {
-    max-width: 500px;
 }
 
 .setting-section {
@@ -189,12 +186,14 @@ input:checked + .slider:before {
 
 /* 统计信息 */
 .stats-container {
+    flex-shrink: 0;
     padding: var(--spacing-lg);
 }
 
 /* 分类和标签部分 */
 .categories-section, .tags-section {
     flex: 1;
+    flex-shrink: 0;
     padding: var(--spacing-lg);
     border-top: 1px solid var(--border-color);
 }
@@ -368,6 +367,7 @@ input:checked + .slider:before {
 
 /* 联系作者部分 */
 .contact-author-section {
+    flex-shrink: 0;
     margin-top: auto;
     padding: var(--spacing-md) var(--spacing-lg);
     border-top: 1px solid var(--border-color);
@@ -493,38 +493,10 @@ input:checked + .slider:before {
     transform: translateY(-1px);
 }
 
-/* 侧边栏布局调整 */
-.sidebar {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.sidebar-header {
-    flex-shrink: 0;
-}
-
-.stats-container {
-    flex-shrink: 0;
-}
-
-.categories-section, .tags-section {
-    flex-shrink: 0;
-}
-
-.contact-author-section {
-    flex-shrink: 0;
-}
-
 /* 数据传输部分 */
 .data-transfer-section {
     padding: var(--spacing-lg);
     border-top: 1px solid var(--border-color);
-}
-
-/* 数据传输模态框 */
-.data-transfer-modal-content, .data-sync-modal-content {
-    max-width: 600px;
 }
 
 .transfer-mode-selector {
@@ -761,9 +733,10 @@ input:checked + .slider:before {
 
 .search-input {
     flex: 1;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
+    min-width: 60px;
+    padding: var(--spacing-xs);
+    border: none;
+    border-radius: 0;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     font-size: var(--font-size-base);
@@ -836,20 +809,6 @@ input:checked + .slider:before {
 
 .search-tag-wrapper:focus-within {
     border-color: var(--primary-color);
-}
-
-.search-tag-wrapper .search-input {
-    flex: 1;
-    min-width: 60px;
-    padding: 4px 6px;
-    border: none;
-    border-radius: 0;
-    background-color: transparent;
-}
-
-.search-tag-wrapper .search-input:focus {
-    outline: none;
-    border-color: transparent;
 }
 
 .search-chip {
@@ -1058,7 +1017,6 @@ input:checked + .slider:before {
     z-index: 100;
     transition: var(--transition);
     align-items: center;
-    justify-content: center;
     padding: 0;
 }
 
@@ -1251,7 +1209,6 @@ input:checked + .slider:before {
     display: table;
     width: 100%;
     border-collapse: collapse;
-    gap: 0;
     table-layout: fixed;  /* 固定表格布局,列宽固定 */
     min-width: 1060px; /* 实现横向滚动布局 */
 }
@@ -1342,8 +1299,6 @@ input:checked + .slider:before {
     display: table-cell;
     vertical-align: middle;
     padding: var(--spacing-sm) var(--spacing-md);
-    gap: var(--spacing-sm);
-    flex-wrap: nowrap;
     width: 10%;
     max-width: 10%;
 }
@@ -1357,16 +1312,10 @@ input:checked + .slider:before {
     font-size: var(--font-size-sm);
 }
 
-.task-due-date-cell .overdue {
-    color: var(--danger-color);
-    font-weight: 600;
-}
-
 .task-tags {
     display: table-cell;
     vertical-align: middle;
     padding: var(--spacing-sm) var(--spacing-md);
-    flex-wrap: nowrap;
     width: 15%;
     max-width: 15%;
 }
@@ -1398,7 +1347,6 @@ input:checked + .slider:before {
     z-index: 10;
     vertical-align: middle;
     padding: var(--spacing-sm) var(--spacing-md);
-    gap: var(--spacing-sm);
     transition: none;
     max-width: 15%;
     /* 列固定位置 */
@@ -1660,8 +1608,6 @@ input:checked + .slider:before {
 /* 数据目录配置样式 */
 .setting-item-config {
     display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
     margin-bottom: var(--spacing-sm);
 }
 
@@ -1866,7 +1812,7 @@ input:checked + .slider:before {
 .dates-header {
     display: flex;
     background: #f8fafc;
-    border-bottom: 2px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
     flex-shrink: 0;
 }
 
@@ -1986,15 +1932,13 @@ input:checked + .slider:before {
     text-align: center;
 }
 
-.task-scheduler button {
-    font-size: 0.7rem;
-}
 /* 周数调节按钮额外样式 */
 .week-adjust {
     display: flex;
-    gap: 6px;
+    gap: 10px;
     background: #f1f5f9;
-    padding: 2px 8px;
+    padding: 4px 12px;
+    align-items: center;
     border-radius: 40px;
 }
 .week-adjust button {
@@ -2006,7 +1950,6 @@ input:checked + .slider:before {
 
 /* 子任务相关样式 */
 .subtask-count {
-    display: inline;
     font-size: 0.75rem;
     color: var(--secondary-color);
     margin-left: 6px;

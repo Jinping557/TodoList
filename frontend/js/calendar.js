@@ -66,7 +66,7 @@ class CalendarManager {
                 break;
             case 'timeline':
                 // 切换到时间轴视图
-                timelineView.style.display = 'block';
+                timelineView.style.display = 'flex';
                 tasksView.style.display = 'none';
                 pagination.style.display = 'none';
                 calendarView.style.display = 'none';
