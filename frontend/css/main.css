@@ -50,21 +50,6 @@
     color: var(--primary-color);
 }
 
-/* 设置按钮 */
-.settings-btn {
-    background: none;
-    border: none;
-    font-size: var(--font-size-lg);
-    cursor: pointer;
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition-fast);
-}
-
-.settings-btn:hover {
-    background-color: var(--bg-tertiary);
-}
-
 .setting-section {
     margin-bottom: var(--spacing-xl);
 }
@@ -222,32 +207,23 @@ input:checked + .slider:before {
     margin-bottom: var(--spacing-md);
 }
 
-.category-item {
-    width: 100%;
+.category-item-btn {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--spacing-sm) var(--spacing-md);
-    margin-bottom: 0;
-    border: none;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition-fast);
-    color: var(--text-primary);
+    justify-content: space-between !important;
+    margin-bottom: 0 !important;
 }
 
-.category-item:hover {
-    background-color: var(--bg-tertiary);
+.category-item-btn:hover {
+    filter: none !important;
+    background-color: var(--bg-tertiary) !important;
 }
 
-.category-item.active {
-    background-color: var(--primary-color);
+.category-item-btn.active {
+    background-color: var(--primary-color) !important;
     color: white;
 }
 
-.category-item.active .category-count {
+.category-item-btn.active .category-count {
     background-color: rgba(255,255,255,0.2);
     color: white;
 }
@@ -257,69 +233,29 @@ input:checked + .slider:before {
     position: relative;
     display: flex;
     align-items: center;
-    margin-bottom: var(--spacing-xs);
-}
-
-.category-item-wrapper:hover .category-edit-btn,
-.category-item-wrapper:hover .category-delete-btn {
-    opacity: 1;
 }
 
 /* 分类删除按钮 */
 .category-delete-btn {
-    position: absolute;
     right: 8px; /* 移到更右边，覆盖数字位置 */
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    padding: 4px 8px;
-    cursor: pointer;
-    border-radius: var(--border-radius-sm);
-    opacity: 0;
-    transition: var(--transition-fast);
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
     z-index: 20; /* 高于数字的层级，可以覆盖数字 */
-    width: 32px; /* 增加宽度以更好覆盖数字 */
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 /* 分类编辑按钮 */
 .category-edit-btn {
-    position: absolute;
     right: 45px; /* 调整位置，避免与删除按钮重叠 */
+    z-index: 15; /* 高于数字，但低于删除按钮 */
+}
+
+.category-edit-btn, .category-delete-btn {
+    opacity: 0;
+    display: flex;
+    position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: none;
-    border: none;
-    padding: 4px 8px;
-    cursor: pointer;
-    border-radius: var(--border-radius-sm);
-    opacity: 0;
-    transition: var(--transition-fast);
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    z-index: 15; /* 高于数字，但低于删除按钮 */
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
-.category-edit-btn:hover {
-    background-color: var(--primary-color);
-    color: white;
-    opacity: 1 !important;
-}
-
-.category-delete-btn:hover {
-    background-color: var(--danger-color);
-    color: white;
+.category-edit-btn:hover, .category-delete-btn:hover {
     opacity: 1 !important;
 }
 
@@ -336,67 +272,12 @@ input:checked + .slider:before {
     margin-left: var(--spacing-md);
 }
 
-/* 当悬停删除按钮时，数字淡化显示 */
-.category-delete-btn:hover {
-    background-color: var(--danger-color);
-    color: white;
-    opacity: 1 !important;
-    box-shadow: var(--shadow-sm);
-}
-
-/* 删除按钮悬停时，淡化对应的数字计数 */
-.category-item-wrapper:hover .category-delete-btn:hover {
-    z-index: 25; /* 确保在最高层 */
-}
-
-.add-category-btn {
-    width: 100%;
-    padding: var(--spacing-sm);
-    border: 1px dashed var(--border-color);
-    background: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition-fast);
-}
-
-.add-category-btn:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-}
-
 /* 联系作者部分 */
 .contact-author-section {
     flex-shrink: 0;
     margin-top: auto;
     padding: var(--spacing-md) var(--spacing-lg);
     border-top: 1px solid var(--border-color);
-}
-
-.contact-author-btn {
-    width: 100%;
-    padding: var(--spacing-sm) var(--spacing-md);
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow-sm);
-}
-
-.contact-author-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-    background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-color) 100%);
-}
-
-.contact-author-btn:active {
-    transform: translateY(0);
 }
 
 .contact-icon {
@@ -476,23 +357,6 @@ input:checked + .slider:before {
     margin-bottom: var(--spacing-lg);
 }
 
-.qr-code-close {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
-    font-size: var(--font-size-base);
-    font-weight: 500;
-    transition: var(--transition-fast);
-}
-
-.qr-code-close:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-1px);
-}
-
 /* 数据传输部分 */
 .data-transfer-section {
     padding: var(--spacing-lg);
@@ -505,26 +369,14 @@ input:checked + .slider:before {
     margin-bottom: var(--spacing-lg);
 }
 
-.mode-btn {
-    flex: 1;
-    padding: var(--spacing-lg);
-    background-color: var(--bg-tertiary);
-    border: 2px solid var(--border-color);
-    border-radius: var(--border-radius);
-    cursor: pointer;
+#share-mode-btn, #receive-mode-btn {
     display: flex;
+    padding: var(--spacing-lg);
     flex-direction: column;
-    align-items: center;
     gap: var(--spacing-sm);
-    transition: var(--transition);
 }
 
-.mode-btn:hover {
-    border-color: var(--primary-color);
-    background-color: var(--bg-secondary);
-}
-
-.mode-btn.active {
+#share-mode-btn.active, #receive-mode-btn.active {
     border-color: var(--primary-color);
     background-color: rgba(0, 123, 255, 0.1);
 }
@@ -590,15 +442,6 @@ input:checked + .slider:before {
 
 .panel-section .action-btn {
     padding: var(--spacing-sm) var(--spacing-lg);
-}
-
-.primary-btn {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.primary-btn:hover {
-    background-color: var(--primary-hover);
 }
 
 .status-info {
@@ -747,51 +590,9 @@ input:checked + .slider:before {
     border-color: var(--primary-color);
 }
 
-.search-clear-btn {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: var(--transition-fast);
-    opacity: 0;
-    visibility: hidden;
-}
-
-.search-clear-btn:hover {
-    background-color: var(--border-color);
-    color: var(--text-primary);
-}
-
-.search-clear-btn.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-.search-btn {
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: 1px solid var(--border-color);
+#search-btn {
     border-left: none;
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-    cursor: pointer;
     border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
-    transition: var(--transition-fast);
-}
-
-.search-btn:hover {
-    background-color: var(--border-color);
 }
 
 /* 标签搜索输入框（chips 模式） */
@@ -939,31 +740,6 @@ input:checked + .slider:before {
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
 }
 
-.add-task-btn {
-    padding: var(--spacing-sm) var(--spacing-md);
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
-    font-weight: 500;
-    transition: var(--transition-fast);
-    white-space: nowrap;
-    min-width: fit-content;
-}
-
-.add-task-btn:hover {
-    background-color: var(--primary-hover);
-}
-
-.export-btn {
-    background-color: var(--success-color);
-}
-
-.export-btn:hover {
-    background-color: var(--success-hover);
-}
-
 .action-buttons {
     display: flex;
     gap: var(--spacing-sm);
@@ -985,49 +761,18 @@ input:checked + .slider:before {
 }
 
 /* 移动端菜单按钮 */
-.mobile-menu-btn {
+#mobile-menu-btn {
     display: none;
-    background: none;
-    border: none;
-    font-size: var(--font-size-xl);
-    cursor: pointer;
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition-fast);
-    color: var(--text-primary);
-}
-
-.mobile-menu-btn:hover {
-    background-color: var(--bg-tertiary);
 }
 
 /* 移动端悬浮按钮样式 */
-.add-task-fab {
+#add-task-fab {
     position: fixed;
     bottom: 24px;
     right: 24px;
     width: 56px;
     height: 56px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    cursor: pointer;
-    box-shadow: var(--shadow-lg);
     z-index: 100;
-    transition: var(--transition);
-    align-items: center;
-    padding: 0;
-}
-
-.add-task-fab:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
-}
-
-.add-task-fab:active {
-    transform: translateY(0);
 }
 
 .add-task-fab .fab-icon {
@@ -1045,20 +790,8 @@ input:checked + .slider:before {
 }
 
 /* 小屏幕更多按钮 */
-.more-menu-btn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition-fast);
-    color: var(--text-primary);
+#more-menu-btn {
     display: none;
-}
-
-.more-menu-btn:hover {
-    background-color: var(--bg-tertiary);
 }
 
 /* 小屏幕更多菜单弹窗 */
@@ -1109,22 +842,6 @@ input:checked + .slider:before {
 .more-menu-title {
     font-size: var(--font-size-lg);
     font-weight: 600;
-    color: var(--text-primary);
-}
-
-.more-menu-close {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: var(--border-radius-sm);
-    color: var(--text-secondary);
-    transition: var(--transition-fast);
-}
-
-.more-menu-close:hover {
-    background-color: var(--bg-tertiary);
     color: var(--text-primary);
 }
 
@@ -1351,34 +1068,6 @@ input:checked + .slider:before {
     max-width: 15%;
     /* 列固定位置 */
     background: linear-gradient(to left, var(--bg-primary) 99%, rgba(0,0,0,0.1));
-}
-
-.task-action-btn {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    line-height: 1.5;
-    background: none;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    transition: var(--transition-fast);
-    white-space: nowrap;
-}
-
-.task-action-btn:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-}
-
-.task-action-btn.delete:hover {
-    border-color: var(--danger-color);
-    color: var(--danger-color);
-}
-
-.task-action-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 /* 日历视图样式 */
@@ -1662,23 +1351,14 @@ input:checked + .slider:before {
 }
 
 .setting-config-btn {
-    width: 80px;
-    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    width: 80px !important;
+    border-left: none !important;
+    padding: var(--spacing-md) !important;
+    border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0 !important;
 }
 
 .webdav-input:focus-visible {
     outline: none;
-}
-
-.secondary-btn {
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-}
-
-.secondary-btn:hover {
-    background-color: var(--bg-tertiary);
-    border-color: var(--text-muted);
 }
 
 /* 时间轴视图 */
@@ -1715,20 +1395,6 @@ input:checked + .slider:before {
     background: #f8fafc;
     padding: 4px 12px;
     border-radius: 40px;
-}
-
-.date-controls button {
-    background: white;
-    border: none;
-    font-size: 18px;
-    font-weight: bold;
-    width: 30px;
-    height: 30px;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: 0.1s;
-    color: #2c5f8a;
-    border: 1px solid #cbd5e1;
 }
 
 .date-range-label {
@@ -1909,21 +1575,14 @@ input:checked + .slider:before {
     white-space: nowrap;
 }
 .delete-task {
-    background: none;
-    border: none;
-    font-size: 12px;
-    cursor: pointer;
-    color: #94a3b8;
-    border-radius: 20px;
-    width: 18px;
-    height: 18px;
+    color: #94a3b8 !important;
+    width: 18px !important;
+    height: 18px !important;
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
     flex-shrink: 0;
 }
 .delete-task:hover {
-    color: #ef4444;
+    color: #ef4444 !important;
 }
 
 .empty-cell-message {
@@ -1940,12 +1599,6 @@ input:checked + .slider:before {
     padding: 4px 12px;
     align-items: center;
     border-radius: 40px;
-}
-.week-adjust button {
-    background: white;
-    border: 1px solid #cbd5e1;
-    padding: 2px 8px;
-    font-size: 0.7rem;
 }
 
 /* 子任务相关样式 */
@@ -2062,23 +1715,6 @@ input:checked + .slider:before {
     padding: var(--spacing-sm);
     text-align: center;
     border-top: 1px solid var(--border-light);
-}
-
-.load-more-btn {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    padding: var(--spacing-xs) var(--spacing-md);
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    color: var(--primary-color);
-    transition: all 0.2s;
-}
-
-.load-more-btn:hover {
-    background: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
 }
 
 .combobox-empty {

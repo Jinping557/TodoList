@@ -81,8 +81,8 @@ class CategoryManager {
             }
             
             // 分类筛选 - 确保不是点击按钮时触发
-            if (e.target.closest('.category-item') && !e.target.closest('.category-edit-btn') && !e.target.closest('.category-delete-btn')) {
-                const categoryItem = e.target.closest('.category-item');
+            if (e.target.closest('.category-item-btn') && !e.target.closest('.category-edit-btn') && !e.target.closest('.category-delete-btn')) {
+                const categoryItem = e.target.closest('.category-item-btn');
                 const categoryId = categoryItem.dataset.category;
                 this.filterByCategory(categoryId);
             }
@@ -153,7 +153,7 @@ class CategoryManager {
     // 生成分类HTML
     generateCategoriesHtml(taskCounts, isShowMore=false) {
         let html = `
-            <button class="category-item" data-category="all">
+            <button class="btn btn--colorless btn--width-100 category-item-btn" data-category="all">
                 <span class="category-item-with-color">
                     <span class="category-color-indicator" style="background-color: var(--primary-color);"></span>
                     <span id="allCategories">${window.languageManager.getText('allCategories', '全部')}</span>
@@ -167,17 +167,17 @@ class CategoryManager {
             const count = taskCounts[category.id] || 0;
             html += `
                 <div class="category-item-wrapper" data-category-id="${category.id}">
-                    <button class="category-item" data-category="${category.id}">
+                    <button class="btn btn--colorless btn--width-100 category-item-btn" data-category="${category.id}">
                         <span class="category-item-with-color">
                             <span class="category-color-indicator" style="background-color: ${category.color};"></span>
                             <span>${Utils.escapeHtml(category.name)}</span>
                         </span>
                         <span class="category-count">${count}</span>
                     </button>
-                    <button class="category-edit-btn" data-category-id="${category.id}" title="编辑分类">
+                    <button class="btn btn--colorless category-edit-btn" data-category-id="${category.id}" title="编辑分类">
                         ✏️
                     </button>
-                    <button class="category-delete-btn" data-category-id="${category.id}" title="删除分类">
+                    <button class="btn btn--colorless category-delete-btn" data-category-id="${category.id}" title="删除分类">
                         🗑️
                     </button>
                 </div>
@@ -237,7 +237,7 @@ class CategoryManager {
     
     // 设置激活的分类
     setActiveCategory(categoryId) {
-        document.querySelectorAll('.category-item').forEach(item => {
+        document.querySelectorAll('.category-item-btn').forEach(item => {
             item.classList.remove('active');
         });
         

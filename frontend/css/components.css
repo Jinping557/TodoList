@@ -1,4 +1,57 @@
 /* 组件样式 */
+/* ===== 按钮通用样式 ===== */
+.btn {
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-sm);
+    font-size: var(--font-size);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    border: var(--border-width) var(--border-style) var(--border-color);
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-radius: var(--border-radius-sm);
+    height: var(--height);
+    width: var(--width);
+}
+
+.btn--circle {
+    border-radius: 50%;
+    aspect-ratio: 1 / 1; /* 保持正圆 */
+}
+
+.btn--primary-color {
+    --bg-color: var(--primary-color);
+    --text-color: var(--text-white);
+}
+.btn--success-color {
+    --bg-color: var(--success-color);
+    --text-color: var(--text-white);
+}
+.btn--tertiary-color {
+    --bg-color: var(--bg-tertiary);
+    --text-color: var(--text-primary);
+}
+.btn--danger-color {
+    --bg-color: var(--danger-color);
+    --text-color: var(--text-white);
+}
+.btn--colorless {
+    --bg-color: transparent !important;
+    --border-color: transparent !important;
+}
+
+.btn--border-dashed { --border-style: dashed; }
+
+.btn--width-100 { --width: 100%; }
+.btn--padding-md { padding: var(--spacing-sm) var(--spacing-md); }
+.btn--font-size-lg { --font-size: var(--font-size-lg) !important; }
+
+/* 移动/悬停 -> 深色（利用 filter 亮度，一招通吃所有颜色） */
+.btn:hover {
+  filter: brightness(0.85);
+}
+
 /* 统计日期显示 */
 .stats-date-range {
     text-align: center;
@@ -123,27 +176,6 @@
     color: var(--text-primary);
 }
 
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--text-secondary);
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition-fast);
-}
-
-.modal-close:hover {
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-}
-
 /* 分页组件 */
 .pagination {
     display: flex;
@@ -190,57 +222,18 @@
     gap: var(--spacing-sm);
 }
 
-.pagination-btn {
-    padding: 6px 16px;
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    transition: var(--transition-fast);
-    white-space: nowrap;
-}
-
-.pagination-btn:hover:not(:disabled) {
-    background-color: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
-}
-
-.pagination-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 .pagination-numbers {
     display: flex;
     align-items: center;
     gap: var(--spacing-xs);
 }
 
-.pagination-number {
-    min-width: 32px;
-    height: 32px;
-    padding: 0;
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    transition: var(--transition-fast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.pagination-numbers .btn {
+    min-width: 38px;
+    height: 38px;
 }
 
-.pagination-number:hover {
-    background-color: var(--bg-tertiary);
-    border-color: var(--primary-color);
-}
-
-.pagination-number.active {
+.pagination-numbers .btn.active {
     background-color: var(--primary-color);
     color: white;
     border-color: var(--primary-color);
@@ -321,19 +314,6 @@
     padding-top: var(--spacing-xs);
 }
 
-.more-options-toggle {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: var(--spacing-sm) 0;
-    font-size: var(--font-size-sm);
-    transition: var(--transition-fast);
-}
-
 .recurrence-toggle {
     display: flex;
     align-items: center;
@@ -345,10 +325,6 @@
     padding: var(--spacing-xs) 0;
     font-size: var(--font-size-sm);
     transition: var(--transition-fast);
-}
-
-.more-options-toggle:hover {
-    color: var(--primary-color);
 }
 
 .recurrence-toggle:hover {
@@ -364,10 +340,6 @@
     line-height: 16px;
     font-weight: bold;
     transition: transform 0.3s ease;
-}
-
-.more-options-toggle.expanded .toggle-icon {
-    transform: rotate(0deg);
 }
 
 .more-options-content {
@@ -418,42 +390,22 @@
 }
 
 /* 清空按钮样式 */
-.clear-btn {
+.input-wrapper button, .search-input-wrapper button {
     position: absolute;
     right: var(--spacing-sm);
     top: 50%;
     transform: translateY(-50%);
-    background: var(--text-muted);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     opacity: 0;
-    transition: var(--transition-fast);
     z-index: 10;
 }
 
-.clear-btn:hover {
-    background: var(--danger-color);
-    transform: translateY(-50%) scale(1.1);
-}
-
-.input-wrapper:hover .clear-btn,
-.input-wrapper input:focus ~ .clear-btn,
-.clear-btn.visible {
-    opacity: 1;
-}
-
-/* 当输入框有值时显示清空按钮 */
-.input-wrapper input:not(:placeholder-shown) ~ .clear-btn,
-.input-wrapper input[value] ~ .clear-btn {
+.input-wrapper:hover button,
+.input-wrapper input:focus ~ button,
+.input-wrapper input:not(:placeholder-shown) ~ button,
+.input-wrapper input[value] ~ button,
+.search-input-wrapper:hover button,
+.search-input-wrapper input:focus ~ button,
+.search-input-wrapper input[value] ~ button {
     opacity: 1;
 }
 
@@ -532,34 +484,6 @@
     flex-shrink: 0;
 }
 
-.cancel-btn,
-.save-btn {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
-    font-weight: 500;
-    transition: var(--transition-fast);
-}
-
-.cancel-btn {
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-}
-
-.cancel-btn:hover {
-    background-color: var(--border-color);
-}
-
-.save-btn {
-    background-color: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
-}
-
-.save-btn:hover {
-    background-color: var(--primary-hover);
-}
 
 /* 颜色选择器 */
 .color-picker {
@@ -893,20 +817,6 @@
     outline: none;
 }
 
-.tag-input-mode .btn-cancel {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: var(--font-size-sm);
-    cursor: pointer;
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: none;
-}
-
-.tag-input-mode .btn-cancel:hover {
-    background-color: var(--border-color);
-}
-
 /* 分类项 */
 .category-item-with-color {
     display: flex;
@@ -920,10 +830,6 @@
     border-radius: 50%;
     border: 2px solid transparent;
     flex-shrink: 0;
-}
-
-.category-item.active .category-color-indicator {
-    border-color: white;
 }
 
 /* 按钮状态 */
@@ -1032,26 +938,6 @@
 
 .tooltip:hover::after {
     opacity: 1;
-}
-
-.danger-btn {
-    background-color: var(--danger-color);
-    color: white;
-    border: none;
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    transition: var(--transition-fast);
-}
-
-.danger-btn:hover {
-    background-color: #c82333;
-    transform: translateY(-1px);
-}
-
-.danger-btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.3);
 }
 
 /* 周期性任务样式 */

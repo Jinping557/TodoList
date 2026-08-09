@@ -209,8 +209,8 @@ class TodoManager {
         isRecurringCheckbox?.addEventListener('change', (e) => this.toggleRecurringOptions());
 
         // 日期时间清空按钮
-        const clearDateBtn = document.querySelector('.clear-date');
-        const clearTimeBtn = document.querySelector('.clear-time');
+        const clearDateBtn = document.getElementById('clear-date');
+        const clearTimeBtn = document.getElementById('clear-time');
         clearDateBtn?.addEventListener('click', () => {
             this.clearDateInput();
             this.addInputValueListeners();
@@ -325,7 +325,7 @@ class TodoManager {
     // 清空日期输入
     clearDateInput() {
         const datePicker = document.getElementById('task-due-date-picker');
-        const clearBtn = document.querySelector('.clear-date');
+        const clearBtn = document.getElementById('clear-date');
         
         if (datePicker) {
             datePicker.value = '';
@@ -338,7 +338,7 @@ class TodoManager {
     // 清空时间输入
     clearTimeInput() {
         const timeInput = document.getElementById('task-due-time');
-        const clearBtn = document.querySelector('.clear-time');
+        const clearBtn = document.getElementById('clear-time');
         
         if (timeInput) {
             timeInput.value = '';
@@ -352,8 +352,8 @@ class TodoManager {
     addInputValueListeners() {
         const datePicker = document.getElementById('task-due-date-picker');
         const timeInput = document.getElementById('task-due-time');
-        const clearDateBtn = document.querySelector('.clear-date');
-        const clearTimeBtn = document.querySelector('.clear-time');
+        const clearDateBtn = document.getElementById('clear-date');
+        const clearTimeBtn = document.getElementById('clear-time');
         
         // 实时校验函数
         const validateDateTime = () => {
@@ -617,11 +617,11 @@ class TodoManager {
                         ${tagsHtml || '<span style="color: var(--text-muted);">-</span>'}
                     </div>
                     <div class="task-actions">
-                        <button class="task-action-btn view" data-task-id="${task.id}"
+                        <button class="btn view" data-task-id="${task.id}"
                                 title="查看详情">👁️</button>
-                        <button class="task-action-btn edit" data-task-id="${task.id}"
+                        <button class="btn edit" data-task-id="${task.id}"
                                 title="编辑">✏️</button>
-                        <button class="task-action-btn delete" data-task-id="${task.id}"
+                        <button class="btn delete" data-task-id="${task.id}"
                                 title="删除">🗑️</button>
                     </div>
                 </div>
@@ -662,11 +662,11 @@ class TodoManager {
                     </div>
                 </div>
                 <div class="task-actions">
-                    <button class="task-action-btn view" data-task-id="${task.id}"
+                    <button class="btn view" data-task-id="${task.id}"
                                 title="查看">👁️</button>
-                    <button class="task-action-btn edit" data-task-id="${task.id}"
+                    <button class="btn edit" data-task-id="${task.id}"
                             title="编辑">✏️</button>
-                    <button class="task-action-btn delete" data-task-id="${task.id}"
+                    <button class="btn delete" data-task-id="${task.id}"
                             title="删除">🗑️</button>
                 </div>
             </div>
@@ -684,7 +684,7 @@ class TodoManager {
         });
 
         // 查看详情按钮(仅大屏幕)
-        document.querySelectorAll('.task-action-btn.view').forEach(btn => {
+        document.querySelectorAll('.btn.view').forEach(btn => {
             btn.onclick = (e) => {
                 const taskId = e.target.dataset.taskId;
                 this.viewTaskDetails(taskId);
@@ -926,7 +926,7 @@ class TodoManager {
         document.head.appendChild(style);
 
         // 编辑按钮
-        document.querySelectorAll('.task-action-btn.edit').forEach(btn => {
+        document.querySelectorAll('.btn.edit').forEach(btn => {
             const taskId = btn.dataset.taskId;
             const task = this.tasks.find(t => t.id === taskId);
 
@@ -958,7 +958,7 @@ class TodoManager {
         });
 
         // 删除按钮
-        document.querySelectorAll('.task-action-btn.delete').forEach(btn => {
+        document.querySelectorAll('.btn.delete').forEach(btn => {
             btn.onclick = async (e) => {
                 const taskId = e.target.dataset.taskId;
                 await this.deleteTask(taskId);
@@ -1094,7 +1094,7 @@ class TodoManager {
         const input = document.getElementById('task-parent-input');
         const hiddenInput = document.getElementById('task-parent');
         const dropdown = document.getElementById('parent-task-dropdown');
-        const loadMoreBtn = dropdown.querySelector('.load-more-btn');
+        const loadMoreBtn = document.getElementById('load-more-btn');
         
         if (!combobox || !input || !dropdown) return;
         
@@ -2003,40 +2003,40 @@ class TodoManager {
         if (this.totalPages <= maxButtons) {
             // 总页数较少，显示所有页码
             for (let i = 1; i <= this.totalPages; i++) {
-                pageNumbers += `<button class="pagination-number ${i === this.currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+                pageNumbers += `<button class="btn ${i === this.currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
             }
         } else {
             // 总页数较多，智能显示页码
             if (this.currentPage <= 3) {
                 // 当前页在前面
                 for (let i = 1; i <= 4; i++) {
-                    pageNumbers += `<button class="pagination-number ${i === this.currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+                    pageNumbers += `<button class="btn ${i === this.currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
                 }
                 pageNumbers += `<span class="pagination-ellipsis">...</span>`;
-                pageNumbers += `<button class="pagination-number" data-page="${this.totalPages}">${this.totalPages}</button>`;
+                pageNumbers += `<button class="btn" data-page="${this.totalPages}">${this.totalPages}</button>`;
             } else if (this.currentPage >= this.totalPages - 2) {
                 // 当前页在后面
-                pageNumbers += `<button class="pagination-number" data-page="1">1</button>`;
+                pageNumbers += `<button class="btn" data-page="1">1</button>`;
                 pageNumbers += `<span class="pagination-ellipsis">...</span>`;
                 for (let i = this.totalPages - 3; i <= this.totalPages; i++) {
-                    pageNumbers += `<button class="pagination-number ${i === this.currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+                    pageNumbers += `<button class="btn ${i === this.currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
                 }
             } else {
                 // 当前页在中间
-                pageNumbers += `<button class="pagination-number" data-page="1">1</button>`;
+                pageNumbers += `<button class="btn" data-page="1">1</button>`;
                 pageNumbers += `<span class="pagination-ellipsis">...</span>`;
                 for (let i = this.currentPage - 1; i <= this.currentPage + 1; i++) {
-                    pageNumbers += `<button class="pagination-number ${i === this.currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+                    pageNumbers += `<button class="btn ${i === this.currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
                 }
                 pageNumbers += `<span class="pagination-ellipsis">...</span>`;
-                pageNumbers += `<button class="pagination-number" data-page="${this.totalPages}">${this.totalPages}</button>`;
+                pageNumbers += `<button class="btn" data-page="${this.totalPages}">${this.totalPages}</button>`;
             }
         }
         
         numbersDiv.innerHTML = pageNumbers;
         
         // 绑定页码点击事件
-        numbersDiv.querySelectorAll('.pagination-number').forEach(btn => {
+        numbersDiv.querySelectorAll('.btn').forEach(btn => {
             btn.onclick = () => {
                 const page = parseInt(btn.dataset.page);
                 this.goToPage(page);
@@ -2927,7 +2927,7 @@ class TodoManager {
         const inputHtml = `
             <span class="tag-input-mode" id="tag-input-mode">
                 <input type="text" id="${currentId}" placeholder="标签名" maxlength="20">
-                <button class="btn-cancel" id="cancel-add-tag">×</button>
+                <button class="btn btn--colorless" id="cancel-add-tag">×</button>
             </span>
         `;
 

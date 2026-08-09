@@ -61,10 +61,6 @@
     color: white;
 }
 
-[data-theme="dark"] .add-task-fab {
-    box-shadow: 0 4px 16px rgba(0, 123, 255, 0.3);
-}
-
-[data-theme="dark"] .add-task-fab:hover {
-    box-shadow: 0 6px 24px rgba(0, 123, 255, 0.5);
+[data-theme="dark"] .btn {
+    --text-color: var(--text-white);
 }

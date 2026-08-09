@@ -109,8 +109,8 @@ class TimelineManager {
             });
         document.addEventListener('click', (e) => {
             // 分类筛选 - 确保不是点击按钮时触发
-            if (e.target.closest('.category-item') && !e.target.closest('.category-edit-btn') && !e.target.closest('.category-delete-btn')) {
-                const categoryItem = e.target.closest('.category-item');
+            if (e.target.closest('.category-item-btn') && !e.target.closest('.category-edit-btn') && !e.target.closest('.category-delete-btn')) {
+                const categoryItem = e.target.closest('.category-item-btn');
                 this.categoryId = categoryItem.dataset.category;
                 this.renderTimeline();
             }
@@ -253,7 +253,7 @@ class TimelineManager {
                         tasksHtml += `
                             <div class="task-card ${task.completed ? 'completed' : ''}" draggable="true" data-task-id="${task.id}">
                                 <span class="task-name">${this.escapeHtml(task.title)}</span>
-                                <button class="delete-task" data-task-id="${task.id}">✕</button>
+                                <button class="btn btn--colorless delete-task" data-task-id="${task.id}">✕</button>
                             </div>
                         `;
                     });

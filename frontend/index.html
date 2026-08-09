@@ -281,7 +281,7 @@
         <div class="sidebar-header">
             <h1 class="app-title">📝 Todo List</h1>
             <div class="sidebar-header-actions">
-                <button id="settings-btn" class="settings-btn" title="设置中心">⚙️</button>
+                <button id="settings-btn" class="btn btn--colorless btn--font-size-lg" title="设置中心">⚙️</button>
             </div>
         </div>
 
@@ -319,12 +319,12 @@
                 <span class="categories-more" id="categories-more">展示更多</span>
             </div>
             <div class="category-list" id="category-list">
-                <button class="category-item active" id="all-category-item" data-category="all">
+                <button class="btn btn--colorless btn--width-100 category-item-btn active" id="all-category-item" data-category="all">
                     <span>📋全部</span>
                     <span class="category-count">0</span>
                 </button>
             </div>
-            <button id="add-category-btn" class="add-category-btn">+ 添加分类</button>
+            <button id="add-category-btn" class="btn btn--border-dashed btn--width-100">+ 添加分类</button>
         </div>
 
         <div class="tags-section" id="tags-section">
@@ -346,7 +346,7 @@
 
         <!-- 联系作者 -->
         <div class="contact-author-section">
-            <button id="contact-author-btn" class="contact-author-btn">
+            <button id="contact-author-btn" class="btn btn--primary-color btn--width-100">
                 <span class="contact-icon">✉️</span>
                 <span class="contact-text">联系作者</span>
             </button>
@@ -362,15 +362,15 @@
         <!-- 顶部操作栏 -->
         <header class="app-header">
             <!-- 移动端菜单按钮 -->
-            <button id="mobile-menu-btn" class="mobile-menu-btn">☰</button>
+            <button id="mobile-menu-btn" class="btn btn--colorless btn--font-size-lg">☰</button>
             <!-- 小屏幕更多按钮 -->
-            <button id="more-menu-btn" class="more-menu-btn" title="更多选项">︰</button>
+            <button id="more-menu-btn" class="btn btn--colorless btn--font-size-lg" title="更多选项">︰</button>
             <div class="search-container">
                 <div class="search-input-wrapper search-tag-wrapper" id="search-tag-wrapper">
                     <input type="text" id="search-input" class="search-input" autocomplete="off">
-                    <button type="button" id="search-clear-btn" class="search-clear-btn" title="清空搜索">×</button>
+                    <button type="button" id="search-clear-btn" class="btn btn--colorless btn--font-size-lg" title="清空搜索">×</button>
                 </div>
-                <button id="search-btn" class="search-btn">🔍</button>
+                <button id="search-btn" class="btn">🔍</button>
             </div>
 
             <div class="action-buttons">
@@ -405,13 +405,13 @@
                     <option value="no-due-date">无截止日期</option>
                 </select>
 
-                <button id="add-task-btn" class="add-task-btn desktop-only">+ 新建任务</button>
-                <button id="export-tasks-btn" class="add-task-btn desktop-only export-btn">📥 导出任务</button>
+                <button id="add-task-btn" class="btn btn--primary-color btn--padding-md desktop-only">+ 新建任务</button>
+                <button id="export-tasks-btn" class="btn btn--success-color btn--padding-md desktop-only">📥 导出任务</button>
             </div>
         </header>
 
         <!-- 移动端悬浮按钮 -->
-        <button id="add-task-fab" class="add-task-fab mobile-only" title="新建任务">
+        <button id="add-task-fab" class="btn btn--primary-color btn--circle mobile-only" title="新建任务">
             <span class="fab-icon">+</span>
         </button>
 
@@ -440,13 +440,13 @@
                 </select>
             </div>
             <div class="pagination-controls">
-                <button id="pagination-first" class="pagination-btn" disabled>首页</button>
-                <button id="pagination-prev" class="pagination-btn" disabled>上一页</button>
+                <button id="pagination-first" class="btn" disabled>首页</button>
+                <button id="pagination-prev" class="btn" disabled>上一页</button>
                 <div id="pagination-numbers" class="pagination-numbers">
                     <!-- 页码按钮将动态生成 -->
                 </div>
-                <button id="pagination-next" class="pagination-btn" disabled>下一页</button>
-                <button id="pagination-last" class="pagination-btn" disabled>末页</button>
+                <button id="pagination-next" class="btn" disabled>下一页</button>
+                <button id="pagination-last" class="btn" disabled>末页</button>
             </div>
         </div>
 
@@ -474,14 +474,14 @@
         <div class="task-scheduler" id="timeline-view" style="display: none;">
             <div class="toolbar">
                 <div class="date-controls">
-                    <button id="prevWeekBtn" title="上一周">←</button>
+                    <button id="prevWeekBtn" class="btn btn--circle" title="上一周">←</button>
                     <span id="dateRangeLabel" class="date-range-label">加载中...</span>
-                    <button id="nextWeekBtn" title="下一周">→</button>
+                    <button id="nextWeekBtn" class="btn btn--circle" title="下一周">→</button>
                 </div>
                 <div class="week-adjust">
-                    <button id="weekMinusBtn" title="减少显示周数">📆 -1周</button>
+                    <button id="weekMinusBtn" class="btn" title="减少显示周数">📆 -1周</button>
                     <span id="weekCountIndicator" class="week-indicator">1周</span>
-                    <button id="weekPlusBtn" title="增加显示周数">+1周 📆</button>
+                    <button id="weekPlusBtn" class="btn" title="增加显示周数">+1周 📆</button>
                 </div>
             </div>
             <div class="timeline-container" id="timelineContainer">
@@ -496,7 +496,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h2 id="modal-title">新建任务</h2>
-            <button class="modal-close" id="modal-close">&times;</button>
+            <button class="btn btn--colorless btn--font-size-lg" id="modal-close">&times;</button>
         </div>
 
         <div class="modal-body">
@@ -540,7 +540,7 @@
 
                 <!-- 更多选项 -->
                 <div class="more-options-section">
-                    <button type="button" id="more-options-toggle" class="more-options-toggle">
+                    <button type="button" id="more-options-toggle" class="btn btn--colorless">
                         <span class="toggle-icon">+</span> 更多选项
                     </button>
 
@@ -554,7 +554,7 @@
                                     <div class="combobox-loading" style="display: none;">加载中...</div>
                                     <div class="combobox-results"></div>
                                     <div class="combobox-load-more" style="display: none;">
-                                        <button type="button" class="load-more-btn">加载更多</button>
+                                        <button type="button" class="btn" id="load-more-btn">加载更多</button>
                                     </div>
                                     <div class="combobox-empty" style="display: none;">无匹配任务</div>
                                 </div>
@@ -568,11 +568,11 @@
                                 <div class="input-wrapper">
                                     <input type="text" id="task-due-date-picker" class="picker-input"
                                            placeholder="YYYY-MM-DD" readonly>
-                                    <button type="button" class="clear-btn clear-date" title="清空日期">×</button>
+                                    <button type="button" class="btn btn--colorless btn--font-size-lg" id="clear-date" title="清空日期">×</button>
                                 </div>
                                 <div class="input-wrapper">
                                     <input type="time" id="task-due-time" class="time-input">
-                                    <button type="button" class="clear-btn clear-time" title="清空时间">×</button>
+                                    <button type="button" class="btn btn--colorless btn--font-size-lg" id="clear-time" title="清空时间">×</button>
                                 </div>
                             </div>
                         </div>
@@ -607,8 +607,8 @@
         </div>
 
         <div class="modal-footer">
-            <button type="button" id="cancel-btn" class="cancel-btn">取消</button>
-            <button type="submit" form="task-form" id="save-btn" class="save-btn">保存</button>
+            <button type="button" id="cancel-btn" class="btn btn--tertiary-color btn--padding-md">取消</button>
+            <button type="submit" form="task-form" id="save-btn" class="btn btn--primary-color btn--padding-md">保存</button>
         </div>
     </div>
 </div>
@@ -618,7 +618,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h2 id="category-modal-title">新建分类</h2>
-            <button class="modal-close" id="category-modal-close">&times;</button>
+            <button class="btn btn--colorless btn--font-size-lg" id="category-modal-close">&times;</button>
         </div>
 
         <div class="modal-body">
@@ -646,8 +646,8 @@
         </div>
 
         <div class="modal-footer">
-            <button type="button" id="category-cancel-btn" class="cancel-btn">取消</button>
-            <button type="submit" form="category-form" class="save-btn">保存</button>
+            <button type="button" id="category-cancel-btn" class="btn btn--tertiary-color btn--padding-md">取消</button>
+            <button type="submit" form="category-form" id="category-save-btn" class="btn btn--primary-color btn--padding-md">保存</button>
         </div>
     </div>
 </div>
@@ -662,8 +662,8 @@
             <p id="confirm-message"></p>
         </div>
         <div class="modal-footer">
-            <button id="confirm-cancel" class="cancel-btn">取消</button>
-            <button id="confirm-ok" class="danger-btn">确认</button>
+            <button id="confirm-cancel" class="btn btn--tertiary-color btn--width-100">取消</button>
+            <button id="confirm-ok" class="btn btn--danger-color btn--width-100">确认</button>
         </div>
     </div>
 </div>
@@ -673,7 +673,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h2>设置中心</h2>
-            <button class="modal-close" id="settings-close">&times;</button>
+            <button class="btn btn--colorless btn--font-size-lg" id="settings-close">&times;</button>
         </div>
 
         <div class="modal-body">
@@ -742,7 +742,7 @@
                     <div class="config-item">
                         <label class="data-label">快捷操作</label>
                         <button id="smart-key-show" class="setting-config-text">Ctrl+Space</button>
-                        <button id="smart-key-apply" class="action-btn primary-btn setting-config-btn">应用</button>
+                        <button id="smart-key-apply" class="btn btn--primary-color setting-config-btn">应用</button>
                     </div>
                 </div>
             </div>
@@ -754,7 +754,7 @@
                     <div class="config-item">
                         <label class="data-label">存储路径</label>
                         <button id="data-dir-btn" class="setting-config-text">浏览</button>
-                        <button id="apply-dir-btn" class="action-btn primary-btn setting-config-btn">应用</button>
+                        <button id="apply-dir-btn" class="btn btn--primary-color setting-config-btn">应用</button>
                     </div>
                 </div>
                 <!-- 数据共享管理 -->
@@ -812,17 +812,17 @@
     <div class="modal-content data-transfer-modal-content">
         <div class="modal-header">
             <h2>数据传输</h2>
-            <button class="modal-close" id="data-transfer-close">&times;</button>
+            <button class="btn btn--colorless btn--font-size-lg" id="data-transfer-close">&times;</button>
         </div>
 
         <div class="modal-body">
             <!-- 操作选择 -->
             <div class="transfer-mode-selector">
-                <button id="share-mode-btn" class="mode-btn active">
+                <button id="share-mode-btn" class="btn btn--font-size-lg btn--width-100 active">
                     <span class="mode-icon">📤</span>
                     <span class="mode-text">共享数据</span>
                 </button>
-                <button id="receive-mode-btn" class="mode-btn">
+                <button id="receive-mode-btn" class="btn btn--font-size-lg btn--width-100">
                     <span class="mode-icon">📥</span>
                     <span class="mode-text">接收数据</span>
                 </button>
@@ -839,8 +839,8 @@
 
                 <div class="panel-section">
                     <h3>共享设置</h3>
-                    <button id="start-share-btn" class="action-btn primary-btn">启动共享</button>
-                    <button id="stop-share-btn" class="action-btn danger-btn" style="display: none;">停止共享</button>
+                    <button id="start-share-btn" class="btn btn--primary-color btn--width-100">启动共享</button>
+                    <button id="stop-share-btn" class="btn btn--danger-color btn--width-100" style="display: none;">停止共享</button>
                     <div class="edit-notice">⚠️ 开启/停止共享涉及配置防火墙，需要管理员权限</div>
                 </div>
 
@@ -858,7 +858,7 @@
             <div id="receive-mode-panel" class="mode-panel">
                 <div class="panel-section">
                     <h3>扫描设备</h3>
-                    <button id="scan-devices-btn" class="action-btn primary-btn">扫描局域网设备</button>
+                    <button id="scan-devices-btn" class="btn btn--primary-color btn--width-100">扫描局域网设备</button>
                 </div>
 
                 <div class="panel-section" id="device-list-section" style="display: none;">
@@ -877,8 +877,8 @@
                         <p>⚠️ 注意: 导入数据将覆盖当前所有数据，建议先备份数据！</p>
                     </div>
                     <div class="import-actions">
-                        <button id="confirm-import-btn" class="action-btn danger-btn">确认导入</button>
-                        <button id="cancel-import-btn" class="action-btn cancel-btn">取消</button>
+                        <button id="cancel-import-btn" class="btn btn--tertiary-color btn--width-100">取消</button>
+                        <button id="confirm-import-btn" class="btn btn--danger-color btn--width-100">确认导入</button>
                     </div>
                 </div>
             </div>
@@ -890,7 +890,7 @@
     <div class="modal-content data-sync-modal-content">
         <div class="modal-header">
             <h2>数据同步</h2>
-            <button class="modal-close" id="data-sync-close">&times;</button>
+            <button class="btn btn--colorless btn--font-size-lg" id="data-sync-close">&times;</button>
         </div>
 
         <div class="modal-body">
@@ -950,8 +950,8 @@
                     <div class="edit-notice">⚠️ 首次同步外的数据自动同步规则：存在数据更新的端点，15s内会自动同步数据到其他端点</div>
 
                     <div class="webdav-actions">
-                        <button id="webdav-test-btn" class="action-btn secondary-btn">测试连接</button>
-                        <button id="webdav-save-btn" class="action-btn primary-btn">保存配置</button>
+                        <button id="webdav-test-btn" class="btn btn--tertiary-color btn--width-100">测试连接</button>
+                        <button id="webdav-save-btn" class="btn btn--primary-color btn--width-100">保存配置</button>
                     </div>
 
                     <div id="webdav-status" class="webdav-status" style="display: none;"></div>
@@ -966,7 +966,7 @@
     <div class="modal-content export-modal-content">
         <div class="modal-header">
             <h2>导出任务</h2>
-            <button class="modal-close" id="export-modal-close">&times;</button>
+            <button class="btn btn--colorless btn--font-size-lg" id="export-modal-close">&times;</button>
         </div>
 
         <div class="modal-body">
@@ -1038,8 +1038,8 @@
                 </div>
 
                 <div class="export-actions">
-                    <button id="export-confirm-btn" class="action-btn primary-btn">导出Excel</button>
-                    <button id="export-cancel-btn" class="action-btn cancel-btn">取消</button>
+                    <button id="export-cancel-btn" class="btn btn--tertiary-color btn--width-100">取消</button>
+                    <button id="export-confirm-btn" class="btn btn--primary-color btn--width-100">导出Excel</button>
                 </div>
             </div>
         </div>
@@ -1052,7 +1052,7 @@
         <h2 class="qr-code-title">联系作者</h2>
         <img id="qr-code-image" class="qr-code-image" src="/asset/qr-code.jpg" alt="联系作者二维码">
         <p class="qr-code-caption">扫描二维码联系作者</p>
-        <button id="qr-code-close" class="qr-code-close">关闭</button>
+        <button id="qr-code-close" class="btn btn--primary-color">关闭</button>
     </div>
 </div>
 
@@ -1061,7 +1061,7 @@
     <div class="more-menu-content">
         <div class="more-menu-header">
             <h3 class="more-menu-title">更多选项</h3>
-            <button id="more-menu-close" class="more-menu-close">×</button>
+            <button id="more-menu-close" class="btn btn--colorless btn--font-size-lg">×</button>
         </div>
         <ul class="more-menu-list">
             <li class="more-menu-item">

@@ -188,7 +188,7 @@ class LanguageManager {
         if (categoriesTitle) categoriesTitle.textContent = lang.categories;
 
         // 全部分类选项
-        const allCategories = document.querySelector('.category-item #allCategories');
+        const allCategories = document.querySelector('.category-item-btn #allCategories');
         if (allCategories) allCategories.textContent = lang.allCategories;
 
         // 无分类
@@ -263,17 +263,17 @@ class LanguageManager {
         });
 
         // 设置任务列表操作列提示语
-        document.querySelectorAll('.task-action-btn.edit').forEach(btn => {
+        document.querySelectorAll('.btn.edit').forEach(btn => {
             if (btn.disabled) {
                 btn.title = lang.recurringTaskEditTip;
             } else {
                 btn.title = lang.normalTaskEditTip;
             }
         });
-        document.querySelectorAll('.task-action-btn.view').forEach(btn => {
+        document.querySelectorAll('.btn.view').forEach(btn => {
             btn.title = lang.taskViewTip;
         });
-        document.querySelectorAll('.task-action-btn.delete').forEach(btn => {
+        document.querySelectorAll('.btn.delete').forEach(btn => {
             btn.title = lang.taskDeleteTip;
         });
         
@@ -483,7 +483,7 @@ class LanguageManager {
         });
         
         const categoryCancelBtn = document.getElementById('category-cancel-btn');
-        const categorySaveBtn = document.querySelector('.category-form .save-btn');
+        const categorySaveBtn = document.getElementById('category-save-btn');
         if (categoryCancelBtn) categoryCancelBtn.textContent = lang.cancel;
         if (categorySaveBtn) categorySaveBtn.textContent = lang.save;
     }

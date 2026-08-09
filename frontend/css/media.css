@@ -102,7 +102,7 @@
         margin-top: var(--spacing-xs) !important;
     }
 
-    .cancel-btn, .save-btn, .danger-btn, .panel-section .action-btn {
+    .panel-section .action-btn {
         padding: var(--spacing-sm) !important;
         border-radius: var(--border-radius) !important;
         font-weight: 500 !important;
@@ -143,7 +143,7 @@
         max-height: 84px !important;
     }
 
-    .mobile-menu-btn {
+    #mobile-menu-btn {
         display: block !important;
         align-self: flex-start;
     }
@@ -155,7 +155,7 @@
     }
 
     /* 显示更多按钮 */
-    .more-menu-btn {
+    #more-menu-btn {
         display: block !important;
         margin-left: auto;
     }
@@ -233,22 +233,6 @@
         color: var(--text-primary);
     }
 
-    .more-menu-close {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        padding: 4px;
-        border-radius: var(--border-radius-sm);
-        color: var(--text-secondary);
-        transition: var(--transition-fast);
-    }
-
-    .more-menu-close:hover {
-        background-color: var(--bg-tertiary);
-        color: var(--text-primary);
-    }
-
     .more-menu-list {
         list-style: none;
         padding: 0;
@@ -345,22 +329,6 @@
         color: var(--text-primary);
     }
 
-    .more-menu-close {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        padding: 4px;
-        border-radius: var(--border-radius-sm);
-        color: var(--text-secondary);
-        transition: var(--transition-fast);
-    }
-
-    .more-menu-close:hover {
-        background-color: var(--bg-tertiary);
-        color: var(--text-primary);
-    }
-
     .more-menu-list {
         list-style: none;
         padding: 0;
@@ -412,14 +380,6 @@
         grid-column: auto;
     }
 
-    .add-task-btn {
-        grid-column: 1 / -1;
-        width: 100%;
-        font-size: 10px !important;
-        padding: var(--spacing-xs);
-        min-height: 28px !important;
-    }
-
     /* 筛选器样式优化 */
     .view-filter,
     .priority-filter,
@@ -444,25 +404,6 @@
     .due-date-filter:hover {
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
-    }
-
-    .search-input {
-        padding: 4px 6px !important;
-        font-size: 10px !important;
-        min-height: 28px !important;
-    }
-
-    .search-clear-btn {
-        width: 16px !important;
-        height: 16px !important;
-        font-size: 12px !important;
-        right: 4px !important;
-    }
-
-    .search-btn {
-        padding: 4px 6px !important;
-        font-size: 10px !important;
-        min-height: 28px !important;
     }
 
     /* 小屏幕任务项优化 */
@@ -532,12 +473,6 @@
         font-weight: bold;
     }
 
-    .task-action-btn {
-        font-size: 8px !important;
-        border: 1px solid transparent !important;
-        border-radius: 0 !important;
-    }
-
     /* 移动端隐藏分页组件 */
     .pagination {
         display: none;
@@ -587,10 +522,6 @@
         gap: var(--spacing-sm);
     }
 
-    .mode-btn {
-        padding: var(--spacing-sm);
-    }
-
     .mode-icon {
         font-size: 20px;
     }
@@ -635,24 +566,30 @@
         padding: 0px !important;
     }
 
-    .task-action-btn.view {
+    .task-actions .btn {
+        font-size: 8px !important;
+        border: 1px solid transparent !important;
+        border-radius: 0 !important;
+    }
+
+    .task-actions .btn.view {
         background-color: var(--primary-color);
     }
 
-    .task-action-btn.edit {
+    .task-actions .btn.edit {
         background-color: var(--warning-color);
     }
 
-    .task-action-btn.delete {
+    .task-actions .btn.delete {
         background-color: var(--danger-color);
     }
 
-    .task-action-btn:hover {
+    .task-actions .btn:hover {
         border-color: var(--primary-color);
         color: var(--primary-color);
     }
 
-    .task-action-btn.delete:hover {
+    .task-actions .btn.delete:hover {
         border-color: var(--danger-color);
         color: var(--danger-color);
     }
@@ -748,12 +685,6 @@
         text-align: center;
     }
 
-    .add-task-btn {
-        flex: 2;
-        min-width: 140px;
-        order: 1;
-    }
-
     .tasks-list {
         gap: var(--spacing-sm);
     }
@@ -779,7 +710,7 @@
         gap: var(--spacing-sm);
     }
 
-    .mobile-menu-btn {
+    #mobile-menu-btn {
         display: flex !important;
         align-self: flex-start;
     }
@@ -787,13 +718,6 @@
         .datetime-group .datetime-inputs {
         grid-template-columns: 1fr 1fr;
         gap: var(--spacing-sm);
-    }
-
-    .clear-btn {
-        width: 20px;
-        height: 20px;
-        font-size: 14px;
-        right: 2px;
     }
 
     .input-wrapper input {
