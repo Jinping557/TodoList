@@ -526,6 +526,7 @@
     position: relative;
     min-height: auto;
     display: table-row;
+    border-left: none;
 }
 
 .task-item:hover {
@@ -728,13 +729,15 @@
     min-height: 40px;
 }
 
-.tag-selector-item, .tag-module-item, .categories-more {
+.tag-selector-item, .tag-module-item, .categories-more, .tag-add-btn {
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-xs);
     padding: 4px 10px;
     border-radius: 12px;
-    font-size: var(--font-size-sm);
+    margin: 4px 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
@@ -777,21 +780,6 @@
     background-color: rgba(0, 0, 0, 0.2);
 }
 
-/* 新增标签按钮 */
-.tag-add-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px dashed var(--border-color);
-}
 
 .tag-add-btn:hover {
     background-color: var(--border-color);
@@ -815,6 +803,7 @@
     background-color: var(--bg-primary);
     color: var(--text-primary);
     outline: none;
+    height: auto !important;
 }
 
 /* 分类项 */
