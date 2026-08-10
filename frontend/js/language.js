@@ -544,8 +544,9 @@ class LanguageManager {
         if (autoStartLabel) autoStartLabel.textContent = lang.settingsAutoStart;
 
         // 快捷键设置
-        const shortcutSettingConfig = document.querySelector('.shortcut');
-        const shortcutLabel = shortcutSettingConfig.querySelector('.data-label');
+        const shortcutCheckbox = document.getElementById('shortcut-toggle');
+        const shortcutSettingItem = shortcutCheckbox.closest('.setting-item');
+        const shortcutLabel = shortcutSettingItem.querySelector('.setting-text');
         if (shortcutLabel) shortcutLabel.textContent = lang.settingsShortcut;
 
         // 数据管理
