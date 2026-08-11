@@ -1,7 +1,5 @@
 # backend/api/mixins/utility_mixin.py
 import webbrowser
-from backend.platforms.core.factory import get_platform_service
-service = get_platform_service()
 
 class UtilityMixin:
     """工具方法 Mixin"""
@@ -9,7 +7,7 @@ class UtilityMixin:
     # 日历写入权限校验
     def check_calendar_permission(self):
         """检查权限"""
-        service.check_calendar_permission()
+        self.service.check_calendar_permission()
 
     def log(self, level, message, source='frontend'):
         """从前端记录日志
@@ -19,7 +17,7 @@ class UtilityMixin:
             message: 日志消息
             source: 日志来源
         """
-        log = service.frontend_logger()
+        log = self.service.frontend_logger()
         level_map = {
             'debug': log.debug,
             'info': log.info,
@@ -36,4 +34,4 @@ class UtilityMixin:
 
     def export_tasks_excel(self, priority=None, status=None, year=None, month=None,
                            category_id=None, tag_ids=None):
-        return service.export_tasks_excel(self.db, priority, status, year, month, category_id, tag_ids)
+        return self.service.export_tasks_excel(self.db, priority, status, year, month, category_id, tag_ids)

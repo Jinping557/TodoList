@@ -1,9 +1,5 @@
 # backend/api/mixins/p2p_mixin.py
 
-from backend.platforms.core.factory import get_platform_service
-service = get_platform_service()
-backend_logger = service.backend_logger()
-
 class P2PMixin:
     """P2P服务核心操作 Mixin"""
 
@@ -14,7 +10,7 @@ class P2PMixin:
                 """数据接收回调"""
                 # 存储接收到的数据供前端获取
                 self._received_data = data
-                backend_logger.info(f"接收到来自 {address[0]} 的数据")
+                self.get_logger.info(f"接收到来自 {address[0]} 的数据")
 
             def data_request_callback():
                 """数据请求回调 - 返回要共享的数据"""
@@ -136,11 +132,11 @@ class P2PMixin:
             if success:
                 # 导入成功后刷新前端缓存
                 self._received_data = None
-                backend_logger.info("数据导入成功")
+                self.get_logger.info("数据导入成功")
                 return {'success': True, 'message': '数据导入成功'}
             else:
-                backend_logger.error("数据导入失败")
+                self.get_logger.error("数据导入失败")
                 return {'success': False, 'error': '数据导入失败'}
         except Exception as e:
-            backend_logger.error(f"导入数据异常: {e}")
+            self.get_logger.error(f"导入数据异常: {e}")
             return {'success': False, 'error': str(e)}

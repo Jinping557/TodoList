@@ -1,8 +1,5 @@
 # backend/api/mixins/task_mixin.py
 from datetime import datetime
-from backend.platforms.core.factory import get_platform_service
-service = get_platform_service()
-backend_logger = service.backend_logger()
 
 class TaskMixin:
     """任务核心操作 Mixin"""
@@ -49,7 +46,7 @@ class TaskMixin:
         try:
             if task_data['dueDate'] and self.is_android:
                 target_time = datetime.fromisoformat(task_data['dueDate']).timestamp() * 1000
-                service.add_task_reminder_to_calendar(task_data['title'], task_data['description'], target_time)
+                self.service.add_task_reminder_to_calendar(task_data['title'], task_data['description'], target_time)
             result = self.db.add_task(task_data)
             return {'success': True, 'task': result}
         except Exception as e:
@@ -159,7 +156,7 @@ class TaskMixin:
             for task in result:
                 if task.get('dueDate') and self.is_android:
                     target_time = datetime.fromisoformat(task['dueDate']).timestamp() * 1000
-                    service.add_task_reminder_to_calendar(task['title'], task['description'], target_time)
+                    self.service.add_task_reminder_to_calendar(task['title'], task['description'], target_time)
             return {'success': True, 'task': result}
         except Exception as e:
             return {'success': False, 'error': str(e)}

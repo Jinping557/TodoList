@@ -3,9 +3,6 @@
 import os
 from backend.database.operations import TodoDatabase
 from backend.database.data_export import DataExportManager
-from backend.platforms.core.factory import get_platform_service
-service = get_platform_service()
-backend_logger = service.backend_logger()
 
 class DatafileMixin:
     """数据目录配置操作 Mixin"""
@@ -22,7 +19,7 @@ class DatafileMixin:
             actual_file = str(get_app_data_file())
 
             # 获取配置管理器中的配置信息
-            config_manager = get_config_manager(service)
+            config_manager = get_config_manager(self.service)
             external_config = config_manager.get('data_file')
 
             return {
@@ -34,7 +31,7 @@ class DatafileMixin:
                 'is_custom': current_file != default_file
             }
         except Exception as e:
-            backend_logger.error(f"获取数据文件配置失败: {e}")
+            self.get_logger.error(f"获取数据文件配置失败: {e}")
             return {'success': False, 'error': str(e)}
 
     def set_data_file_config(self, file_path):
@@ -51,9 +48,9 @@ class DatafileMixin:
                 if hasattr(self, '_data_manager'):
                     self._data_manager.switch_data_file(file_path)
                 else:
-                    self._data_manager = DataExportManager(service, file_path)
+                    self._data_manager = DataExportManager(self.service, file_path)
 
-                backend_logger.info(f"数据文件已设置为: {file_path}")
+                self.get_logger.info(f"数据文件已设置为: {file_path}")
                 return {
                     'success': True,
                     'message': '数据文件设置成功',
@@ -63,7 +60,7 @@ class DatafileMixin:
                 return {'success': False, 'error': '设置数据文件失败'}
 
         except Exception as e:
-            backend_logger.error(f"设置数据文件配置失败: {e}")
+            self.get_logger.error(f"设置数据文件配置失败: {e}")
             return {'success': False, 'error': str(e)}
 
     def validate_data_file(self, file_path):

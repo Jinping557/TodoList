@@ -125,6 +125,7 @@ def start_app(is_android = False, ssl_enable = True, start_keyboard = None):
         # 创建API实例
         from backend.features.webdav.webdav_data_sync import get_data_sync_manager
         sync_manager = get_data_sync_manager(service)
+        backend_logger.info("初始化TodoApi")
         api = TodoApi(is_android, sync_manager)
         backend_logger.info("TodoApi 实例创建成功")
 

@@ -1,8 +1,6 @@
 # backend/api/mixins/config_mixin.py
 
 from backend.utils import utils
-from backend.platforms.core.factory import get_platform_service
-service = get_platform_service()
 
 class ConfigMixin:
     """配置操作 Mixin"""
@@ -12,7 +10,7 @@ class ConfigMixin:
     def get_auto_start_config(self):
         """获取开机自启动配置"""
         try:
-            status = service.get_auto_start_status()
+            status = self.service.get_auto_start_status()
             return {
                 'success': True,
                 'config': {
@@ -30,7 +28,7 @@ class ConfigMixin:
     def set_auto_start_config(self, enabled):
         """设置开机自启动配置"""
         try:
-            success = service.set_auto_start_enabled(enabled)
+            success = self.service.set_auto_start_enabled(enabled)
             if success:
                 return {
                     'success': True,
