@@ -87,7 +87,7 @@ class LinuxService(DesktopCommonService):
             'supported': True
         }
 
-    def enable_linux_auto_start(self, app_name) -> bool:
+    def _enable_auto_start_impl(self) -> bool:
         """Linux平台启用自启动"""
         from backend.utils import utils
         try:
@@ -97,7 +97,7 @@ class LinuxService(DesktopCommonService):
             autostart_dir.mkdir(parents=True, exist_ok=True)
 
             # 创建.desktop文件
-            desktop_file = autostart_dir / f"{app_name}.desktop"
+            desktop_file = autostart_dir / f"{self.APP_NAME}.desktop"
 
             # 启动命令
             launch_cmd = utils.get_launch_command(self)
@@ -105,7 +105,7 @@ class LinuxService(DesktopCommonService):
             # 桌面文件内容
             desktop_content = f"""[Desktop Entry]
     Type=Application
-    Name={app_name}
+    Name={self.APP_NAME}
     Exec={launch_cmd}
     Hidden=false
     NoDisplay=false
@@ -126,12 +126,12 @@ class LinuxService(DesktopCommonService):
             self.backend_logger().error(f"Linux启用自启动失败: {e}")
             return False
 
-    def disable_linux_auto_start(self, app_name) -> bool:
+    def _disable_auto_start_impl(self) -> bool:
         """Linux平台禁用自启动"""
         try:
             # 删除.desktop文件
             autostart_dir = Path.home() / '.config' / 'autostart'
-            desktop_file = autostart_dir / f"{app_name}.desktop"
+            desktop_file = autostart_dir / f"{self.APP_NAME}.desktop"
 
             if desktop_file.exists():
                 desktop_file.unlink()
@@ -150,13 +150,11 @@ class LinuxService(DesktopCommonService):
             from backend.database.operations import TodoDatabase
             TodoDatabase().set_setting('auto_start_enabled', enabled)
 
-            app_name = "TodoList"
-
             # 根据状态设置或取消自启动
             if enabled:
-                return self.enable_linux_auto_start(app_name)
+                return self._enable_auto_start_impl()
             else:
-                return self.disable_linux_auto_start(app_name)
+                return self._disable_auto_start_impl()
 
         except Exception as e:
             self.backend_logger().error(f"设置开机自启动失败: {e}")

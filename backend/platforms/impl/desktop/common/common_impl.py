@@ -4,6 +4,23 @@ PlatformService的公共抽象基类，请勿实例化
 from backend.platforms.interface.service import PlatformService
 
 class DesktopCommonService(PlatformService):
+    APP_NAME = 'TodoList'
+
+    # ---------- 系统操作钩子（子类实现） ----------
+    def _enable_auto_start_impl(self) -> bool:
+        raise NotImplementedError
+
+    def _disable_auto_start_impl(self) -> bool:
+        raise NotImplementedError
+
+    # ---------- 供 config_mixin 调用的系统操作 ----------
+    def _set_auto_start_system(self, enabled: bool) -> bool:
+        """仅执行系统自启动操作，不操作数据库"""
+        if enabled:
+            return self._enable_auto_start_impl()
+        else:
+            return self._disable_auto_start_impl()
+
     def export_tasks_excel(self, db = None, priority=None, status=None, year=None, month=None,
                           category_id=None, tag_ids=None):
         """导出任务到Excel文件

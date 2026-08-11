@@ -65,7 +65,7 @@ class WindowsService(DesktopCommonService):
             'supported': True
         }
 
-    def enable_windows_auto_start(self, app_name) -> bool:
+    def _enable_auto_start_impl(self) -> bool:
         """启用开机自启动"""
         from backend.utils import utils
         app_path = utils.get_app_path(self)
@@ -82,7 +82,7 @@ class WindowsService(DesktopCommonService):
             # 打开注册表键
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_WRITE) as key:
                 # 设置注册表值
-                winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, launch_cmd)
+                winreg.SetValueEx(key, self.APP_NAME, 0, winreg.REG_SZ, launch_cmd)
 
             self.backend_logger().info(f"Windows开机自启动已启用: {launch_cmd}")
             return True
@@ -94,7 +94,7 @@ class WindowsService(DesktopCommonService):
             startup_folder.mkdir(parents=True, exist_ok=True)
 
             # 创建快捷方式
-            shortcut_path = startup_folder / f"{app_name}.lnk"
+            shortcut_path = startup_folder / f"{self.APP_NAME}.lnk"
 
             # 使用Python创建快捷方式
             import pythoncom
@@ -114,7 +114,7 @@ class WindowsService(DesktopCommonService):
             self.backend_logger().error(f"启用开机自启动失败: {e}")
             return False
 
-    def disable_windows_auto_start(self, app_name) -> bool:
+    def _disable_auto_start_impl(self) -> bool:
         """禁用开机自启动"""
         try:
             import winreg
@@ -125,7 +125,7 @@ class WindowsService(DesktopCommonService):
             # 尝试删除注册表项
             try:
                 with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_WRITE) as key:
-                    winreg.DeleteValue(key, app_name)
+                    winreg.DeleteValue(key, self.APP_NAME)
             except FileNotFoundError:
                 # 注册表项不存在，继续检查启动文件夹
                 pass
@@ -135,12 +135,12 @@ class WindowsService(DesktopCommonService):
                 os.environ.get('APPDATA', '')) / 'Microsoft' / 'Windows' / 'Start Menu' / 'Programs' / 'Startup'
 
             # 删除快捷方式
-            shortcut_path = startup_folder / f"{app_name}.lnk"
+            shortcut_path = startup_folder / f"{self.APP_NAME}.lnk"
             if shortcut_path.exists():
                 shortcut_path.unlink()
 
             # 删除批处理文件
-            bat_path = startup_folder / f"{app_name}.bat"
+            bat_path = startup_folder / f"{self.APP_NAME}.bat"
             if bat_path.exists():
                 bat_path.unlink()
 
@@ -159,13 +159,11 @@ class WindowsService(DesktopCommonService):
             from backend.database.operations import TodoDatabase
             TodoDatabase().set_setting('auto_start_enabled', enabled)
 
-            app_name = "TodoList"
-
             # 根据状态设置或取消自启动
             if enabled:
-                return self.enable_windows_auto_start(app_name)
+                return self._enable_auto_start_impl()
             else:
-                return self.disable_windows_auto_start(app_name)
+                return self._disable_auto_start_impl()
 
         except Exception as e:
             self.backend_logger().error(f"设置开机自启动失败: {e}")

@@ -191,7 +191,7 @@ class MacService(DesktopCommonService):
             'supported': True
         }
 
-    def enable_macos_auto_start(self, app_name) -> bool:
+    def _enable_auto_start_impl(self) -> bool:
         """macOS平台启用自启动"""
         from backend.utils import utils
         app_path = utils.get_app_path(self)
@@ -201,7 +201,7 @@ class MacService(DesktopCommonService):
             launch_agents_dir.mkdir(parents=True, exist_ok=True)
 
             # plist文件路径
-            plist_file = launch_agents_dir / f"com.{app_name.lower()}.plist"
+            plist_file = launch_agents_dir / f"com.{self.APP_NAME.lower()}.plist"
 
             # 日志目录
             log_dir = Path.home() / '.local' / 'var' / 'log'
@@ -214,7 +214,7 @@ class MacService(DesktopCommonService):
     <plist version="1.0">
     <dict>
     <key>Label</key>
-    <string>com.{app_name.lower()}</string>
+    <string>com.{self.APP_NAME.lower()}</string>
     <key>ProgramArguments</key>
     <array>
         <string>{sys.executable}</string>
@@ -225,9 +225,9 @@ class MacService(DesktopCommonService):
     <key>KeepAlive</key>
     <false/>
     <key>StandardOutPath</key>
-    <string>{log_dir}/{app_name}.out.log</string>
+    <string>{log_dir}/{self.APP_NAME}.out.log</string>
     <key>StandardErrorPath</key>
-    <string>{log_dir}/{app_name}.err.log</string>
+    <string>{log_dir}/{self.APP_NAME}.err.log</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
@@ -253,19 +253,19 @@ class MacService(DesktopCommonService):
             self.backend_logger().error(f"macOS启用自启动失败: {e}")
             return False
 
-    def disable_macos_auto_start(self, app_name) -> bool:
+    def _disable_auto_start_impl(self) -> bool:
         """macOS平台禁用自启动"""
         try:
             # LaunchAgents目录
             launch_agents_dir = Path.home() / 'Library' / 'LaunchAgents'
-            plist_file = launch_agents_dir / f"com.{app_name.lower()}.plist"
+            plist_file = launch_agents_dir / f"com.{self.APP_NAME.lower()}.plist"
 
             if plist_file.exists():
                 # 删除plist文件
                 plist_file.unlink()
 
             # 删除启动脚本
-            script_file = Path.home() / '.local' / 'bin' / f"{app_name}_start.sh"
+            script_file = Path.home() / '.local' / 'bin' / f"{self.APP_NAME}_start.sh"
             if script_file.exists():
                 script_file.unlink()
 
@@ -283,13 +283,11 @@ class MacService(DesktopCommonService):
             from backend.database.operations import TodoDatabase
             TodoDatabase().set_setting('auto_start_enabled', enabled)
 
-            app_name = "TodoList"
-
             # 根据状态设置或取消自启动
             if enabled:
-                return self.enable_macos_auto_start(app_name)
+                return self._enable_auto_start_impl()
             else:
-                return self.disable_macos_auto_start(app_name)
+                return self._disable_auto_start_impl()
 
         except Exception as e:
             self.backend_logger().error(f"设置开机自启动失败: {e}")
