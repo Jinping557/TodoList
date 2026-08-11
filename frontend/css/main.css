@@ -20,6 +20,7 @@
 .sidebar {
     height: 100%;
     width: 280px;
+    background-color: var(--bg-primary);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
