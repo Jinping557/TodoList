@@ -51,7 +51,7 @@ class ConfigMixin:
         """设置窗口置顶配置"""
         try:
             import backend.globals
-            self.set_setting('window_on_top', enabled)
+            self.db.set_setting('window_on_top', enabled)
             backend.globals.window.on_top = utils.str_to_bool(self.db.get_setting('window_on_top', False))
             return {'success': True}
         except Exception as e:
@@ -76,7 +76,7 @@ class ConfigMixin:
     def set_shortcut_config(self, shortcut):
         """设置快捷键配置"""
         try:
-            self.set_setting('shortcut', shortcut)
+            self.db.set_setting('shortcut', shortcut)
             return {'success': True}
         except Exception as e:
             return {'success': False, 'error': str(e)}
@@ -98,7 +98,7 @@ class ConfigMixin:
     def set_shortcut_enabled(self, enabled):
         """设置快捷操作开关"""
         try:
-            self.set_setting('shortcut_enabled', enabled)
+            self.db.set_setting('shortcut_enabled', enabled)
             return {'success': True}
         except Exception as e:
             return {'success': False, 'error': str(e)}
@@ -122,7 +122,7 @@ class ConfigMixin:
     def set_theme_config(self, theme):
         """设置快捷键配置"""
         try:
-            self.set_setting('theme', theme)
+            self.db.set_setting('theme', theme)
             return {'success': True}
         except Exception as e:
             return {'success': False, 'error': str(e)}
@@ -144,7 +144,7 @@ class ConfigMixin:
     def set_language_config(self, language):
         """设置快捷键配置"""
         try:
-            self.set_setting('language', language)
+            self.db.set_setting('language', language)
             return {'success': True}
         except Exception as e:
             return {'success': False, 'error': str(e)}

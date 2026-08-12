@@ -11,7 +11,6 @@ from backend.api.mixins.category_mixin import CategoryMixin
 from backend.api.mixins.config_mixin import ConfigMixin
 from backend.api.mixins.datafile_mixin import DatafileMixin
 from backend.api.mixins.p2p_mixin import P2PMixin
-from backend.api.mixins.settings_mixin import SettingsMixin
 from backend.api.mixins.tag_mixin import TagMixin
 from backend.api.mixins.task_mixin import TaskMixin
 from backend.api.mixins.task_relation_mixin import TaskRelationMixin
@@ -26,9 +25,8 @@ if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
 class TodoApi(
-    CategoryMixin, ConfigMixin, DatafileMixin, P2PMixin,
-    SettingsMixin, TagMixin, TaskMixin, TaskRelationMixin,
-    UtilityMixin, WebDAVMixin
+    CategoryMixin, ConfigMixin, DatafileMixin, P2PMixin, TagMixin,
+    TaskMixin, TaskRelationMixin, UtilityMixin, WebDAVMixin
 ):
     """TodoList应用的API类，提供前后端通信接口"""
     
