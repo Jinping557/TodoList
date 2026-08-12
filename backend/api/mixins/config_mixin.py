@@ -10,14 +10,10 @@ class ConfigMixin:
     def get_auto_start_config(self):
         """获取开机自启动配置"""
         try:
-            status = self.service.get_auto_start_status()
+            enabled = utils.str_to_bool(self.db.get_setting('auto_start_enabled', False))
             return {
                 'success': True,
-                'config': {
-                    'enabled': utils.str_to_bool(status['enabled']),
-                    'platform': status['platform'],
-                    'supported': status['supported']
-                }
+                'enabled': enabled
             }
         except Exception as e:
             return {
@@ -28,7 +24,7 @@ class ConfigMixin:
     def set_auto_start_config(self, enabled):
         """设置开机自启动配置"""
         try:
-            success = self.service.set_auto_start_enabled(enabled)
+            success = self.service.set_auto_start_system(enabled)
             if success:
                 return {
                     'success': True,

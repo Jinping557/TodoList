@@ -440,16 +440,12 @@ class SettingsUIManager {
         await Utils.apiCall({
             apiMethod: 'get_auto_start_config',
             onSuccess: (response) => {
-                this.autoStartToggle.checked = response.config.enabled;
-                localStorage.setItem('todolist_auto_start', response.config.enabled.toString());
-
-                // 如果平台不支持，禁用开关
-                if (!response.config.supported) {
-                    this.autoStartToggle.disabled = true;
-                    Utils.showToast(window.languageManager.getText('settingsAutoStartWarning', '当前平台不支持开机启动功能'), 'warning');
-                } else {
-                    this.autoStartToggle.disabled = false;
-                }
+                this.autoStartToggle.checked = response.enabled;
+                localStorage.setItem('todolist_auto_start', response.enabled.toString());
+            },
+            onError: (error) => {
+                this.autoStartToggle.checked = false;
+                Utils.showToast(window.languageManager.getText('settingsAutoStartWarning', '当前平台不支持开机启动功能'), 'warning');
             }
         });
     }

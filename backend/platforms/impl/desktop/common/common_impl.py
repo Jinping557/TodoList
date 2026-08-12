@@ -14,7 +14,7 @@ class DesktopCommonService(PlatformService):
         raise NotImplementedError
 
     # ---------- 供 config_mixin 调用的系统操作 ----------
-    def _set_auto_start_system(self, enabled: bool) -> bool:
+    def set_auto_start_system(self, enabled: bool) -> bool:
         """仅执行系统自启动操作，不操作数据库"""
         if enabled:
             return self._enable_auto_start_impl()

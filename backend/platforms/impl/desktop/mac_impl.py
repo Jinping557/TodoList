@@ -181,16 +181,6 @@ class MacService(DesktopCommonService):
         except Exception:
             pass
 
-    def get_auto_start_status(self) -> Dict[str, Any]:
-        """获取自启动状态信息"""
-        from backend.database.operations import TodoDatabase
-        auto_start_enabled = TodoDatabase().get_setting('auto_start_enabled', False)
-        return {
-            'enabled': auto_start_enabled,
-            'platform': 'darwin',
-            'supported': True
-        }
-
     def _enable_auto_start_impl(self) -> bool:
         """macOS平台启用自启动"""
         from backend.utils import utils
@@ -274,23 +264,6 @@ class MacService(DesktopCommonService):
 
         except Exception as e:
             self.backend_logger().error(f"macOS禁用自启动失败: {e}")
-            return False
-
-    def set_auto_start_enabled(self, enabled):
-        self.backend_logger().info(f"设置开机自启动状态: {enabled}")
-        try:
-            # 保存配置
-            from backend.database.operations import TodoDatabase
-            TodoDatabase().set_setting('auto_start_enabled', enabled)
-
-            # 根据状态设置或取消自启动
-            if enabled:
-                return self._enable_auto_start_impl()
-            else:
-                return self._disable_auto_start_impl()
-
-        except Exception as e:
-            self.backend_logger().error(f"设置开机自启动失败: {e}")
             return False
 
     def start_app(self):
