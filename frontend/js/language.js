@@ -40,9 +40,10 @@ class LanguageManager {
         }
 
         await Utils.apiCall({
-            apiMethod: 'get_language_config',
+            apiMethod: 'get_config',
+            apiArgs: ['language'],
             onSuccess: (response) => {
-                const savedLanguage = response.config;
+                const savedLanguage = response.config.language;
                 localStorage.setItem('todolist_language', savedLanguage);
                 this.currentLanguage = savedLanguage;
             },
@@ -55,8 +56,8 @@ class LanguageManager {
     // 保存语言设置
     async saveLanguageSetting(language) {
         await Utils.apiCall({
-            apiMethod: 'set_language_config',
-            apiArgs: [language],
+            apiMethod: 'set_config',
+            apiArgs: ['language', language],
             onSuccess: (response) => {
                 localStorage.setItem('todolist_language', language);
             },

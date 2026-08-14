@@ -176,9 +176,8 @@ class SettingsUIManager {
             this.currentButtonKey = this.smartKeyShow.textContent;
             this.resetModifiers();
             await Utils.apiCall({
-                apiMethod: 'set_shortcut_config',
-                apiArgs: [this.currentButtonKey],
-                successCheck: (response) => true,
+                apiMethod: 'set_config',
+                apiArgs: ['shortcut', this.currentButtonKey.toString()],
                 onSuccess: (response) => {
                     localStorage.setItem('todolist_shortcut', this.currentButtonKey);
                     Utils.showToast(`${window.languageManager.getText('settingsShortcutAs', '已设置为')}: ${this.currentButtonKey},
@@ -270,9 +269,8 @@ class SettingsUIManager {
         BusinessUtils.ThemeManager.updateToggleButton(theme);
 
         await Utils.apiCall({
-            apiMethod: 'set_theme_config',
-            apiArgs: [theme],
-            successCheck: (response) => true,
+            apiMethod: 'set_config',
+            apiArgs: ['theme', theme],
             onSuccess: (response) => {
                 localStorage.setItem('todolist_theme', theme);
                 Utils.showToast(`${theme === 'dark' ?
@@ -343,8 +341,8 @@ class SettingsUIManager {
 
         this.autoStartToggle.disabled = true;
         await Utils.apiCall({
-            apiMethod: 'set_auto_start_config',
-            apiArgs: [enabled],
+            apiMethod: 'set_config',
+            apiArgs: ['auto_start', enabled],
             onSuccess: (response) => {
                 localStorage.setItem('todolist_auto_start', enabled.toString());
                 Utils.showToast(enabled ?
@@ -438,10 +436,11 @@ class SettingsUIManager {
         }
 
         await Utils.apiCall({
-            apiMethod: 'get_auto_start_config',
+            apiMethod: 'get_config',
+            apiArgs: ['auto_start'],
             onSuccess: (response) => {
-                this.autoStartToggle.checked = response.enabled;
-                localStorage.setItem('todolist_auto_start', response.enabled.toString());
+                this.autoStartToggle.checked = response.config.auto_start;
+                localStorage.setItem('todolist_auto_start', response.config.auto_start.toString());
             },
             onError: (error) => {
                 this.autoStartToggle.checked = false;
@@ -462,9 +461,10 @@ class SettingsUIManager {
         }
 
         await Utils.apiCall({
-            apiMethod: 'get_window_on_top_config',
+            apiMethod: 'get_config',
+            apiArgs: ['window_on_top'],
             onSuccess: (response) => {
-                this.windowTopToggle.checked = response.enabled;
+                this.windowTopToggle.checked = response.config.window_on_top;
                 this.onTop = this.windowTopToggle.checked;
             },
             onError: (error) => {
@@ -485,10 +485,11 @@ class SettingsUIManager {
         }
 
         await Utils.apiCall({
-            apiMethod: 'get_shortcut_config',
+            apiMethod: 'get_config',
+            apiArgs: ['shortcut'],
             onSuccess: (response) => {
-                localStorage.setItem('todolist_shortcut', response.config);
-                this.smartKeyShow.textContent = response.config;
+                localStorage.setItem('todolist_shortcut', response.config.shortcut);
+                this.smartKeyShow.textContent = response.config.shortcut;
             },
             onError: (error) => {
                 this.smartKeyShow.textContent = '<ctrl>+<space>';
@@ -503,9 +504,10 @@ class SettingsUIManager {
         let enabled = localStorage.getItem('todolist_shortcut_enabled');
         if (!enabled) {
             await Utils.apiCall({
-                apiMethod: 'get_shortcut_enabled',
+                apiMethod: 'get_config',
+                apiArgs: ['shortcut_enabled'],
                 onSuccess: (response) => {
-                    enabled = response.enabled.toString();
+                    enabled = response.config.shortcut_enabled.toString();
                     localStorage.setItem('todolist_shortcut_enabled', enabled);
                 }
             });
@@ -534,8 +536,8 @@ class SettingsUIManager {
         const enabled = this.shortcutToggle.checked;
 
         await Utils.apiCall({
-            apiMethod: 'set_shortcut_enabled',
-            apiArgs: [enabled],
+            apiMethod: 'set_config',
+            apiArgs: ['shortcut_enabled', enabled],
             onSuccess: (response) => {
                 localStorage.setItem('todolist_shortcut_enabled', enabled.toString());
                 this.setShortcutEditable(enabled);
@@ -733,9 +735,8 @@ class SettingsUIManager {
     
     async saveSettings() {
         await Utils.apiCall({
-            apiMethod: 'set_window_on_top_config',
-            apiArgs: [this.onTop.toString()],
-            successCheck: (response) => true,
+            apiMethod: 'set_config',
+            apiArgs: ['window_on_top', this.onTop.toString()],
             onSuccess: (response) => localStorage.setItem('todolist_windowOnTop', this.onTop.toString())
         });
     }

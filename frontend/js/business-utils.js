@@ -55,9 +55,10 @@ const ThemeManager = {
         }
 
         await Utils.apiCall({
-            apiMethod: 'get_theme_config',
+            apiMethod: 'get_config',
+            apiArgs: ['theme'],
             onSuccess: (response) => {
-                theme = response.config;
+                theme = response.config.theme;
                 localStorage.setItem('todolist_theme', theme);
                 this.updateToggleButton(theme);
             },

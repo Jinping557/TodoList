@@ -1,160 +1,83 @@
 # backend/api/mixins/config_mixin.py
 
+import backend.globals
 from backend.utils import utils
 
 class ConfigMixin:
     """配置操作 Mixin"""
+    CONFIG_REGISTRY = {
+        'window_on_top': {
+            'key': 'window_on_top',
+            'default': False,
+            'transform': utils.str_to_bool,
+            'post_set': lambda self, value: setattr(
+                backend.globals.window, 'on_top',
+                utils.str_to_bool(self.db.get_setting('window_on_top', False))
+            )
+        },
+        'shortcut': {
+            'key': 'shortcut',
+            'default': '<ctrl>+<space>'
+        },
+        'shortcut_enabled': {
+            'key': 'shortcut_enabled',
+            'default': True,
+            'transform': utils.str_to_bool
+        },
+        'theme': {
+            'key': 'theme',
+            'default': 'light'
+        },
+        'language': {
+            'key': 'language',
+            'default': 'zh'
+        },
+        'auto_start': {
+            'key': 'auto_start_enabled',
+            'default': False,
+            'transform': utils.str_to_bool,
+            'post_set': lambda self, value: self.service.set_auto_start_system(value)
+        }
+    }
 
-    # ==================== 开机自启动相关API ====================
-
-    def get_auto_start_config(self):
-        """获取开机自启动配置"""
+    # ---------- 对外统一接口 ----------
+    def get_config(self, keys=None):
+        """
+        获取配置项
+        :param keys: 可选，字符串（逗号分隔）或列表，指定要获取的配置名称；不传则返回全部
+        """
+        result = {}
         try:
-            enabled = utils.str_to_bool(self.db.get_setting('auto_start_enabled', False))
-            return {
-                'success': True,
-                'enabled': enabled
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
-
-    def set_auto_start_config(self, enabled):
-        """设置开机自启动配置"""
-        try:
-            success = self.service.set_auto_start_system(enabled)
-            if success:
-                return {
-                    'success': True,
-                    'message': '开机自启动设置已保存'
-                }
+            # 确定要遍历的条目
+            if keys is None:
+                items = self.CONFIG_REGISTRY.items()
             else:
-                return {
-                    'success': False,
-                    'error': '设置开机自启动失败'
-                }
+                if isinstance(keys, str):
+                    keys = [k.strip() for k in keys.split(',') if k.strip()]
+                # 过滤只保留存在的key
+                items = [(k, v) for k, v in self.CONFIG_REGISTRY.items() if k in keys]
+                # 可选的：如果某个key不存在，可忽略或报错，这里忽略（前端自己知道）
+
+            for name, cfg in items:
+                result[name] = self.db.get_setting(cfg['key'], cfg.get('default'))
+                transform = cfg.get('transform')
+                if transform:
+                  result[name] = transform(result[name])
+            return {'success': True, 'config': result}
         except Exception as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
+            return {'success': False, 'error': f'获取配置失败: {str(e)}'}
 
-    # ==================== 窗口置顶相关API ====================
-
-    def set_window_on_top_config(self, enabled):
-        """设置窗口置顶配置"""
+    def set_config(self, key, value):
+        cfg = self.CONFIG_REGISTRY.get(key)
+        if not cfg:
+            return {'success': False, 'error': f'未知配置项: {key}'}
         try:
-            import backend.globals
-            self.db.set_setting('window_on_top', enabled)
-            backend.globals.window.on_top = utils.str_to_bool(self.db.get_setting('window_on_top', False))
+            self.db.set_setting(cfg['key'], value)
+            post_set = cfg.get('post_set')
+            if post_set:
+                result = post_set(self, value) if callable(post_set) else getattr(self, post_set)(value)
+                if result is False:
+                    raise Exception(f"后处理执行失败")
             return {'success': True}
         except Exception as e:
             return {'success': False, 'error': str(e)}
-
-    def get_window_on_top_config(self):
-        """获取窗口置顶配置"""
-        try:
-            enabled = utils.str_to_bool(self.db.get_setting('window_on_top', False))
-            return {
-                'success': True,
-                'enabled': enabled
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
-
-    # ==================== 快捷键相关API ====================
-
-    def set_shortcut_config(self, shortcut):
-        """设置快捷键配置"""
-        try:
-            self.db.set_setting('shortcut', shortcut)
-            return {'success': True}
-        except Exception as e:
-            return {'success': False, 'error': str(e)}
-
-    def get_shortcut_config(self):
-        """获取快捷键配置"""
-        try:
-            shortcut = self.db.get_setting('shortcut', '<ctrl>+<space>')
-            return {
-                'success': True,
-                'config': shortcut
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
-
-    def set_shortcut_enabled(self, enabled):
-        """设置快捷操作开关"""
-        try:
-            self.db.set_setting('shortcut_enabled', enabled)
-            return {'success': True}
-        except Exception as e:
-            return {'success': False, 'error': str(e)}
-
-    def get_shortcut_enabled(self):
-        """获取快捷操作开关状态"""
-        try:
-            enabled = utils.str_to_bool(self.db.get_setting('shortcut_enabled', True))
-            return {
-                'success': True,
-                'enabled': enabled
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
-
-    # ==================== 快捷键相关API ====================
-
-    def set_theme_config(self, theme):
-        """设置快捷键配置"""
-        try:
-            self.db.set_setting('theme', theme)
-            return {'success': True}
-        except Exception as e:
-            return {'success': False, 'error': str(e)}
-
-    def get_theme_config(self):
-        """获取快捷键配置"""
-        try:
-            theme = self.db.get_setting('theme', 'light')
-            return {
-                'success': True,
-                'config': theme
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
-
-    def set_language_config(self, language):
-        """设置快捷键配置"""
-        try:
-            self.db.set_setting('language', language)
-            return {'success': True}
-        except Exception as e:
-            return {'success': False, 'error': str(e)}
-
-    def get_language_config(self):
-        """获取快捷键配置"""
-        try:
-            language = self.db.get_setting('language', 'zh')
-            return {
-                'success': True,
-                'config': language
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
