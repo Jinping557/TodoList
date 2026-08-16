@@ -111,6 +111,7 @@ base_hiddenimports = [
     'backend.api.mixins.webdav_mixin',
     'backend.utils.logger',
     'backend.utils.utils',
+    'backend.utils.response_wrapper',
     'backend.platforms.impl.desktop.common.smart_task',
     'backend.platforms.impl.desktop.common.system_tray',
     'backend.platforms.impl.desktop.common.task_reminder',
