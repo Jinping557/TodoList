@@ -43,7 +43,7 @@ class LanguageManager {
             apiMethod: 'get_config',
             apiArgs: ['language'],
             onSuccess: (response) => {
-                const savedLanguage = response.config.language;
+                const savedLanguage = response.data.language;
                 localStorage.setItem('todolist_language', savedLanguage);
                 this.currentLanguage = savedLanguage;
             },

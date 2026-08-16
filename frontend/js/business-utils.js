@@ -58,7 +58,7 @@ const ThemeManager = {
             apiMethod: 'get_config',
             apiArgs: ['theme'],
             onSuccess: (response) => {
-                theme = response.config.theme;
+                theme = response.data.theme;
                 localStorage.setItem('todolist_theme', theme);
                 this.updateToggleButton(theme);
             },

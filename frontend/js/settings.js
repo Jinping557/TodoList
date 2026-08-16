@@ -439,8 +439,8 @@ class SettingsUIManager {
             apiMethod: 'get_config',
             apiArgs: ['auto_start'],
             onSuccess: (response) => {
-                this.autoStartToggle.checked = response.config.auto_start;
-                localStorage.setItem('todolist_auto_start', response.config.auto_start.toString());
+                this.autoStartToggle.checked = response.data.auto_start;
+                localStorage.setItem('todolist_auto_start', response.data.auto_start.toString());
             },
             onError: (error) => {
                 this.autoStartToggle.checked = false;
@@ -464,7 +464,7 @@ class SettingsUIManager {
             apiMethod: 'get_config',
             apiArgs: ['window_on_top'],
             onSuccess: (response) => {
-                this.windowTopToggle.checked = response.config.window_on_top;
+                this.windowTopToggle.checked = response.data.window_on_top;
                 this.onTop = this.windowTopToggle.checked;
             },
             onError: (error) => {
@@ -488,8 +488,8 @@ class SettingsUIManager {
             apiMethod: 'get_config',
             apiArgs: ['shortcut'],
             onSuccess: (response) => {
-                localStorage.setItem('todolist_shortcut', response.config.shortcut);
-                this.smartKeyShow.textContent = response.config.shortcut;
+                localStorage.setItem('todolist_shortcut', response.data.shortcut);
+                this.smartKeyShow.textContent = response.data.shortcut;
             },
             onError: (error) => {
                 this.smartKeyShow.textContent = '<ctrl>+<space>';
@@ -507,7 +507,7 @@ class SettingsUIManager {
                 apiMethod: 'get_config',
                 apiArgs: ['shortcut_enabled'],
                 onSuccess: (response) => {
-                    enabled = response.config.shortcut_enabled.toString();
+                    enabled = response.data.shortcut_enabled.toString();
                     localStorage.setItem('todolist_shortcut_enabled', enabled);
                 }
             });
