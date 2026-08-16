@@ -116,7 +116,7 @@ class CategoryManager {
     async loadCategories() {
         await Utils.apiCall({
             apiMethod: 'get_categories',
-            onSuccess: (response) => this.categories = response.categories,
+            onSuccess: (response) => this.categories = response.data,
             onError: (error) => Utils.showToast(window.languageManager.getText('loadCategoriesFailed', '加载分类失败'), 'error')
         });
     }

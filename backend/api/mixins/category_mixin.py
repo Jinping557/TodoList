@@ -1,36 +1,28 @@
 # backend/api/mixins/category_mixin.py
+from backend.utils.response_wrapper import api_handler
 
 class CategoryMixin:
     """分类核心操作 Mixin"""
 
+    @api_handler
     def add_category(self, category_data):
         """添加新分类"""
-        try:
-            result = self.db.add_category(category_data)
-            return {'success': True, 'category': result}
-        except Exception as e:
-            return {'success': False, 'error': str(e)}
+        result = self.db.add_category(category_data)
+        return result, "分类添加成功"
 
+    @api_handler
     def get_categories(self):
         """获取所有分类"""
-        try:
-            categories = self.db.get_all_categories()
-            return {'success': True, 'categories': categories}
-        except Exception as e:
-            return {'success': False, 'error': str(e)}
+        return self.db.get_all_categories()
 
+    @api_handler
     def delete_category(self, category_id):
         """删除分类"""
-        try:
-            result = self.db.delete_category(category_id)
-            return {'success': True, 'result': result}
-        except Exception as e:
-            return {'success': False, 'error': str(e)}
+        result = self.db.delete_category(category_id)
+        return result, "分类删除成功"
 
+    @api_handler
     def update_category(self, category_id, category_data):
         """更新分类"""
-        try:
-            result = self.db.update_category(category_id, category_data)
-            return {'success': True, 'category': result}
-        except Exception as e:
-            return {'success': False, 'error': str(e)}
+        result = self.db.update_category(category_id, category_data)
+        return result, "分类更新成功"

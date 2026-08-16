@@ -958,7 +958,7 @@ class SettingsUIManager {
             // 获取分类列表
             await Utils.apiCall({
                 apiMethod: 'get_categories',
-                onSuccess: (response) => this.updateExportCategories(response.categories)
+                onSuccess: (response) => this.updateExportCategories(response.data)
             });
 
             // 获取标签列表

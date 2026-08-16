@@ -974,7 +974,7 @@ class TodoManager {
         await Utils.apiCall({
             apiMethod: 'get_categories',
             onSuccess: (response) => {
-                const categories = response.categories;
+                const categories = response.data;
                 const categoryMap = {};
 
                 categories.forEach(cat => {
@@ -1495,7 +1495,7 @@ class TodoManager {
         await Utils.apiCall({
             apiMethod: 'get_categories',
             onSuccess: (response) => {
-                const categories = response.categories;
+                const categories = response.data;
                 const category = categories.find(cat => cat.id === categoryId);
                 const categoryEl = document.querySelector('.task-category-detail');
                 if (category && categoryEl) {
@@ -1658,7 +1658,7 @@ class TodoManager {
         await Utils.apiCall({
             apiMethod: 'get_categories',
             onSuccess: (response) => {
-                const categories = response.categories;
+                const categories = response.data;
                 categorySelect.innerHTML = `<option value="">${window.languageManager.getText('uncategorized', '未分类')}</option>`;
                 categories.forEach(cat => {
                     const option = document.createElement('option');
