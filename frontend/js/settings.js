@@ -632,8 +632,8 @@ class SettingsUIManager {
             apiMethod: 'get_data_file_config',
             onSuccess: (response) => {
                 if (this.dataDirBtn) {
-                    this.dataDirBtn.textContent = response.current_file;
-                    this.dataDirBtn.title = response.current_file;
+                    this.dataDirBtn.textContent = response.data;
+                    this.dataDirBtn.title = response.data;
                 }
             },
             onError: (error) => {
@@ -648,7 +648,7 @@ class SettingsUIManager {
         await Utils.apiCall({
             apiMethod: 'select_file_dialog',
             onSuccess: (response) => {
-                const selectedPath = response.selected_path;
+                const selectedPath = response.data;
                 if (selectedPath && this.dataDirBtn) {
                     this.dataDirBtn.textContent = selectedPath;
                     this.dataDirBtn.title = selectedPath;
