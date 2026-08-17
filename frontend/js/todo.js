@@ -1003,8 +1003,9 @@ class TodoManager {
                 apiMethod: 'get_children',
                 apiArgs: [taskId],
                 onSuccess: (response) => {
-                    if (response.children && response.children.length > 0) {
-                        const uncompletedChildren = response.children.filter(child => !child.completed);
+                    const children = response.data;
+                    if (children && children.length > 0) {
+                        const uncompletedChildren = children.filter(child => !child.completed);
                         hasUnCompletedChildren = uncompletedChildren.length > 0;
                     }
                 }
@@ -1264,12 +1265,13 @@ class TodoManager {
             apiMethod: 'get_parent',
             apiArgs: [taskId],
             onSuccess: (response) => {
-                if (response.parent) {
+                const parent = response.data;
+                if (parent) {
                     const input = document.getElementById('task-parent-input');
                     const hiddenInput = document.getElementById('task-parent');
-                    input.value = response.parent.title;
-                    hiddenInput.value = response.parent.id;
-                    this.parentTaskState.selectedId = response.parent.id;
+                    input.value = parent.title;
+                    hiddenInput.value = parent.id;
+                    this.parentTaskState.selectedId = parent.id;
                 }
             }
         });
@@ -1287,11 +1289,12 @@ class TodoManager {
                 apiMethod: 'get_children',
                 apiArgs: [taskId],
                 onSuccess: (response) => {
-                    if (response.children && response.children.length > 0) {
+                    const children = response.data;
+                    if (children && children.length > 0) {
                         const countEl = document.querySelector(`.subtask-count[data-task-id="${taskId}"]`);
                         if (countEl) {
                             const countSpan = countEl.querySelector('.count');
-                            if (countSpan) countSpan.textContent = response.children.length;
+                            if (countSpan) countSpan.textContent = children.length;
                             countEl.style.display = 'inline';
                         }
                     }
@@ -1361,7 +1364,7 @@ class TodoManager {
             apiMethod: 'get_parent',
             apiArgs: [taskId],
             onSuccess: (response) => {
-                const parent = response.parent;
+                const parent = response.data;
                 if (parent) {
                     parentInfo = `
                         <div>
@@ -1379,8 +1382,8 @@ class TodoManager {
             apiMethod: 'get_children',
             apiArgs: [taskId],
             onSuccess: (response) => {
-                if (response.children && response.children.length > 0) {
-                    const children = response.children;
+                const children = response.data;
+                if (children && children.length > 0) {
                     const childrenHtml = children.map(child =>
                         `<span style="display: block; color: var(--primary-color); font-size: 14px; cursor: pointer; margin-bottom: 4px;" class="link-text" data-task-id="${child.id}">
                             📋 ${Utils.escapeHtml(child.title)} ${child.completed ? '✓' : ''}
@@ -1585,8 +1588,9 @@ class TodoManager {
             apiMethod: 'get_parent',
             apiArgs: [taskId],
             onSuccess: (response) => {
-                if (response.parent) {
-                    parentId = response.parent.id
+                const parent = response.data;
+                if (parent) {
+                    parentId = parent.id
                 }
             }
         });
@@ -1761,7 +1765,8 @@ class TodoManager {
                         apiMethod: 'get_parent',
                         apiArgs: [taskId],
                         onSuccess: (response) => {
-                            const currentParentId = response.parent ? response.parent.id : null;
+                            const parent = response.data;
+                            const currentParentId = parent ? parent.id : null;
                             // 父任务发生了变化：先删除旧关联，再添加新关联
                             if (currentParentId) Utils.apiCall({apiMethod: 'remove_task_relation', apiArgs: [taskId], successCheck: (response) => true})
                             if (parentTaskId) Utils.apiCall({apiMethod: 'add_task_relation', apiArgs: [taskId, parentTaskId], successCheck: (response) => true})
@@ -1813,7 +1818,8 @@ class TodoManager {
             apiMethod: 'get_children',
             apiArgs: [taskId],
             onSuccess: (response) => {
-                if (response.children && response.children.length > 0) {
+                const children = response.data;
+                if (children && children.length > 0) {
                     Utils.showToast(
                         window.languageManager.getText('cannotDeleteWithChildren', '该任务存在子任务，请先解除关联后再删除'),
                         'warning'
@@ -2384,7 +2390,7 @@ class TodoManager {
             await Utils.apiCall({
                 apiMethod: 'search_tasks_with_subtasks',
                 apiArgs: [keyword, 5],
-                onSuccess: (response) => this.renderSubtaskSuggestions(response.tasks || []),
+                onSuccess: (response) => this.renderSubtaskSuggestions(response.data || []),
                 onError: () => this.hideSubtaskSuggestions()
             });
         }, delay);
