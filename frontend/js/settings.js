@@ -964,7 +964,7 @@ class SettingsUIManager {
             // 获取标签列表
             await Utils.apiCall({
                 apiMethod: 'get_all_tags',
-                onSuccess: (response) => this.updateExportTags(response.tags)
+                onSuccess: (response) => this.updateExportTags(response.data)
             });
 
             // 获取所有任务以提取年份

@@ -2799,7 +2799,7 @@ class TodoManager {
         await Utils.apiCall({
             apiMethod: 'get_all_tags',
             onSuccess: (response) => {
-                this.availableTags = response.tags;
+                this.availableTags = response.data;
                 this.renderTagsSelector();
             }
         });
@@ -2994,7 +2994,7 @@ class TodoManager {
         await Utils.apiCall({
             apiMethod: 'get_all_tags',
             onSuccess: (response) => {
-                this.availableTags = response.tags;
+                this.availableTags = response.data;
                 const showMoreTags = document.getElementById('show-more-tags');
                 const showLessTags = document.getElementById('show-less-tags');
                 if (this.availableTags.length <= this.defaultShowTags) {
