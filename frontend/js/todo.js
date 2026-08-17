@@ -477,9 +477,9 @@ class TodoManager {
             apiMethod: apiMethod,
             apiArgs: apiArgs,
             onSuccess: (response) => {
-                this.tasks = response.tasks;
-                this.totalTasks = response.total;
-                this.totalPages = response.total_pages;
+                this.tasks = response.data.tasks;
+                this.totalTasks = response.data.total;
+                this.totalPages = response.data.total_pages;
                 if (window.innerWidth > 480) {
                     // 大屏幕(大于480px)：使用表格分页模式，每页10条
                     this.renderTasks();
@@ -1023,8 +1023,8 @@ class TodoManager {
                 // 更新本地数据
                 const task = this.tasks.find(t => t.id === taskId);
                 if (task) {
-                    task.completed = response.task.completed;
-                    task.updatedAt = response.task.updatedAt;
+                    task.completed = response.data.completed;
+                    task.updatedAt = response.data.updatedAt;
                     this.renderTasks();
                     this.updateStats(true);
                     this.updateCategoryCounts(true);
@@ -1171,7 +1171,7 @@ class TodoManager {
             apiMethod: 'get_todos',
             apiArgs: [page, pageSize, null, 'uncompleted', null, null, null, null, searchQuery || null],
             onSuccess: (response) => {
-                let tasks = response.tasks.filter(t => !t.isRecurring && !t.parentTaskId);
+                let tasks = response.data.tasks.filter(t => !t.isRecurring && !t.parentTaskId);
 
                 // 排除当前编辑的任务
                 if (this.parentTaskState.editingTaskId) {
@@ -1188,7 +1188,7 @@ class TodoManager {
                     });
 
                     // 使用后端返回的分页信息判断是否有更多
-                    const total = response.total || 0;
+                    const total = response.data.total || 0;
                     const loadedCount = page * pageSize;
                     this.parentTaskState.hasMore = loadedCount < total;
 
@@ -1333,7 +1333,7 @@ class TodoManager {
             await Utils.apiCall({
                 apiMethod: 'get_todo',
                 apiArgs: [taskId],
-                onSuccess: (response) => task = response.task
+                onSuccess: (response) => task = response.data
             });
         }
         if (!task) return;
@@ -1751,7 +1751,7 @@ class TodoManager {
                 const message = isEdit ? window.languageManager.getText('taskUpdated', '任务更新成功') :
                     window.languageManager.getText('taskCreated', '任务创建成功');
 
-                const taskId = isEdit ? editingId : response.task.id;
+                const taskId = isEdit ? editingId : response.data.id;
 
                 // 处理父任务关联
                 if (isEdit) {
@@ -1947,7 +1947,7 @@ class TodoManager {
                     null   // custom-date
                 ],
                 onSuccess: (response) => {
-                    window.categoryManager.updateCategoryCounts(response.tasks, fromZero);
+                    window.categoryManager.updateCategoryCounts(response.data.tasks, fromZero);
                 },
                 onError: (error) => {
                     // 如果获取失败，使用当前页的任务
@@ -2090,10 +2090,10 @@ class TodoManager {
 
                     if (!totalUncompletedTasksEl || !todayCompletedTasksEl || !completionRateEl || !overDueDateEl) return;
 
-                    const totalUncompleted = response.stats.uncompleted;
-                    const todayCompleted = response.stats.today_completed;
-                    const rate = response.stats.completion_rate;
-                    const overDueDate = response.stats.over_due || 0;
+                    const totalUncompleted = response.data.uncompleted;
+                    const todayCompleted = response.data.today_completed;
+                    const rate = response.data.completion_rate;
+                    const overDueDate = response.data.over_due || 0;
 
                     overDueDateEl.style.color = overDueDate == 0 ? 'var(--text-primary)' : 'red';
 
@@ -2639,12 +2639,12 @@ class TodoManager {
                 this.customDateFilter || null
             ],
             onSuccess: (response) => {
-                if (response.tasks.length > 0) {
+                if (response.data.tasks.length > 0) {
                     // 将新任务追加到现有任务列表
-                    this.tasks = [...this.tasks, ...response.tasks];
+                    this.tasks = [...this.tasks, ...response.data.tasks];
                     this.currentPage = nextPage;
                     // 渲染新增的任务
-                    this.appendTasks(response.tasks);
+                    this.appendTasks(response.data.tasks);
                     // 检查是否还有更多任务
                     this.hasMoreTasks = this.currentPage < this.totalPages;
                     // 如果是最后一页，显示到底提示

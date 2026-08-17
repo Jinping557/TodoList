@@ -44,7 +44,7 @@ class TimelineManager {
                 this.formatDate(endDate)
             ],
             onSuccess: (response) => {
-                tasks = this.convertTasks(response.tasks);
+                tasks = this.convertTasks(response.data.tasks);
             }
         });
         return tasks;

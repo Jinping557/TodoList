@@ -971,7 +971,7 @@ class SettingsUIManager {
             await Utils.apiCall({
                 apiMethod: 'get_todos',
                 apiArgs: [1, 10000, null, null, null, null, null, null, null, null],
-                onSuccess: (response) => this.updateExportYears(response.tasks)
+                onSuccess: (response) => this.updateExportYears(response.data.tasks)
             });
 
             // 绑定导出模态框事件

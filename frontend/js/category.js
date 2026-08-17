@@ -205,7 +205,7 @@ class CategoryManager {
             await Utils.apiCall({
                 apiMethod: 'get_todos',
                 apiArgs: apiArgs,
-                onSuccess: (response) => tasks = response.tasks
+                onSuccess: (response) => tasks = response.data.tasks
             });
         }
 
@@ -390,7 +390,7 @@ class CategoryManager {
         let count = 0;
         await Utils.apiCall({
             apiMethod: 'get_todos',
-            onSuccess: (response) => count = response.tasks.filter(task => task.categoryId === categoryId).length
+            onSuccess: (response) => count = response.data.tasks.filter(task => task.categoryId === categoryId).length
         });
         return count;
     }
