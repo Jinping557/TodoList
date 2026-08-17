@@ -118,7 +118,7 @@ class DataTransfer {
         await Utils.apiCall({
             apiMethod: 'p2p_get_data_summary',
             onSuccess: (response) => {
-                const summary = response.summary;
+                const summary = response.data;
                 if (summary) {
                     this.shareDataSummary.innerHTML = `
                         <p><strong>${window.languageManager.getText('statsTotalTasks', '总任务数')}:</strong> ${summary.total_tasks}</p>
@@ -148,15 +148,15 @@ class DataTransfer {
                         this.startShareBtn.style.display = 'none';
                         this.stopShareBtn.style.display = 'block';
                         this.shareStatus.style.display = 'block';
-                        this.shareIp.textContent = response.ip;
-                        this.sharePort.textContent = response.port;
+                        this.shareIp.textContent = response.data.ip;
+                        this.sharePort.textContent = response.data.port;
 
                         // 显示详细的启动信息，包括防火墙配置状态
                         let message = `✓ ${window.languageManager.getText('sharingStarted', '共享已启动')}\n\n`;
 
                         // 如果消息包含防火墙相关信息，显示给用户
-                        if (response.message) {
-                            message += `\n\n:\n${response.message}`;
+                        if (response.data?.message) {
+                            message += `\n\n:\n${response.data.message}`;
                         }
                         Utils.setLoading(false);
                         Utils.showToast(message, 'success');
@@ -192,7 +192,7 @@ class DataTransfer {
         await Utils.apiCall({
             apiMethod: 'p2p_scan_devices',
             onSuccess: (response) => {
-                const devices = response.devices;
+                const devices = response.data;
                 if (devices && devices.length > 0) {
                     this.displayDevices(devices);
                 } else {
@@ -235,7 +235,7 @@ class DataTransfer {
                     Utils.apiCall({
                         apiMethod: 'p2p_has_data',
                         onSuccess: (response) => {
-                            if (response.has_data) {
+                            if (response.data) {
                                 this.importWarning.style.display = 'flex';
                             }
                         }
