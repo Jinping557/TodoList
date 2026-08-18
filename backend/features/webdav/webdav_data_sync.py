@@ -73,176 +73,63 @@ class DataSyncManager:
         self.sync_timer = threading.Timer(interval, sync_wrapper)
         self.sync_timer.daemon = True
         self.sync_timer.start()
-    
-    def sync_from_cloud(self, is_overwrite = False) -> dict:
-        """
-        从云端同步数据到本地
-        
-        Returns:
-            dict: 同步结果
-        """
-        if self.is_syncing:
-            return {
-                "success": False,
-                "error": "同步正在进行中"
-            }
 
+    def _prepare_sync(self):
+        """准备同步环境，返回 (WebDAV客户端, 本地文件路径)"""
+        if self.is_syncing:
+            raise Exception('同步正在进行中')
         if not is_webdav_enabled():
-            return {
-                "success": False,
-                "error": "WebDAV未启用"
-            }
-        
+            raise Exception('WebDAV未启用')
+
+        client = get_webdav_client(self.service)
+        config = get_webdav_config()
+        url = config.get('url', 'https://dav.jianguoyun.com/dav')
+        if not client.configure(config['username'], config['password'], config['remote_path'], url):
+            raise Exception('WebDAV客户端配置失败')
+
+        from backend.config import get_current_data_file
+        local_file = get_current_data_file()
+        return client, local_file
+
+    def sync_from_cloud(self, is_overwrite=False):
+        client, local_file = self._prepare_sync()
         self.is_syncing = True
         try:
             self._get_logger().info("开始从云端同步数据...")
-            
-            # 获取WebDAV客户端
-            client = get_webdav_client(self.service)
-            config = get_webdav_config()
-            
-            # 配置客户端
-            url = config.get('url', 'https://dav.jianguoyun.com/dav')
-            if not client.configure(config['username'], config['password'], config['remote_path'], url):
-                return {
-                    "success": False,
-                    "error": "WebDAV客户端配置失败"
-                }
-            
-            # 获取本地数据文件路径
-            from backend.config import get_current_data_file
-            local_file = get_current_data_file()
-            
-            # 下载文件
-            result = client.download_file(local_file, is_overwrite)
-            
-            if result['success']:
-                self.last_sync_time = datetime.now()
-                self._get_logger().info("云端数据同步成功")
-                
-                # 触发回调
-                if self.on_sync_callback:
-                    try:
-                        self.on_sync_callback()
-                    except Exception as e:
-                        self._get_logger().error(f"同步回调执行失败: {e}")
-                
-                return {
-                    "success": True,
-                    "message": "数据同步成功",
-                    "timestamp": self.last_sync_time.isoformat()
-                }
-            else:
-                self._get_logger().error(f"云端数据同步失败: {result['error']}")
-                return result
-                
-        except Exception as e:
-            self._get_logger().error(f"云端同步异常: {e}")
-            return {
-                "success": False,
-                "error": f"同步异常: {str(e)}"
-            }
+            client.download_file(local_file, is_overwrite)
+            self.last_sync_time = datetime.now()
+            self._get_logger().info("云端数据同步成功")
+            if self.on_sync_callback:
+                try:
+                    self.on_sync_callback()
+                except Exception as e:
+                    self._get_logger().error(f"同步回调执行失败: {e}")
         finally:
             self.is_syncing = False
-    
-    def sync_to_cloud(self) -> dict:
-        """
-        将本地数据同步到云端
-        
-        Returns:
-            dict: 同步结果
-        """
-        if self.is_syncing:
-            return {
-                "success": False,
-                "error": "同步正在进行中"
-            }
-        
-        if not is_webdav_enabled():
-            return {
-                "success": False,
-                "error": "WebDAV未启用"
-            }
-        
+
+    def sync_to_cloud(self):
+        client, local_file = self._prepare_sync()
         self.is_syncing = True
         try:
             self._get_logger().info("开始上传数据到云端...")
-            
-            # 获取WebDAV客户端
-            client = get_webdav_client(self.service)
-            config = get_webdav_config()
-            
-            # 配置客户端
-            url = config.get('url', 'https://dav.jianguoyun.com/dav')
-            if not client.configure(config['username'], config['password'], config['remote_path'], url):
-                return {
-                    "success": False,
-                    "error": "WebDAV客户端配置失败"
-                }
-            
-            # 获取本地数据文件路径
-            from backend.config import get_current_data_file
-            local_file = get_current_data_file()
-            
-            # 检查本地文件是否存在
             if not os.path.exists(local_file):
-                return {
-                    "success": False,
-                    "error": f"本地数据文件不存在: {local_file}"
-                }
-            
-            # 上传文件
-            result = client.upload_file(local_file)
-            
-            if result['success']:
-                self.last_sync_time = datetime.now()
-                self._get_logger().info("数据上传到云端成功")
-                return {
-                    "success": True,
-                    "message": "数据上传成功",
-                    "timestamp": self.last_sync_time.isoformat()
-                }
-            else:
-                self._get_logger().error(f"数据上传到云端失败: {result['error']}")
-                return result
-                
-        except Exception as e:
-            self._get_logger().error(f"云端上传异常: {e}")
-            return {
-                "success": False,
-                "error": f"上传异常: {str(e)}"
-            }
+                raise Exception(f'本地数据文件不存在: {local_file}')
+            client.upload_file(local_file)
+            self.last_sync_time = datetime.now()
+            self._get_logger().info("数据上传到云端成功")
         finally:
             self.is_syncing = False
-    
-    def get_sync_status(self) -> dict:
-        """获取同步状态"""
-        return {
-            'success': True,
-            'status':  {
-                "enabled": is_webdav_enabled(),
-                "is_syncing": self.is_syncing,
-                "last_sync_time": self.last_sync_time.isoformat() if self.last_sync_time else None,
-                "auto_sync": get_webdav_config().get('auto_sync', False)
-            }
-        }
-    
+
     def trigger_upload_on_change(self):
         """在数据变更时触发上传"""
         config = get_webdav_config()
         if not config.get('enabled', False):
-            return {
-                'success': True
-            }
+            return
             
         # 异步执行上传，避免阻塞主线程
         upload_thread = threading.Thread(target=self._delayed_upload, daemon=True)
         upload_thread.start()
 
-        return {
-            'success': True
-        }
-    
     def _delayed_upload(self):
         """延迟上传，避免频繁操作"""
         time.sleep(1)  # 等待1秒再上传
@@ -253,11 +140,7 @@ class DataSyncManager:
 
     def get_webdav_config(self):
         """获取WebDAV配置"""
-        config = get_webdav_config()
-        return {
-            'success': True,
-            'config': config
-        }
+        return get_webdav_config()
 
     def set_webdav_config(self, config):
         """设置WebDAV配置"""
@@ -266,43 +149,28 @@ class DataSyncManager:
         username = config.get('username', '')
         password = config.get('password', '')
         remote_path = config.get('remote_path', '')
-        test_result = self.test_webdav_connection(url, username, password, remote_path)
-        if test_result and not test_result.get('success'):
-            return test_result
+        self.test_webdav_connection(url, username, password, remote_path)
 
         # 保存配置
         success = set_webdav_config(config)
 
-        if success:
-            # 如果启用了自动同步，重启同步管理器
-            if config.get('enabled') and config.get('auto_sync'):
-                get_data_sync_manager(self.service).start_auto_sync()
-            elif not config.get('enabled') or not config.get('auto_sync'):
-                # 停止自动同步
-                get_data_sync_manager(self.service).stop_auto_sync()
+        if not success:
+            raise Exception(f'配置保存失败')
 
-            return {
-                'success': True,
-                'message': 'WebDAV配置保存成功'
-            }
-        else:
-            return {
-                'success': False,
-                'error': '配置保存失败'
-            }
+        # 如果启用了自动同步，重启同步管理器
+        if config.get('enabled') and config.get('auto_sync'):
+            get_data_sync_manager(self.service).start_auto_sync()
+        elif not config.get('enabled') or not config.get('auto_sync'):
+            # 停止自动同步
+            get_data_sync_manager(self.service).stop_auto_sync()
 
     def test_webdav_connection(self, url, username, password, remote_path):
         """测试WebDAV连接"""
         # 创建临时客户端进行测试
         client = get_webdav_client(self.service)
-        if client.configure(username, password, remote_path, url):
-            result = client.test_connection()
-            return result
-        else:
-            return {
-                'success': False,
-                'error': '客户端配置失败'
-            }
+        if not client.configure(username, password, remote_path, url):
+            raise Exception(f'客户端配置失败')
+        client.test_connection()
 
 # 全局同步管理器实例
 _data_sync_manager: Optional[DataSyncManager] = None

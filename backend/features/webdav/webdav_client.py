@@ -80,7 +80,7 @@ class WebDAVClient:
             self.client = None
             return False
     
-    def test_connection(self) -> Dict[str, Any]:
+    def test_connection(self):
         """
         测试WebDAV连接
         
@@ -88,48 +88,31 @@ class WebDAVClient:
             dict: 包含连接状态和错误信息的字典
         """
         if not self.client:
-            return {
-                "success": False,
-                "error": "WebDAV客户端未配置"
-            }
-        
-        try:
-            # 尝试列出根目录内容来测试连接
-            path = '/'
-            has_directory = "/" in self.remote_path
-            if has_directory:
-                filename = os.path.basename(self.remote_path)
-                for item_path in self.remote_path.split('/'):
-                    client_list = self.client.list(path)
-                    item_path_exit = any(item_path in item for item in client_list)
-                    if item_path == filename:
-                        # 如果已经遍历到最后一层，则直接判断结果，不再进一步遍历
-                        file_exit = any(item_path == item for item in client_list)
-                        return {
-                            "success": file_exit,
-                            "message": "连接成功" if file_exit else "路径不存在"
-                        }
-                    if item_path_exit:
-                        path = path + '/' + item_path
-                    else:
-                        return {
-                            "success": False,
-                            "message": "路径不存在"
-                        }
-            else:
-                found = any(self.remote_path in item for item in self.client.list(path))
-                return {
-                    "success": found,
-                    "message": "连接成功" if found else "路径不存在"
-                }
-        except Exception as e:
-            self._get_logger().error(f"WebDAV连接测试失败: {e}")
-            return {
-                "success": False,
-                "error": f"连接失败: {str(e)}"
-            }
+            raise Exception(f'WebDAV客户端未配置')
+
+        # 尝试列出根目录内容来测试连接
+        path = '/'
+        has_directory = "/" in self.remote_path
+        if has_directory:
+            filename = os.path.basename(self.remote_path)
+            for item_path in self.remote_path.split('/'):
+                client_list = self.client.list(path)
+                item_path_exit = any(item_path in item for item in client_list)
+                if item_path == filename:
+                    # 如果已经遍历到最后一层，则直接判断结果，不再进一步遍历
+                    file_exit = any(item_path == item for item in client_list)
+                    if not file_exit:
+                        raise Exception(f'路径不存在')
+                if item_path_exit:
+                    path = path + '/' + item_path
+                else:
+                    raise Exception(f'路径不存在')
+        else:
+            found = any(self.remote_path in item for item in self.client.list(path))
+            if not found:
+                raise Exception(f'路径不存在')
     
-    def upload_file(self, local_file_path: str) -> Dict[str, Any]:
+    def upload_file(self, local_file_path: str):
         """
         上传本地文件到坚果云
         
@@ -140,40 +123,21 @@ class WebDAVClient:
             dict: 上传结果
         """
         if not self.client:
-            return {
-                "success": False,
-                "error": "WebDAV客户端未配置"
-            }
-        
-        if not os.path.exists(local_file_path):
-            return {
-                "success": False,
-                "error": f"本地文件不存在: {local_file_path}"
-            }
-        
-        try:
-            # 确保远程目录存在
-            remote_dir = os.path.dirname(self.remote_path)
-            if remote_dir:
-                self._ensure_remote_directory(remote_dir)
-            
-            # 上传文件
-            self.client.upload_sync(remote_path = self.remote_path, local_path = local_file_path)
-            self._get_logger().info(f"文件上传成功: {local_file_path} -> {self.remote_path}")
-            
-            return {
-                "success": True,
-                "message": "文件上传成功",
-                "remote_path": self.remote_path
-            }
-        except Exception as e:
-            self._get_logger().error(f"文件上传失败: {e}")
-            return {
-                "success": False,
-                "error": f"上传失败: {str(e)}"
-            }
+            raise Exception(f'WebDAV客户端未配置')
 
-    def download_file(self, local_file_path: str, is_overwrite: bool = False) -> Dict[str, Any]:
+        if not os.path.exists(local_file_path):
+            raise Exception(f'本地文件不存在: {local_file_path}')
+
+        # 确保远程目录存在
+        remote_dir = os.path.dirname(self.remote_path)
+        if remote_dir:
+            self._ensure_remote_directory(remote_dir)
+
+        # 上传文件
+        self.client.upload_sync(remote_path = self.remote_path, local_path = local_file_path)
+        self._get_logger().info(f"文件上传成功: {local_file_path} -> {self.remote_path}")
+
+    def download_file(self, local_file_path: str, is_overwrite: bool = False):
         """
         从坚果云下载文件到本地
         
@@ -185,63 +149,37 @@ class WebDAVClient:
             dict: 下载结果
         """
         if not self.client:
-            return {
-                "success": False,
-                "error": "WebDAV客户端未配置"
-            }
-        
-        try:
-            # 检查远程文件是否存在
-            if not self._remote_file_exists(self.remote_path):
-                return {
-                    "success": False,
-                    "error": "远程文件不存在"
-                }
-            
-            # 确保本地目录存在
-            local_path = Path(local_file_path)
-            local_path.parent.mkdir(parents=True, exist_ok=True)
+            raise Exception(f'WebDAV客户端未配置')
 
-            # 步骤2：获取远程文件的最后修改时间（时间戳）
-            remote_info = self.client.info(self.remote_path)
-            # 坚果云返回的modified是字符串（如 '2026-03-02T10:00:00Z'），转成时间戳
-            remote_modified_str = remote_info['modified']
-            remote_modified = _parse_webdav_time(remote_modified_str)
+        # 检查远程文件是否存在
+        if not self._remote_file_exists(self.remote_path):
+            raise Exception(f'远程文件不存在')
 
-            # 步骤3：获取本地文件的最后修改时间（若本地文件不存在，直接下载）
-            if not os.path.exists(local_file_path):
-                self._get_logger().warning("本地文件不存在，执行首次下载")
-                self.client.download_sync(remote_path=self.remote_path, local_path=local_file_path)
-                return {
-                    "success": True,
-                    "message": "文件下载成功",
-                    "local_path": local_file_path
-                }
+        # 确保本地目录存在
+        local_path = Path(local_file_path)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
 
-            local_modified = datetime.fromtimestamp(os.path.getmtime(local_file_path), tz=timezone.utc)
-            self._get_logger().info(f"远程时间：{remote_modified}，本地时间：{local_modified.timestamp()}")
+        # 步骤2：获取远程文件的最后修改时间（时间戳）
+        remote_info = self.client.info(self.remote_path)
+        # 坚果云返回的modified是字符串（如 '2026-03-02T10:00:00Z'），转成时间戳
+        remote_modified_str = remote_info['modified']
+        remote_modified = _parse_webdav_time(remote_modified_str)
 
-            # 步骤4：对比时间戳（版本），仅远程更新时下载
-            # 加1秒容差：避免系统时间微小差异导致误判
-            if remote_modified > local_modified.timestamp() + 1 or is_overwrite:
-                self.client.download_sync(remote_path=self.remote_path, local_path=local_file_path)
-                self.service.sync_reminder_to_calendar(local_modified.timestamp() + 1, remote_modified)
-                return {
-                    "success": True,
-                    "message": "文件下载成功",
-                    "local_path": local_file_path
-                }
-            else:
-                return {
-                    "success": False,
-                    "error": "远程文件版本早于本地，跳过下载"
-                }
-        except Exception as e:
-            self._get_logger().error(f"文件下载失败: {e}")
-            return {
-                "success": False,
-                "error": f"下载失败: {str(e)}"
-            }
+        # 步骤3：获取本地文件的最后修改时间（若本地文件不存在，直接下载）
+        if not os.path.exists(local_file_path):
+            self._get_logger().warning("本地文件不存在，执行首次下载")
+            self.client.download_sync(remote_path=self.remote_path, local_path=local_file_path)
+            return
+
+        local_modified = datetime.fromtimestamp(os.path.getmtime(local_file_path), tz=timezone.utc)
+        self._get_logger().info(f"远程时间：{remote_modified}，本地时间：{local_modified.timestamp()}")
+
+        # 步骤4：对比时间戳（版本），仅远程更新时下载
+        # 加1秒容差：避免系统时间微小差异导致误判
+        if remote_modified <= local_modified.timestamp() + 1 and not is_overwrite:
+            raise Exception(f'远程文件版本早于本地，跳过下载')
+        self.client.download_sync(remote_path=self.remote_path, local_path=local_file_path)
+        self.service.sync_reminder_to_calendar(local_modified.timestamp() + 1, remote_modified)
 
     def _ensure_remote_directory(self, remote_dir: str):
         """
@@ -283,16 +221,6 @@ class WebDAVClient:
         except Exception as e:
             self._get_logger().error(f"检查远程文件存在性失败: {e}")
             return False
-    
-    def is_configured(self) -> bool:
-        """
-        检查是否已配置WebDAV
-        
-        Returns:
-            bool: 是否已配置
-        """
-        return self.client is not None and self.username is not None and self.password is not None
-
 
 # 全局WebDAV客户端实例
 _webdav_client: Optional[WebDAVClient] = None

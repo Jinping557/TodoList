@@ -747,7 +747,7 @@ class SettingsUIManager {
         await Utils.apiCall({
             apiMethod: 'get_webdav_config',
             onSuccess: (response) => {
-                const config = response.config;
+                const config = response.data;
                 if (config) {
                     this.webdavEnableToggle.checked = config.enabled || false;
                     this.webdavSyncType.value = config.sync_type;
