@@ -18,8 +18,7 @@ class CategoryMixin:
     @api_handler
     def delete_category(self, category_id):
         """删除分类"""
-        result = self.db.delete_category(category_id)
-        return result, "分类删除成功"
+        self.db.delete_category(category_id)
 
     @api_handler
     def update_category(self, category_id, category_data):

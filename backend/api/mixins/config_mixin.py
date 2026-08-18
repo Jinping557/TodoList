@@ -73,4 +73,3 @@ class ConfigMixin:
             result = post_set(self, value) if callable(post_set) else getattr(self, post_set)(value)
             if result is False:
                 raise Exception(f"后处理执行失败")
-        return None

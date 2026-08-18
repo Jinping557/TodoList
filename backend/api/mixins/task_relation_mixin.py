@@ -28,7 +28,6 @@ class TaskRelationMixin:
         if sub.get('isRecurring'):
             raise Exception(f'周期性任务不允许添加父任务关联')
         self.db.add_task_relation(sub_task_id, main_task_id)
-        return None
 
     @api_handler
     def remove_task_relation(self, sub_task_id):
@@ -37,7 +36,6 @@ class TaskRelationMixin:
         if not sub:
             raise Exception(f'子任务不存在')
         self.db.delete_relation_by_children(sub_task_id)
-        return None
 
     @api_handler
     def search_subtasks_by_parent_name(self, parent_name, page=1, page_size=10,

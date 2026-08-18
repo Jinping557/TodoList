@@ -711,8 +711,6 @@ class TodoDatabase:
 
         # 在标签未关联任何任务时，同步删除标签
         self.check_delete_tag()
-        
-        return {'success': True, 'deleted_id': task_id}
 
     def check_delete_tag(self):
         """在标签未关联任何任务时，删除标签"""
@@ -803,8 +801,6 @@ class TodoDatabase:
         conn.commit()
         conn.close()
         
-        return {'success': True, 'deleted_id': category_id}
-    
     def create_recurring_tasks(self, parent_task_data):
         """创建周期性任务系列"""
         from dateutil.relativedelta import relativedelta
@@ -932,8 +928,6 @@ class TodoDatabase:
         
         conn.commit()
         conn.close()
-        
-        return {'success': True, 'deleted_id': task_id, 'delete_all': delete_all}
 
     # 设置相关操作
     def get_setting(self, key, default_value=None):

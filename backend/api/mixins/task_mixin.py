@@ -87,7 +87,6 @@ class TaskMixin:
             self.db.delete_recurring_task(task_id, delete_all)
         else:
             self.db.delete_task(task_id)
-        return None
 
     @api_handler
     def add_recurring_todo(self, task_data):

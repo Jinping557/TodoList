@@ -2,7 +2,6 @@
 
 import os
 from backend.database.operations import TodoDatabase
-from backend.database.data_export import DataExportManager
 from backend.utils.response_wrapper import api_handler
 
 class DatafileMixin:
@@ -20,15 +19,14 @@ class DatafileMixin:
         from backend.config import set_data_file
 
         # 验证并设置新文件
-        if set_data_file(file_path):
-            # 重新初始化数据库连接以使用新文件
-            self.db = TodoDatabase()
-            # 更新数据管理器
-            self._data_manager.switch_data_file(file_path)
-            self.get_logger.info(f"数据文件已设置为: {file_path}")
-            return None
-        else:
+        if not set_data_file(file_path):
             raise Exception(f"设置数据文件失败")
+
+        # 重新初始化数据库连接以使用新文件
+        self.db = TodoDatabase()
+        # 更新数据管理器
+        self._data_manager.switch_data_file(file_path)
+        self.get_logger.info(f"数据文件已设置为: {file_path}")
 
     @api_handler
     def validate_data_file(self, file_path):
@@ -57,8 +55,6 @@ class DatafileMixin:
                 raise Exception(f"父目录不存在")
             if not os.access(parent, os.W_OK):
                 raise Exception(f"没有在该目录创建文件的权限")
-
-        return None
 
     @api_handler
     def select_file_dialog(self):

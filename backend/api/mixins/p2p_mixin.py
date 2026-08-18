@@ -34,7 +34,6 @@ class P2PMixin:
     def p2p_stop_server(self):
         """停止P2P服务器"""
         self._p2p_server.stop()
-        return None
 
     @api_handler
     def p2p_scan_devices(self):
@@ -84,4 +83,3 @@ class P2PMixin:
             raise Exception(f'数据导入失败')
         # 导入成功后刷新前端缓存
         self._received_data = None
-        return None

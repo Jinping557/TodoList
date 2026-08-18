@@ -13,4 +13,3 @@ class TagMixin:
     def delete_tag(self, tag_id):
         """删除标签"""
         self.db.delete_tag(tag_id)
-        return None
