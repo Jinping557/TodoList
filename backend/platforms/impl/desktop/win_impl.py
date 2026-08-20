@@ -1,9 +1,8 @@
 # impl/desktop/win_impl.py
-from backend.platforms.impl.desktop.common.common_impl import DesktopCommonService
-from backend.platforms.impl.desktop.win_firewall_manager import FirewallManager
-
 import os
 from pathlib import Path
+from backend.platforms.impl.desktop.common.common_impl import DesktopCommonService
+from backend.platforms.impl.desktop.win_firewall_manager import FirewallManager
 
 class WindowsService(DesktopCommonService):
     def shortcut_handler(self, shortcut, handler):
@@ -144,7 +143,7 @@ class WindowsService(DesktopCommonService):
     def start_app(self):
         """启动应用的统一接口"""
         from backend.platforms.impl.desktop.common.system_tray import SystemTrayManager
-        manager = SystemTrayManager(self)
+        manager = SystemTrayManager()
         manager.start_app(True)
 
 # 用于给工厂注册的导出变量

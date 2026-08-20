@@ -4,12 +4,12 @@
 """
 
 import os
-import logging
 import re
 from pathlib import Path
 from typing import Optional, Dict, Any
 from webdav3.client import Client
 from datetime import datetime, timezone
+from backend.utils.logger import LogManager
 
 def _parse_webdav_time(time_str):
     """
@@ -24,23 +24,16 @@ def _parse_webdav_time(time_str):
     dt_naive = datetime.strptime(time_str_without_tz, '%a, %d %b %Y %H:%M:%S')
     return dt_naive.replace(tzinfo=timezone.utc).timestamp()
 
-
-class WebDAVClient:
+class WebDAVClient(LogManager):
     """坚果云WebDAV客户端"""
 
-    def __init__(self, platform_service):
+    def __init__(self):
+        super().__init__()
         self.url = None
         self.client = None
         self.username = None
         self.password = None
         self.remote_path = None
-        self.service = platform_service
-
-    def _get_logger(self):
-        if self.service is not None:
-            return self.service.backend_logger()
-        # 降级方案：使用标准 logging（避免 None 报错）
-        return logging.getLogger(__name__)
 
     def configure(self, username: str, password: str, remote_path: str, url: str = 'https://dav.jianguoyun.com/dav') -> bool:
         """
@@ -56,7 +49,7 @@ class WebDAVClient:
             bool: 配置是否成功
         """
         if not username or not password:
-            self._get_logger().error("用户名或密码不能为空")
+            self.get_logger.error("用户名或密码不能为空")
             return False
             
         self.username = username
@@ -73,10 +66,10 @@ class WebDAVClient:
             }
             self.client = Client(options)
 
-            self._get_logger().info("WebDAV客户端配置成功")
+            self.get_logger.info("WebDAV客户端配置成功")
             return True
         except Exception as e:
-            self._get_logger().error(f"WebDAV客户端配置失败: {e}")
+            self.get_logger.error(f"WebDAV客户端配置失败: {e}")
             self.client = None
             return False
     
@@ -135,7 +128,7 @@ class WebDAVClient:
 
         # 上传文件
         self.client.upload_sync(remote_path = self.remote_path, local_path = local_file_path)
-        self._get_logger().info(f"文件上传成功: {local_file_path} -> {self.remote_path}")
+        self.get_logger.info(f"文件上传成功: {local_file_path} -> {self.remote_path}")
 
     def download_file(self, local_file_path: str, is_overwrite: bool = False):
         """
@@ -167,12 +160,12 @@ class WebDAVClient:
 
         # 步骤3：获取本地文件的最后修改时间（若本地文件不存在，直接下载）
         if not os.path.exists(local_file_path):
-            self._get_logger().warning("本地文件不存在，执行首次下载")
+            self.get_logger.warning("本地文件不存在，执行首次下载")
             self.client.download_sync(remote_path=self.remote_path, local_path=local_file_path)
             return
 
         local_modified = datetime.fromtimestamp(os.path.getmtime(local_file_path), tz=timezone.utc)
-        self._get_logger().info(f"远程时间：{remote_modified}，本地时间：{local_modified.timestamp()}")
+        self.get_logger.info(f"远程时间：{remote_modified}，本地时间：{local_modified.timestamp()}")
 
         # 步骤4：对比时间戳（版本），仅远程更新时下载
         # 加1秒容差：避免系统时间微小差异导致误判
@@ -201,7 +194,7 @@ class WebDAVClient:
                     current_path = f"{current_path}/{dir_name}" if current_path else dir_name
                     try:
                         self.client.mkdir(current_path)
-                        self._get_logger().debug(f"创建远程目录: {current_path}")
+                        self.get_logger.debug(f"创建远程目录: {current_path}")
                     except:
                         # 目录可能已经存在，忽略错误
                         pass
@@ -219,15 +212,15 @@ class WebDAVClient:
         try:
             return self.client.check(remote_path)
         except Exception as e:
-            self._get_logger().error(f"检查远程文件存在性失败: {e}")
+            self.get_logger.error(f"检查远程文件存在性失败: {e}")
             return False
 
 # 全局WebDAV客户端实例
 _webdav_client: Optional[WebDAVClient] = None
 
-def get_webdav_client(platform_service) -> WebDAVClient:
+def get_webdav_client() -> WebDAVClient:
     """获取全局WebDAV客户端实例"""
     global _webdav_client
     if _webdav_client is None:
-        _webdav_client = WebDAVClient(platform_service)
+        _webdav_client = WebDAVClient()
     return _webdav_client

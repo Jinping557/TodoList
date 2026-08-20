@@ -194,21 +194,21 @@ class DesktopCommonService(PlatformService):
     def start_keyboard(self):
         """应用启用快捷键的统一接口"""
         from backend.platforms.impl.desktop.common.smart_task import SmartTaskInput
-        SmartTaskInput(self)
+        SmartTaskInput()
 
     def start_desktop_task_reminder(self, is_start, event=None):
         """应用启用快捷键的统一接口"""
         from backend.platforms.impl.desktop.common.task_reminder import start_reminder, stop_reminder
         if is_start:
-            start_reminder(platform_service=self, click_event=event)
+            start_reminder(click_event=event)
         else:
-            stop_reminder(self)
+            stop_reminder()
 
     def add_new_desktop_task_reminder(self):
         """应用桌面端新任务添加消息提醒的统一接口"""
         from backend.platforms.impl.desktop.common.task_reminder import get_reminder
         # 重置已提醒任务列表，确保新任务可以被提醒
-        reminder = get_reminder(self)
+        reminder = get_reminder()
         reminder.reset_notified_tasks()
 
     def check_calendar_permission(self):

@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta
 import re
-
+from datetime import datetime, timedelta
 from backend.database.operations import TodoDatabase
+from backend.utils.logger import LogManager
 
 font_color_other = '#b85c00'
 font_color_white = '#ffffff'
@@ -10,9 +10,9 @@ background_color_success = '#4CAF50'
 background_color_warning = '#fff9e8'
 default_warning = '💡 输入任务内容... 使用 #标签 *分类 @时间'
 
-class SmartTaskInput:
-    def __init__(self, platform_service):
-        self.service = platform_service
+class SmartTaskInput(LogManager):
+    def __init__(self):
+        super().__init__()
         self.window = None
         self.is_hide = True
         self.value = None
@@ -22,13 +22,6 @@ class SmartTaskInput:
         self.categories = [item['name'] for item in self.db.get_all_categories()]
         self._hotkey_ref = None  # MacOS：必须持有快捷键引用的句柄，防止被 GC 垃圾回收
         self.setup_keyboard() # setup_keyboard初始化面板，置于所有属性init之后
-
-    def _get_logger(self):
-        import logging
-        if self.service is not None:
-            return self.service.backend_logger()
-        # 降级方案：使用标准 logging（避免 None 报错）
-        return logging.getLogger(__name__)
 
     def on_closing(self):
         """窗口关闭点击事件：仅首次关闭弹窗提醒"""
@@ -221,7 +214,7 @@ class SmartTaskInput:
                 return target
 
         except Exception as e:
-            self._get_logger().error(f"时间解析错误: {e}")
+            self.get_logger.error(f"时间解析错误: {e}")
 
         return None
 
@@ -426,4 +419,4 @@ class SmartTaskInput:
             raw_shortcut = self.db.get_setting('shortcut', '<ctrl>+<space>').strip().lower()
             self._hotkey_ref = self.service.shortcut_handler(raw_shortcut, self.toggle_window)
         except Exception as e:
-            self._get_logger().error(f"设置全局快捷键发生异常: {e}")
+            self.get_logger.error(f"设置全局快捷键发生异常: {e}")

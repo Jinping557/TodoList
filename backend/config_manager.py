@@ -8,23 +8,16 @@ import json
 import platform
 from pathlib import Path
 from typing import Optional, Dict, Any
-
 from backend.config import ANDROID_PRIMARY_USR_DIR, ANDROID_PRIMARY_DATA_DIR, ANDROID_EXTERNAL_DIR, ANDROID_PACKAGE_NAME
+from backend.utils.logger import LogManager
 
-class ConfigManager:
+class ConfigManager(LogManager):
     """外部配置管理器，独立于数据库"""
     
-    def __init__(self, platform_service):
+    def __init__(self):
+        super().__init__()
         self.config_file = self._get_config_file_path()
         self.config = self._load_config()
-        self.service = platform_service
-
-    def _get_logger(self):
-        import logging
-        if self.service is not None:
-            return self.service.backend_logger()
-        # 降级方案：使用标准 logging（避免 None 报错）
-        return logging.getLogger(__name__)
     
     def _is_android(self) -> bool:
         """检测是否为Android系统"""
@@ -107,7 +100,7 @@ class ConfigManager:
                 with open(self.config_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
             except (json.JSONDecodeError, IOError) as e:
-                self._get_logger().error(f"警告：配置文件读取失败: {e}")
+                self.get_logger.error(f"警告：配置文件读取失败: {e}")
                 return {}
         return {}
     
@@ -118,7 +111,7 @@ class ConfigManager:
                 json.dump(self.config, f, indent=2, ensure_ascii=False)
             return True
         except IOError as e:
-            self._get_logger().error(f"警告：配置文件保存失败: {e}")
+            self.get_logger.error(f"警告：配置文件保存失败: {e}")
             return False
     
     def get(self, key: str, default: Any = None) -> Any:
@@ -225,23 +218,23 @@ class ConfigManager:
         # 保存配置
         success = self.set('data_file', path)
         if success:
-            self._get_logger().info(f"数据文件配置已保存到外部配置文件: {path}")
+            self.get_logger.info(f"数据文件配置已保存到外部配置文件: {path}")
         return success
 
 # 全局配置管理器实例
 _config_manager: Optional[ConfigManager] = None
 
-def get_config_manager(platform_service) -> ConfigManager:
+def get_config_manager() -> ConfigManager:
     """获取全局配置管理器实例"""
     global _config_manager
     if _config_manager is None:
-        _config_manager = ConfigManager(platform_service)
+        _config_manager = ConfigManager()
     return _config_manager
 
-def get_data_file(platform_service) -> str:
+def get_data_file() -> str:
     """获取数据文件（便捷函数）"""
-    return get_config_manager(platform_service).get_data_file()
+    return get_config_manager().get_data_file()
 
-def set_data_file(platform_service, path: str) -> bool:
+def set_data_file(path: str) -> bool:
     """设置数据文件（便捷函数）"""
-    return get_config_manager(platform_service).set_data_file(path)
+    return get_config_manager().set_data_file(path)

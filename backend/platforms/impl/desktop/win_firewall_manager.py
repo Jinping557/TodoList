@@ -1,8 +1,8 @@
 # impl/desktop/win_firewall_manager.py
 import os
 import subprocess
-import logging
 from typing import Tuple
+from backend.utils.logger import LogManager
 
 def is_admin() -> bool:
     """检查当前是否具有管理员权限（仅Windows）
@@ -16,7 +16,7 @@ def is_admin() -> bool:
     except:
         return False
 
-class FirewallManager:
+class FirewallManager(LogManager):
     """Windows防火墙管理器：用于自动添加/删除P2P服务所需的防火墙规则"""
 
     def __init__(self, service, rule_name: str = "TodoList P2P Server", port: int = 5353):
@@ -26,15 +26,9 @@ class FirewallManager:
             rule_name: 防火墙规则名称
             port: 需要开放的端口号
         """
+        super().__init__()
         self.rule_name = rule_name
         self.port = port
-        self.service = service
-
-    def _get_logger(self):
-        if self.service is not None:
-            return self.service.backend_logger()
-        # 降级方案：使用标准 logging（避免 None 报错）
-        return logging.getLogger(__name__)
 
     def is_rule_exists(self) -> bool:
         """检查防火墙规则是否已存在
@@ -62,7 +56,7 @@ class FirewallManager:
             return "找不到规则" not in result.stdout and result.returncode == 0
 
         except Exception as e:
-            self._get_logger().error(f"[防火墙] 检查规则失败: {e}")
+            self.get_logger.error(f"[防火墙] 检查规则失败: {e}")
             return False
 
     def add_rule(self) -> Tuple[bool, str]:
@@ -73,12 +67,12 @@ class FirewallManager:
         """
         # 检查规则是否已存在
         if self.is_rule_exists():
-            self._get_logger().info(f"[防火墙] 规则已存在: {self.rule_name}")
+            self.get_logger.info(f"[防火墙] 规则已存在: {self.rule_name}")
             return True, "防火墙规则已存在"
 
         # 检查是否有管理员权限
         if not is_admin():
-            self._get_logger().info(f"[防火墙] [WARN] 当前用户权限不足，尝试以管理员权限执行...")
+            self.get_logger.info(f"[防火墙] [WARN] 当前用户权限不足，尝试以管理员权限执行...")
             return self._add_rule_with_admin()
 
         try:
@@ -91,8 +85,8 @@ class FirewallManager:
                 f'profile=any'
             )
 
-            self._get_logger().info(f"[防火墙] 正在添加防火墙规则...")
-            self._get_logger().info(f"[防火墙] 命令: {cmd}")
+            self.get_logger.info(f"[防火墙] 正在添加防火墙规则...")
+            self.get_logger.info(f"[防火墙] 命令: {cmd}")
 
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -108,22 +102,22 @@ class FirewallManager:
             )
 
             if result.returncode == 0:
-                self._get_logger().info(f"[防火墙] [OK] 防火墙规则添加成功")
-                self._get_logger().info(f"[防火墙] 规则名称: {self.rule_name}")
-                self._get_logger().info(f"[防火墙] 开放端口: {self.port}/TCP")
+                self.get_logger.info(f"[防火墙] [OK] 防火墙规则添加成功")
+                self.get_logger.info(f"[防火墙] 规则名称: {self.rule_name}")
+                self.get_logger.info(f"[防火墙] 开放端口: {self.port}/TCP")
                 return True, "防火墙规则添加成功"
             else:
                 error_msg = result.stderr.strip() if result.stderr else "未知错误"
-                self._get_logger().error(f"[防火墙] [FAIL] 添加防火墙规则失败: {error_msg}")
+                self.get_logger.error(f"[防火墙] [FAIL] 添加防火墙规则失败: {error_msg}")
                 return False, f"添加防火墙规则失败: {error_msg}"
 
         except subprocess.TimeoutExpired:
             error_msg = "添加防火墙规则超时，请检查系统权限"
-            self._get_logger().error(f"[防火墙] [FAIL] {error_msg}")
+            self.get_logger.error(f"[防火墙] [FAIL] {error_msg}")
             return False, error_msg
         except Exception as e:
             error_msg = f"添加防火墙规则时发生异常: {str(e)}"
-            self._get_logger().error(f"[防火墙] [FAIL] {error_msg}")
+            self.get_logger.error(f"[防火墙] [FAIL] {error_msg}")
             return False, error_msg
 
     def _add_rule_with_admin(self) -> Tuple[bool, str]:
@@ -142,8 +136,8 @@ class FirewallManager:
                 f'profile=any'
             )
 
-            self._get_logger().warning(f"[防火墙] [WARN] 当前用户权限不足")
-            self._get_logger().info(f"[防火墙] 正在创建临时批处理文件...")
+            self.get_logger.warning(f"[防火墙] [WARN] 当前用户权限不足")
+            self.get_logger.info(f"[防火墙] 正在创建临时批处理文件...")
 
             # 创建临时批处理文件
             import tempfile
@@ -172,7 +166,7 @@ exit /b 0
             with open(bat_path, 'w', encoding='utf-8') as f:
                 f.write(bat_content)
 
-            self._get_logger().info(f"[防火墙] 临时文件: {bat_path}")
+            self.get_logger.info(f"[防火墙] 临时文件: {bat_path}")
 
             # 使用ShellExecute以管理员身份运行批处理文件
             import ctypes
@@ -189,8 +183,8 @@ exit /b 0
             ]
             ShellExecute.restype = wintypes.HINSTANCE
 
-            self._get_logger().info(f"[防火墙] 正在请求管理员权限...")
-            self._get_logger().info(f"[防火墙] 请在弹出的UAC提示框中点击'是'")
+            self.get_logger.info(f"[防火墙] 正在请求管理员权限...")
+            self.get_logger.info(f"[防火墙] 请在弹出的UAC提示框中点击'是'")
 
             # 使用runas动词请求管理员权限
             result = ShellExecute(
@@ -205,18 +199,18 @@ exit /b 0
             if result > 32:
                 # ShellExecute成功，等待批处理执行完成
                 import time
-                self._get_logger().info(f"[防火墙] 正在等待防火墙规则配置完成...")
+                self.get_logger.info(f"[防火墙] 正在等待防火墙规则配置完成...")
                 time.sleep(5)  # 等待5秒给用户时间响应UAC
 
                 # 检查规则是否添加成功
                 if self.is_rule_exists():
-                    self._get_logger().info(f"[防火墙] [OK] 防火墙规则添加成功")
-                    self._get_logger().info(f"[防火墙] 规则名称: {self.rule_name}")
-                    self._get_logger().info(f"[防火墙] 开放端口: {self.port}/TCP")
+                    self.get_logger.info(f"[防火墙] [OK] 防火墙规则添加成功")
+                    self.get_logger.info(f"[防火墙] 规则名称: {self.rule_name}")
+                    self.get_logger.info(f"[防火墙] 开放端口: {self.port}/TCP")
                     return True, "防火墙规则添加成功"
                 else:
                     # 规则未添加成功
-                    self._get_logger().warning(f"[防火墙] [FAIL] 防火墙规则未添加")
+                    self.get_logger.warning(f"[防火墙] [FAIL] 防火墙规则未添加")
                     error_msg = (
                         "防火墙规则添加失败\n\n"
                         "可能的原因：\n"
@@ -232,7 +226,7 @@ exit /b 0
                     return False, error_msg
             else:
                 # ShellExecute失败
-                self._get_logger().warning(f"[防火墙] [FAIL] 无法请求管理员权限（错误代码: {result}）")
+                self.get_logger.warning(f"[防火墙] [FAIL] 无法请求管理员权限（错误代码: {result}）")
                 error_msg = (
                     "无法请求管理员权限\n\n"
                     "请尝试以下方法：\n"
@@ -244,7 +238,7 @@ exit /b 0
                 return False, error_msg
 
         except Exception as e:
-            self._get_logger().error(f"[防火墙] [FAIL] 提升权限失败: {e}")
+            self.get_logger.error(f"[防火墙] [FAIL] 提升权限失败: {e}")
             import traceback
             traceback.print_exc()
 
@@ -281,20 +275,20 @@ exit /b 0
         """
         # 检查规则是否存在
         if not self.is_rule_exists():
-            self._get_logger().warning(f"[防火墙] 防火墙规则不存在: {self.rule_name}")
+            self.get_logger.warning(f"[防火墙] 防火墙规则不存在: {self.rule_name}")
             return True, "防火墙规则不存在，无需删除"
 
         # 检查是否有管理员权限
         if not is_admin():
-            self._get_logger().warning(f"[防火墙] [WARN] 当前用户权限不足，尝试以管理员权限执行...")
+            self.get_logger.warning(f"[防火墙] [WARN] 当前用户权限不足，尝试以管理员权限执行...")
             return self._remove_rule_with_admin()
 
         try:
             # 构建netsh命令
             cmd = f'netsh advfirewall firewall delete rule name="{self.rule_name}"'
 
-            self._get_logger().info(f"[防火墙] 正在删除防火墙规则...")
-            self._get_logger().info(f"[防火墙] 命令: {cmd}")
+            self.get_logger.info(f"[防火墙] 正在删除防火墙规则...")
+            self.get_logger.info(f"[防火墙] 命令: {cmd}")
 
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -310,24 +304,24 @@ exit /b 0
             )
 
             if result.returncode == 0:
-                self._get_logger().info(f"[防火墙] [OK] 防火墙规则删除成功")
+                self.get_logger.info(f"[防火墙] [OK] 防火墙规则删除成功")
                 return True, "防火墙规则删除成功"
             else:
                 error_msg = result.stderr.strip() if result.stderr else "未知错误"
-                self._get_logger().error(f"[防火墙] [FAIL] 删除防火墙规则失败: {error_msg}")
+                self.get_logger.error(f"[防火墙] [FAIL] 删除防火墙规则失败: {error_msg}")
                 # 即使删除失败，如果规则不存在也视为成功
                 if not self.is_rule_exists():
-                    self._get_logger().info(f"[防火墙] [OK] 防火墙规则已不存在，视为删除成功")
+                    self.get_logger.info(f"[防火墙] [OK] 防火墙规则已不存在，视为删除成功")
                     return True, "防火墙规则删除成功"
                 return False, f"删除防火墙规则失败: {error_msg}"
 
         except subprocess.TimeoutExpired:
             error_msg = "删除防火墙规则超时，请检查系统权限"
-            self._get_logger().warning(f"[防火墙] [FAIL] {error_msg}")
+            self.get_logger.warning(f"[防火墙] [FAIL] {error_msg}")
             return False, error_msg
         except Exception as e:
             error_msg = f"删除防火墙规则时发生异常: {str(e)}"
-            self._get_logger().error(f"[防火墙] [FAIL] {error_msg}")
+            self.get_logger.error(f"[防火墙] [FAIL] {error_msg}")
             return False, error_msg
 
     def _remove_rule_with_admin(self) -> Tuple[bool, str]:
@@ -340,8 +334,8 @@ exit /b 0
             # 构建netsh命令
             cmd = f'netsh advfirewall firewall delete rule name="{self.rule_name}"'
 
-            self._get_logger().warning(f"[防火墙] [WARN] 当前用户权限不足")
-            self._get_logger().info(f"[防火墙] 正在创建临时批处理文件...")
+            self.get_logger.warning(f"[防火墙] [WARN] 当前用户权限不足")
+            self.get_logger.info(f"[防火墙] 正在创建临时批处理文件...")
 
             # 创建临时批处理文件
             import tempfile
@@ -370,7 +364,7 @@ exit /b 0
             with open(bat_path, 'w', encoding='utf-8') as f:
                 f.write(bat_content)
 
-            self._get_logger().info(f"[防火墙] 临时文件: {bat_path}")
+            self.get_logger.info(f"[防火墙] 临时文件: {bat_path}")
 
             # 使用ShellExecute以管理员身份运行批处理文件
             import ctypes
@@ -387,8 +381,8 @@ exit /b 0
             ]
             ShellExecute.restype = wintypes.HINSTANCE
 
-            self._get_logger().info(f"[防火墙] 正在请求管理员权限...")
-            self._get_logger().info(f"[防火墙] 请在弹出的UAC提示框中点击'是'")
+            self.get_logger.info(f"[防火墙] 正在请求管理员权限...")
+            self.get_logger.info(f"[防火墙] 请在弹出的UAC提示框中点击'是'")
 
             # 使用runas动词请求管理员权限
             result = ShellExecute(
@@ -403,16 +397,16 @@ exit /b 0
             if result > 32:
                 # ShellExecute成功，等待批处理执行完成
                 import time
-                self._get_logger().info(f"[防火墙] 正在等待防火墙规则删除...")
+                self.get_logger.info(f"[防火墙] 正在等待防火墙规则删除...")
                 time.sleep(4)  # 等待4秒给用户时间响应UAC
 
                 # 检查规则是否删除成功
                 if not self.is_rule_exists():
-                    self._get_logger().info(f"[防火墙] [OK] 防火墙规则删除成功")
+                    self.get_logger.info(f"[防火墙] [OK] 防火墙规则删除成功")
                     return True, "防火墙规则删除成功"
                 else:
                     # 规则仍然存在
-                    self._get_logger().info(f"[防火墙] [FAIL] 防火墙规则仍然存在")
+                    self.get_logger.info(f"[防火墙] [FAIL] 防火墙规则仍然存在")
                     error_msg = (
                         "防火墙规则删除失败\n\n"
                         "可能的原因：\n"
@@ -427,7 +421,7 @@ exit /b 0
                     return False, error_msg
             else:
                 # ShellExecute失败
-                self._get_logger().warning(f"[防火墙] [FAIL] 无法请求管理员权限（错误代码: {result}）")
+                self.get_logger.warning(f"[防火墙] [FAIL] 无法请求管理员权限（错误代码: {result}）")
                 error_msg = (
                     "无法请求管理员权限\n\n"
                     "请尝试以下方法：\n"
@@ -439,7 +433,7 @@ exit /b 0
                 return False, error_msg
 
         except Exception as e:
-            self._get_logger().error(f"[防火墙] [FAIL] 提升权限失败: {e}")
+            self.get_logger.error(f"[防火墙] [FAIL] 提升权限失败: {e}")
             import traceback
             traceback.print_exc()
 

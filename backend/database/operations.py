@@ -7,10 +7,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import sqlite3
 from backend.database.models import Tag, Task, Category
-from backend.platforms.core.factory import get_platform_service
-
-service = get_platform_service()
-backend_logger = service.backend_logger()
 
 def get_app_data_file():
     """获取应用数据文件路径"""
@@ -92,7 +88,6 @@ class TodoDatabase:
         
         # 数据库文件路径
         self.db_path = str(db_file) if isinstance(db_file, Path) else db_file
-        backend_logger.info(f"数据库路径: {self.db_path}")
         self.init_database()
 
     def get_connection(self):

@@ -69,3 +69,10 @@ def setup_logger(platform_service, name='todolist', level=logging.INFO, max_byte
     logger.addHandler(console_handler)
     
     return logger
+
+# 日志基类：集成该类便于调用日志方法
+class LogManager:
+    def __init__(self):
+        from backend.platforms.core.factory import get_platform_service
+        self.service = get_platform_service()
+        self.get_logger = self.service.backend_logger()

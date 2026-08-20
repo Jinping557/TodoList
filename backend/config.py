@@ -64,7 +64,7 @@ def get_current_data_file():
     # 首先尝试从外部配置管理器获取配置
     try:
         from backend.config_manager import get_data_file
-        return get_data_file(service)
+        return get_data_file()
     except Exception as e:
         backend_logger.error(f"警告：从外部配置获取数据文件配置失败: {e}")
     
@@ -109,7 +109,7 @@ def set_data_file(path):
     # 保存到外部配置文件
     try:
         from backend.config_manager import set_data_file as set_external_data_file
-        success = set_external_data_file(service, path)
+        success = set_external_data_file(path)
         if success:
             backend_logger.info(f"数据文件配置已保存到外部配置文件: {path}")
             return True

@@ -2,7 +2,6 @@
 
 import sys
 from pathlib import Path
-from typing import Dict, Any
 from backend.platforms.impl.desktop.common.common_impl import DesktopCommonService
 from typing import Tuple, Optional
 
@@ -269,7 +268,7 @@ class MacService(DesktopCommonService):
     def start_app(self):
         """启动应用的统一接口"""
         from backend.platforms.impl.desktop.common.system_tray import SystemTrayManager
-        manager = SystemTrayManager(self)
+        manager = SystemTrayManager()
         manager.start_app(False) # Mac端开启SSL存在warning告警
 
 # 用于给工厂注册的导出变量
