@@ -358,6 +358,85 @@
     }
 }
 
+/* 子任务区域样式 */
+.subtask-input-row {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+}
+
+.subtask-input-row #subtask-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.subtask-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.subtask-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.subtask-item:last-child {
+    border-bottom: none;
+}
+
+.subtask-item-index {
+    flex-shrink: 0;
+    width: 22px;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    text-align: center;
+}
+
+.subtask-item-title {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    word-break: break-all;
+}
+
+.subtask-item-title-edit {
+    flex: 1;
+    min-width: 0;
+    padding: 2px 6px;
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+}
+
+.subtask-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.subtask-item-actions .btn {
+    --height: auto;
+    --width: auto;
+    padding: 2px 6px;
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+}
+
+.subtask-empty {
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-xs) 0;
+    text-align: center;
+}
+
 /* 日期时间输入框容器样式 */
 .datetime-inputs {
     display: grid;
