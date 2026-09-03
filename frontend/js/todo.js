@@ -23,6 +23,15 @@ class TodoManager {
             isOpen: false,
             editingTaskId: ''
         };
+        // 子任务编辑器状态（新建/编辑任务弹窗中）
+        // modalSubtasks: [{ id, title, _origTitle, _task, _editing }]
+        //   - id: 已存在子任务的真实 ID；新建子任务为 null
+        //   - _origTitle: 加载时的原始标题（用于判断是否被修改）
+        //   - _task: 已存在子任务的完整任务对象（用于编辑后回写）
+        //   - _editing: 是否处于行内编辑状态
+        // deletedSubtaskIds: 编辑模式下被移除的已存在子任务 ID（用于保存时解绑并删除）
+        this.modalSubtasks = [];
+        this.deletedSubtaskIds = [];
         // 分页相关
         this.currentPage = 1;
         this.pageSize = 10;
@@ -224,6 +233,47 @@ class TodoManager {
         // 展示更多/更少标签
         const showMoreTags = document.getElementById('show-tags');
         showMoreTags?.addEventListener('click', () => this.toggleMoreTags());
+
+        // 子任务添加按钮
+        const subtaskAddBtn = document.getElementById('subtask-add-btn');
+        subtaskAddBtn?.addEventListener('click', () => this.addSubtaskFromInput());
+
+        // 子任务输入框：回车添加
+        const subtaskInput = document.getElementById('subtask-input');
+        subtaskInput?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.addSubtaskFromInput();
+            }
+        });
+
+        // 子任务列表：编辑/保存/取消/删除（事件委托）
+        const subtaskList = document.getElementById('subtask-list');
+        subtaskList?.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const index = parseInt(btn.dataset.index, 10);
+            if (Number.isNaN(index)) return;
+            if (action === 'edit') this.startEditSubtask(index);
+            else if (action === 'save') this.saveEditSubtask(index);
+            else if (action === 'cancel') this.cancelEditSubtask(index);
+            else if (action === 'delete') this.deleteSubtask(index);
+        });
+
+        // 子任务行内编辑：回车保存，Esc 取消（事件委托）
+        subtaskList?.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('subtask-item-title-edit')) return;
+            const index = parseInt(e.target.closest('.subtask-item')?.dataset.index, 10);
+            if (Number.isNaN(index)) return;
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.saveEditSubtask(index);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                this.cancelEditSubtask(index);
+            }
+        });
     }
     
     // 展开/收起更多选项
@@ -309,15 +359,20 @@ class TodoManager {
         const recurringOptions = document.getElementById('recurring-options');
         const recurrenceCount = document.getElementById('recurrence-count');
         const recurrenceType = document.getElementById('recurrence-type');
+        const subtaskSection = document.getElementById('subtask-section');
 
         if (isRecurringCheckbox.checked) {
             recurringOptions.style.display = 'block';
             // 勾选周期性任务时，设置循环次数为必填
             if (recurrenceCount) recurrenceCount.required = true;
+            // 周期性任务会创建多个实例，子任务关联不明确，隐藏子任务区域
+            if (subtaskSection) subtaskSection.style.display = 'none';
         } else {
             recurringOptions.style.display = 'none';
             // 取消勾选时，移除必填限制
             if (recurrenceCount) recurrenceCount.required = false;
+            // 恢复子任务区域显示
+            if (subtaskSection) subtaskSection.style.display = '';
         }
         recurrenceCount.placeholder = window.languageManager.getText('recurrenceCountRequired', '循环次数不能为空');
     }
@@ -1083,6 +1138,9 @@ class TodoManager {
         this.resetParentTaskCombobox();
         this.initParentTaskCombobox();
 
+        // 重置子任务编辑器（新建模式下子任务列表为空）
+        this.resetSubtaskEditor();
+
         // 加载标签选择器
         this.loadTagsSelector();
 
@@ -1277,6 +1335,228 @@ class TodoManager {
         });
     }
     
+    // ========== 子任务编辑器（新建/编辑任务弹窗内） ==========
+
+    // 重置子任务编辑器状态与 UI（用于打开新建任务弹窗时）
+    resetSubtaskEditor() {
+        this.modalSubtasks = [];
+        this.deletedSubtaskIds = [];
+        const input = document.getElementById('subtask-input');
+        if (input) input.value = '';
+        this.renderSubtaskList();
+    }
+
+    // 从输入框添加一个子任务（新建项，id 为 null）
+    addSubtaskFromInput() {
+        const input = document.getElementById('subtask-input');
+        if (!input) return;
+        const title = input.value.trim();
+        if (!title) {
+            Utils.showToast(window.languageManager.getText('errorTitleRequired', '请输入子任务标题'), 'warning');
+            return;
+        }
+        // 避免重复标题（新建项去重）
+        const exists = this.modalSubtasks.some(s => (s.title || '').trim() === title);
+        if (exists) {
+            input.value = '';
+            return;
+        }
+        this.modalSubtasks.push({
+            id: null,
+            title: title,
+            _origTitle: null,
+            _task: null,
+            _editing: false
+        });
+        input.value = '';
+        this.renderSubtaskList();
+        input.focus();
+    }
+
+    // 进入某个子任务的行内编辑状态
+    startEditSubtask(index) {
+        if (index < 0 || index >= this.modalSubtasks.length) return;
+        this.modalSubtasks.forEach((s, i) => (s._editing = i === index));
+        this.renderSubtaskList();
+        const editInput = document.querySelector('.subtask-item-title-edit');
+        if (editInput) {
+            editInput.focus();
+            editInput.select();
+        }
+    }
+
+    // 保存行内编辑结果
+    saveEditSubtask(index) {
+        const item = this.modalSubtasks[index];
+        if (!item) return;
+        const editInput = document.querySelector('.subtask-item-title-edit');
+        const newTitle = (editInput ? editInput.value : '').trim() || item.title;
+        item.title = newTitle;
+        item._editing = false;
+        this.renderSubtaskList();
+    }
+
+    // 取消行内编辑，恢复为原标题
+    cancelEditSubtask(index) {
+        const item = this.modalSubtasks[index];
+        if (!item) return;
+        item._editing = false;
+        this.renderSubtaskList();
+    }
+
+    // 删除某个子任务（已存在的项记录到 deletedSubtaskIds 以便保存时解绑删除）
+    deleteSubtask(index) {
+        const item = this.modalSubtasks[index];
+        if (!item) return;
+        if (item.id) this.deletedSubtaskIds.push(item.id);
+        this.modalSubtasks.splice(index, 1);
+        this.renderSubtaskList();
+    }
+
+    // 渲染子任务列表
+    renderSubtaskList() {
+        const listEl = document.getElementById('subtask-list');
+        const emptyEl = document.getElementById('subtask-empty');
+        if (!listEl || !emptyEl) return;
+
+        if (this.modalSubtasks.length === 0) {
+            listEl.innerHTML = '';
+            emptyEl.style.display = 'block';
+            return;
+        }
+        emptyEl.style.display = 'none';
+
+        listEl.innerHTML = this.modalSubtasks.map((item, index) => {
+            const safeTitle = (item.title || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            if (item._editing) {
+                return `
+                    <li class="subtask-item" data-index="${index}">
+                        <span class="subtask-item-index">${index + 1}.</span>
+                        <input type="text" class="subtask-item-title-edit" value="${safeTitle}" maxlength="100">
+                        <div class="subtask-item-actions">
+                            <button type="button" class="btn btn--success-color" data-action="save" data-index="${index}">保存</button>
+                            <button type="button" class="btn btn--tertiary-color" data-action="cancel" data-index="${index}">取消</button>
+                        </div>
+                    </li>`;
+            }
+            return `
+                <li class="subtask-item" data-index="${index}">
+                    <span class="subtask-item-index">${index + 1}.</span>
+                    <span class="subtask-item-title">${safeTitle}</span>
+                    <div class="subtask-item-actions">
+                        <button type="button" class="btn btn--tertiary-color" data-action="edit" data-index="${index}">编辑</button>
+                        <button type="button" class="btn btn--danger-color" data-action="delete" data-index="${index}">删除</button>
+                    </div>
+                </li>`;
+        }).join('');
+    }
+
+    // 编辑模式下加载已存在的子任务
+    async loadSubtasksForEdit(taskId) {
+        this.modalSubtasks = [];
+        this.deletedSubtaskIds = [];
+        await Utils.apiCall({
+            apiMethod: 'get_children',
+            apiArgs: [taskId],
+            onSuccess: (response) => {
+                const children = response.data || [];
+                this.modalSubtasks = children.map(child => ({
+                    id: child.id,
+                    title: child.title || '',
+                    _origTitle: child.title || '',
+                    _task: child,
+                    _editing: false
+                }));
+                this.renderSubtaskList();
+            },
+            onError: () => {
+                this.renderSubtaskList();
+            }
+        });
+    }
+
+    // 保存任务后，应用子任务的增删改（新建/编辑模式通用）
+    // parentTaskId: 当前保存的任务 ID（作为子任务的父任务）
+    async applySubtaskChanges(parentTaskId) {
+        // 快照当前状态，避免在异步执行期间被其它操作（如重新打开弹窗）清空
+        const deletedIds = [...this.deletedSubtaskIds];
+        const items = this.modalSubtasks.map(s => ({ ...s }));
+
+        // 立即清理实例状态
+        this.modalSubtasks = [];
+        this.deletedSubtaskIds = [];
+
+        // 1. 删除被移除的已存在子任务：先解绑关联，再删除任务
+        for (const subId of deletedIds) {
+            await Utils.apiCall({
+                apiMethod: 'remove_task_relation',
+                apiArgs: [subId],
+                successCheck: () => true,
+                onError: () => {}
+            });
+            await Utils.apiCall({
+                apiMethod: 'delete_todo',
+                apiArgs: [subId],
+                successCheck: () => true,
+                onError: () => {}
+            });
+        }
+
+        // 2. 更新被修改标题的已存在子任务
+        for (const item of items) {
+            if (item.id && item._task && item.title !== item._origTitle) {
+                const updatedTaskData = {
+                    title: item.title,
+                    description: item._task.description || '',
+                    completed: item._task.completed || false,
+                    priority: item._task.priority || 'none',
+                    categoryId: item._task.categoryId || null,
+                    dueDate: item._task.dueDate || null,
+                    tags: (item._task.tags || []).map(t => t.name || t)
+                };
+                await Utils.apiCall({
+                    apiMethod: 'update_todo',
+                    apiArgs: [item.id, updatedTaskData],
+                    successCheck: () => true,
+                    onError: () => {}
+                });
+            }
+        }
+
+        // 3. 创建新增子任务并建立关联
+        for (const item of items) {
+            if (item.id === null && item.title) {
+                const newSubData = {
+                    title: item.title,
+                    description: '',
+                    priority: 'none',
+                    categoryId: null,
+                    dueDate: null,
+                    tags: []
+                };
+                let createdId = null;
+                await Utils.apiCall({
+                    apiMethod: 'add_todo',
+                    apiArgs: [newSubData],
+                    onSuccess: (response) => {
+                        createdId = response.data && response.data.id;
+                    },
+                    onError: () => {}
+                });
+                if (createdId) {
+                    await Utils.apiCall({
+                        apiMethod: 'add_task_relation',
+                        apiArgs: [createdId, parentTaskId],
+                        successCheck: () => true,
+                        onError: () => {}
+                    });
+                }
+            }
+        }
+    }
+
+    // ========== 子任务编辑器结束 ==========
+
     // 加载子任务数量并更新显示
     async loadSubtaskCounts() {
         const subtaskCountEls = document.querySelectorAll('.subtask-count');
@@ -1571,7 +1851,10 @@ class TodoManager {
 
         // 初始化父任务选择器（编辑模式需要先获取已选的父任务）
         this.initParentTaskForEdit(task.id);
-        
+
+        // 加载已存在的子任务到编辑器（查询）
+        this.loadSubtasksForEdit(task.id);
+
         // 添加输入值变化监听
         this.addInputValueListeners();
 
@@ -1786,6 +2069,9 @@ class TodoManager {
                         }
                     });
                 }
+
+                // 应用子任务的增删改（新建/编辑模式通用，异步执行，不阻塞主流程）
+                this.applySubtaskChanges(taskId);
 
                 Utils.showToast(message, 'success');
                 Utils.ModalManager.hide('task-modal');
