@@ -16,6 +16,10 @@ jobs:
   build-windows:
     name: Build Windows exe
     runs-on: windows-latest
+    env:
+      # 启用 Python UTF-8 模式：避免 Windows 控制台默认编码(cp1252)
+      # 无法编码 build.py 中的 emoji(如 🚀) 而导致 UnicodeEncodeError 崩溃
+      PYTHONUTF8: "1"
 
     steps:
       - name: Checkout
